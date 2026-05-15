@@ -51,6 +51,8 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         provider: a.provider,
         displayName: a.displayName,
         addedAt: a.addedAt,
+        hasSignature: !!a.signature,
+        hasStyle: !!(a.style && (a.style.fontFamily || a.style.fontSize || a.style.fontColor)),
       }));
       return ok({ accounts: rows });
     },
@@ -109,6 +111,65 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       try {
         const res = await provider.completeAddAccount(args.handle);
         return ok(res);
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  // ---------- account settings ----------
+
+  server.registerTool(
+    "get_account_settings",
+    {
+      description:
+        "Get signature (HTML) and style preferences for an account.",
+      inputSchema: { account: z.string().email() },
+    },
+    async (args) => {
+      try {
+        const acct = store.getAccount(args.account);
+        if (!acct) return fail(`no account registered for "${args.account}"`);
+        return ok({ signature: acct.signature ?? null, style: acct.style ?? null });
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  server.registerTool(
+    "set_account_settings",
+    {
+      description:
+        "Set signature (HTML snippet) and/or style preferences for an account. " +
+        "Disabled in --read-only mode.",
+      inputSchema: {
+        account: z.string().email(),
+        signature: z
+          .string()
+          .optional()
+          .describe("HTML snippet — may contain formatting, images, links. Pass null to clear."),
+        style: z
+          .object({
+            fontFamily: z.string().optional(),
+            fontSize: z.string().optional(),
+            fontColor: z.string().optional(),
+          })
+          .optional()
+          .describe("Font preferences applied to outgoing HTML emails. Pass null to clear."),
+      },
+    },
+    async (args) => {
+      if (readOnly) return fail("server is in --read-only mode; set_account_settings is disabled");
+      try {
+        const acct = store.getAccount(args.account);
+        if (!acct) return fail(`no account registered for "${args.account}"`);
+        const updated = await store.upsertAccount({
+          ...acct,
+          signature: args.signature ?? acct.signature,
+          style: args.style ?? acct.style,
+        });
+        return ok({ signature: updated.signature ?? null, style: updated.style ?? null });
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -256,7 +317,10 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
   server.registerTool(
     "send_email",
     {
-      description: "Send an email from the given account. Disabled in --read-only mode.",
+      description:
+        "Send an email from the given account. Automatically appends the " +
+        "account's signature (HTML) and applies style preferences unless " +
+        "`remove_signature` is true. Disabled in --read-only mode.",
       inputSchema: {
         account: z.string().email(),
         to: z.array(emailAddrSchema).min(1),
@@ -265,19 +329,31 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         subject: z.string(),
         body: z.string(),
         isHtml: z.boolean().optional(),
+        remove_signature: z
+          .boolean()
+          .default(false)
+          .optional()
+          .describe("Skip appending the account signature. Style is still applied."),
       },
     },
     async (args) => {
       if (readOnly) return fail("server is in --read-only mode; send_email is disabled");
       try {
         const { provider, account } = registry.resolveByEmail(args.account);
+        const composed = composeBody({
+          body: args.body,
+          isHtml: args.isHtml,
+          signature: account.signature,
+          style: account.style,
+          removeSignature: args.remove_signature,
+        });
         const res = await provider.sendEmail(account, {
           to: args.to,
           cc: args.cc,
           bcc: args.bcc,
           subject: args.subject,
-          body: args.body,
-          isHtml: args.isHtml,
+          body: composed.body,
+          isHtml: composed.isHtml,
         });
         return ok({ sent: true, ...res });
       } catch (err) {
@@ -285,6 +361,59 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       }
     },
   );
+}
+
+// ---------- body composition helpers ----------
+
+interface ComposeBodyInput {
+  body: string;
+  isHtml?: boolean;
+  signature?: string;
+  style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
+  removeSignature?: boolean;
+}
+
+export function composeBody(input: ComposeBodyInput): { body: string; isHtml: boolean } {
+  const { body, isHtml = false, signature, style, removeSignature = false } = input;
+  const hasSignature = !removeSignature && !!signature;
+  const hasStyle = !!(style && (style.fontFamily || style.fontSize || style.fontColor));
+
+  // Nothing to inject — pass through unchanged
+  if (!hasSignature && !hasStyle) {
+    return { body, isHtml };
+  }
+
+  // Need HTML for signature or style injection
+  const styleAttr = hasStyle ? buildStyleAttr(style!) : "";
+
+  if (isHtml) {
+    let result = hasStyle ? `<div style="${styleAttr}">${body}</div>` : body;
+    if (hasSignature) result += `\n<div class="signature">${signature}</div>`;
+    return { body: result, isHtml: true };
+  }
+
+  // Auto-upgrade plain text to HTML
+  const escaped = escapeHtml(body);
+  let result = `<div style="${styleAttr}">${escaped}</div>`;
+  if (hasSignature) result += `\n<div class="signature">${signature}</div>`;
+  return { body: result, isHtml: true };
+}
+
+export function buildStyleAttr(style: { fontFamily?: string; fontSize?: string; fontColor?: string }): string {
+  const parts: string[] = [];
+  if (style.fontFamily) parts.push(`font-family: ${style.fontFamily}`);
+  if (style.fontSize) parts.push(`font-size: ${style.fontSize}`);
+  if (style.fontColor) parts.push(`color: ${style.fontColor}`);
+  return parts.join("; ");
+}
+
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n/g, "<br>");
 }
 
 function errMsg(err: unknown): string {

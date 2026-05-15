@@ -2,15 +2,17 @@
   "mcpServers": {
     "hyper-email": {
       "command": "node",
-      "args": ["dist/cli.js"],
-      "cwd": "/home/daap/Codes/hypersimple/hyper-email-mcp/hyper-email-mcp-0",
+      "args": [
+        "dist/cli.js"
+      ],
+      "cwd": "/home/daap/Codes/hypersimple/hyper-email-mcp/hyper-email-mcp-1",
       "lifecycle": "lazy",
       "env": {
         "MS_CLIENT_ID": "${MS_CLIENT_ID}",
         "MS_TENANT_ID": "${MS_TENANT_ID}",
         "HYPER_EMAIL_MCP_DATA_DIR": "${HYPER_EMAIL_MCP_DATA_DIR}"
       },
-      "directTools": false
+      "directTools": true
     }
   }
 }

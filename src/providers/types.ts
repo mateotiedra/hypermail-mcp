@@ -2,6 +2,12 @@ import type { AccountRecord } from "../store/account-store.js";
 
 export type ProviderId = "outlook" | "imap" | "gmail";
 
+export interface EmailStyle {
+  fontFamily?: string;
+  fontSize?: string;
+  fontColor?: string;
+}
+
 export interface EmailAddress {
   name?: string;
   address: string;

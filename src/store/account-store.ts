@@ -18,6 +18,10 @@ export interface AccountRecord {
   displayName?: string;
   tokens: Record<string, unknown>;
   addedAt: string;
+  /** HTML snippet — may contain formatting, images, links. Injected at end of outgoing emails. */
+  signature?: string;
+  /** Font/style preferences applied to outgoing HTML emails. */
+  style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
 }
 
 interface StoreFile {
