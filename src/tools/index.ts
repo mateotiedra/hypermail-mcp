@@ -231,6 +231,29 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
   );
 
   server.registerTool(
+    "read_attachment",
+    {
+      description:
+        "Download an email attachment to a temporary file and return its path. " +
+        "Use messageId and attachmentId from a prior read_email call.",
+      inputSchema: {
+        account: z.string().email(),
+        messageId: z.string().min(1),
+        attachmentId: z.string().min(1),
+      },
+    },
+    async (args) => {
+      try {
+        const { provider, account } = registry.resolveByEmail(args.account);
+        const res = await provider.readAttachment(account, args.messageId, args.attachmentId);
+        return ok(res);
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  server.registerTool(
     "send_email",
     {
       description: "Send an email from the given account. Disabled in --read-only mode.",

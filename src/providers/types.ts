@@ -84,6 +84,12 @@ export interface CompleteAddAccountResult {
   error?: string;
 }
 
+export interface AttachmentContent {
+  name: string;
+  contentType?: string;
+  path: string;
+}
+
 export interface EmailProvider {
   readonly id: ProviderId;
 
@@ -98,5 +104,10 @@ export interface EmailProvider {
     opts: SearchEmailsOptions,
   ): Promise<EmailSummary[]>;
   readEmail(account: AccountRecord, id: string): Promise<EmailFull>;
+  readAttachment(
+    account: AccountRecord,
+    messageId: string,
+    attachmentId: string,
+  ): Promise<AttachmentContent>;
   sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
 }
