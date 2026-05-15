@@ -2,6 +2,7 @@ import type { AccountRecord } from "../../store/account-store.js";
 import type {
   AddAccountInput,
   AddAccountResult,
+  AttachmentContent,
   CompleteAddAccountResult,
   EmailFull,
   EmailProvider,
@@ -52,6 +53,14 @@ export class ImapProvider implements EmailProvider {
   }
 
   async readEmail(_account: AccountRecord, _id: string): Promise<EmailFull> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
+
+  async readAttachment(
+    _account: AccountRecord,
+    _messageId: string,
+    _attachmentId: string,
+  ): Promise<AttachmentContent> {
     throw new Error(NOT_IMPLEMENTED);
   }
 

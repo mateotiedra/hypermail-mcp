@@ -37,6 +37,7 @@
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "isomorphic-fetch": "^3.0.0",
+    "turndown": "^7.2.4",
     "zod": "^3.23.8"
   },
   "optionalDependencies": {

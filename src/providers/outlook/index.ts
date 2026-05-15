@@ -1,9 +1,15 @@
 import { randomUUID } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join as pathJoin } from "node:path";
+
+import { ResponseType } from "@microsoft/microsoft-graph-client";
 
 import type { AccountRecord, AccountStore } from "../../store/account-store.js";
 import type {
   AddAccountInput,
   AddAccountResult,
+  AttachmentContent,
   CompleteAddAccountResult,
   EmailFull,
   EmailProvider,
@@ -228,6 +234,35 @@ export class OutlookProvider implements EmailProvider {
       bodyText: body?.contentType === "text" ? body.content : undefined,
       bodyHtml: body?.contentType === "html" ? body.content : undefined,
       attachments,
+    };
+  }
+
+  async readAttachment(
+    account: AccountRecord,
+    messageId: string,
+    attachmentId: string,
+  ): Promise<AttachmentContent> {
+    const client = this.clients.get(account);
+    // First, get the attachment metadata to know the filename
+    const att = (await client
+      .api(`/me/messages/${encodeURIComponent(messageId)}/attachments/${encodeURIComponent(attachmentId)}`)
+      .select("name,contentType")
+      .get()) as { name: string; contentType?: string };
+
+    // Download the raw content as ArrayBuffer
+    const data = (await client
+      .api(`/me/messages/${encodeURIComponent(messageId)}/attachments/${encodeURIComponent(attachmentId)}/$value`)
+      .responseType(ResponseType.ARRAYBUFFER)
+      .get()) as ArrayBuffer;
+
+    // Write to temp file with original name
+    const outPath = pathJoin(tmpdir(), att.name);
+    writeFileSync(outPath, Buffer.from(data));
+
+    return {
+      name: att.name,
+      contentType: att.contentType,
+      path: outPath,
     };
   }
 

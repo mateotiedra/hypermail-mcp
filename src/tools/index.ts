@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { ProviderId } from "../providers/types.js";
+import { selectBody } from "../html-to-markdown.js";
 
 export interface RegisterToolsOptions {
   store: AccountStore;
@@ -184,17 +185,68 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
   server.registerTool(
     "read_email",
     {
-      description: "Fetch a single email with full body and recipients by id.",
+      description:
+        "Fetch a single email with full body and recipients by id. " +
+        "Body is returned as `body` with `bodyFormat` indicating the format. " +
+        "Default format is 'markdown' — HTML is automatically converted to save context tokens.",
       inputSchema: {
         account: z.string().email(),
         id: z.string().min(1),
+        format: z
+          .enum(["markdown", "html", "text"])
+          .default("markdown")
+          .optional()
+          .describe(
+            "Output body format. 'markdown' converts HTML to Markdown (default), " +
+              "'html' returns the raw HTML, 'text' returns plain text.",
+          ),
       },
     },
     async (args) => {
       try {
         const { provider, account } = registry.resolveByEmail(args.account);
         const msg = await provider.readEmail(account, args.id);
-        return ok(msg);
+        const format = args.format ?? "markdown";
+        const body = selectBody(msg, format);
+        return ok({
+          id: msg.id,
+          subject: msg.subject,
+          from: msg.from,
+          to: msg.to,
+          cc: msg.cc,
+          bcc: msg.bcc,
+          receivedAt: msg.receivedAt,
+          preview: msg.preview,
+          isRead: msg.isRead,
+          hasAttachments: msg.hasAttachments,
+          folder: msg.folder,
+          attachments: msg.attachments,
+          body,
+          bodyFormat: format,
+        });
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  server.registerTool(
+    "read_attachment",
+    {
+      description:
+        "Download an email attachment to a temporary file and return its path. " +
+        "Use messageId and attachmentId from a prior read_email call.",
+      inputSchema: {
+        account: z.string().email(),
+        messageId: z.string().min(1),
+        attachmentId: z.string().min(1),
+      },
+    },
+    async (args) => {
+      try {
+        const { provider, account } = registry.resolveByEmail(args.account);
+        const res = await provider.readAttachment(account, args.messageId, args.attachmentId);
+        return ok(res);
       } catch (err) {
         return fail(errMsg(err));
       }
