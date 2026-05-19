@@ -55,6 +55,16 @@ export interface SendInput {
   subject: string;
   body: string;
   isHtml?: boolean;
+  /** ID of the message being replied to. When set, the message is sent as a
+   *  reply (or reply-all if `replyAll` is true), preserving thread history. */
+  inReplyTo?: string;
+  /** When true and `inReplyTo` is set, reply to all recipients instead of just
+   *  the sender. Defaults to false. */
+  replyAll?: boolean;
+  /** ID of the message to forward. When set, the message is sent as a forward
+   *  of the specified message, preserving the original content. Mutually
+   *  exclusive with `inReplyTo`. */
+  forwardMessageId?: string;
 }
 
 /**
