@@ -5,7 +5,7 @@
       "args": [
         "dist/cli.js"
       ],
-      "cwd": "/home/daap/Codes/hypersimple/hyper-email-mcp/hyper-email-mcp-1",
+      "cwd": ".",
       "lifecycle": "lazy",
       "env": {
         "MS_CLIENT_ID": "${MS_CLIENT_ID}",
