@@ -320,7 +320,10 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       description:
         "Send an email from the given account. Automatically appends the " +
         "account's signature (HTML) and applies style preferences unless " +
-        "`remove_signature` is true. Disabled in --read-only mode.",
+        "`remove_signature` is true. " +
+        "When `inReplyTo` is set, sends as a reply (or reply-all) which " +
+        "preserves thread history and conversation threading. " +
+        "Disabled in --read-only mode.",
       inputSchema: {
         account: z.string().email(),
         to: z.array(emailAddrSchema).min(1),
@@ -334,6 +337,21 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           .default(false)
           .optional()
           .describe("Skip appending the account signature. Style is still applied."),
+        inReplyTo: z
+          .string()
+          .optional()
+          .describe(
+            "Message ID to reply to. When set, sends as a threaded reply " +
+              "which includes the quoted thread history automatically.",
+          ),
+        replyAll: z
+          .boolean()
+          .default(false)
+          .optional()
+          .describe(
+            "When true and `inReplyTo` is set, reply to all recipients " +
+              "instead of just the sender.",
+          ),
       },
     },
     async (args) => {
@@ -354,6 +372,8 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           subject: args.subject,
           body: composed.body,
           isHtml: composed.isHtml,
+          inReplyTo: args.inReplyTo,
+          replyAll: args.replyAll,
         });
         return ok({ sent: true, ...res });
       } catch (err) {
