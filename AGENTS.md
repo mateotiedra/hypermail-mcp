@@ -1,4 +1,4 @@
-# hyper-email-mcp
+# hypermail-mcp
 
 Unified email MCP server — operate any inbox (Outlook now, IMAP/Gmail later) by passing an email address.
 
@@ -17,7 +17,7 @@ Provides 8 tools to pi for email operations via the Model Context Protocol:
 
 ```
 src/
-├── cli.ts              # Entry point → dist/cli.js (bin: hyper-email-mcp)
+├── cli.ts              # Entry point → dist/cli.js (bin: hypermail-mcp)
 ├── server.ts           # MCP server setup, tool registration via @modelcontextprotocol/sdk
 ├── version.ts          # Version constant
 ├── providers/          # Email provider backends
@@ -56,7 +56,7 @@ pnpm start        # Run dist/cli.js directly
 Required env vars (set in `.mcp.json`):
 - `MS_CLIENT_ID` — Azure/Entra ID app registration client ID
 - `MS_TENANT_ID` — Azure/Entra ID tenant ID
-- `HYPER_EMAIL_MCP_DATA_DIR` — directory for token/account storage
+- `HYPERMAIL_MCP_DATA_DIR` — directory for token/account storage
 
 ## Key Dependencies
 

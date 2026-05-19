@@ -1,4 +1,4 @@
-# Hosting hyper-email-mcp
+# Hosting hypermail-mcp
 
 This server is designed to run either as a local stdio MCP (per-user) or as a
 multi-tenant HTTP service. This doc covers the HTTP case.
@@ -6,10 +6,10 @@ multi-tenant HTTP service. This doc covers the HTTP case.
 ## Quick start
 
 ```bash
-HYPER_EMAIL_MCP_KEY=$(openssl rand -base64 32) \
-HYPER_EMAIL_MCP_DATA_DIR=/var/lib/hyper-email-mcp \
+HYPERMAIL_MCP_KEY=$(openssl rand -base64 32) \
+HYPERMAIL_MCP_DATA_DIR=/var/lib/hypermail-mcp \
 MS_CLIENT_ID=<your-entra-app-id> \
-hyper-email-mcp --http --host 0.0.0.0 --port 3000
+hypermail-mcp --http --host 0.0.0.0 --port 3000
 ```
 
 Endpoint: `POST/GET/DELETE http://<host>:3000/mcp` (Streamable HTTP).
@@ -20,10 +20,10 @@ session is closed.
 
 ## Required environment
 
-- `HYPER_EMAIL_MCP_KEY` — **must** be set explicitly when hosted. 32 bytes
+- `HYPERMAIL_MCP_KEY` — **must** be set explicitly when hosted. 32 bytes
   encoded as base64 or hex, or any passphrase (SHA-256 will derive a key).
   Losing this key makes the existing accounts file unreadable.
-- `HYPER_EMAIL_MCP_DATA_DIR` — a persistent, writable directory. The encrypted
+- `HYPERMAIL_MCP_DATA_DIR` — a persistent, writable directory. The encrypted
   accounts blob lives at `${DIR}/accounts.json.enc`.
 - `MS_CLIENT_ID` — register your own Entra public client (Mobile & desktop
   application) with redirect URI `https://login.microsoftonline.com/common/oauth2/nativeclient`
@@ -37,19 +37,19 @@ session is closed.
 
 ```dockerfile
 FROM node:20-slim
-RUN npm install -g hyper-email-mcp
-ENV HYPER_EMAIL_MCP_DATA_DIR=/data
+RUN npm install -g hypermail-mcp
+ENV HYPERMAIL_MCP_DATA_DIR=/data
 VOLUME /data
 EXPOSE 3000
-CMD ["hyper-email-mcp", "--http", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["hypermail-mcp", "--http", "--host", "0.0.0.0", "--port", "3000"]
 ```
 
 ```bash
 docker run -d -p 3000:3000 \
-  -e HYPER_EMAIL_MCP_KEY=... \
+  -e HYPERMAIL_MCP_KEY=... \
   -e MS_CLIENT_ID=... \
-  -v hyper-email-data:/data \
-  hyper-email-mcp
+  -v hypermail-data:/data \
+  hypermail-mcp
 ```
 
 ## Read-only mode

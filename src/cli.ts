@@ -50,23 +50,23 @@ function parseArgs(argv: string[]): ParsedArgs {
 }
 
 function printHelp(): void {
-  const msg = `hyper-email-mcp — unified email MCP server
+  const msg = `hypermail-mcp — unified email MCP server
 
 Usage:
-  hyper-email-mcp [options]
+  hypermail-mcp [options]
 
 Options:
   --http              Run as Streamable HTTP server (default: stdio)
   --port <n>          HTTP port (default: 3000)
   --host <addr>       HTTP bind address (default: 127.0.0.1)
   --data-dir <path>   Where to store the encrypted accounts file
-                      (default: $HYPER_EMAIL_MCP_DATA_DIR or ~/.hyper-email-mcp)
+                      (default: $HYPERMAIL_MCP_DATA_DIR or ~/.hypermail-mcp)
   --read-only         Disable tools that modify state (send_email, remove_account, add_account)
   -h, --help          Show this help
 
 Environment:
-  HYPER_EMAIL_MCP_DATA_DIR   Same as --data-dir
-  HYPER_EMAIL_MCP_KEY        32-byte key (base64 or hex) for at-rest encryption
+  HYPERMAIL_MCP_DATA_DIR   Same as --data-dir
+  HYPERMAIL_MCP_KEY        32-byte key (base64 or hex) for at-rest encryption
   MS_CLIENT_ID               Azure AD public client (application) ID
   MS_TENANT_ID               Tenant (default: "common")
 `;
@@ -90,6 +90,6 @@ async function main(): Promise<void> {
 
 main().catch((err) => {
   // eslint-disable-next-line no-console
-  console.error("[hyper-email-mcp] fatal:", err);
+  console.error("[hypermail-mcp] fatal:", err);
   process.exit(1);
 });

@@ -8,3 +8,7 @@ tsup.config.ts
 tsconfig.json
 .env*
 coverage/
+.mcp.json
+.pi/
+AGENTS.md
+docs/

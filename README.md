@@ -1,4 +1,4 @@
-# hyper-email-mcp
+# hypermail-mcp
 
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
@@ -24,8 +24,8 @@ can be plugged in without touching tool definitions.
 ## Install / run
 
 ```bash
-npm install -g hyper-email-mcp     # or pnpm / npx
-hyper-email-mcp --help
+npm install -g hypermail-mcp     # or pnpm / npx
+hypermail-mcp --help
 ```
 
 Run as a stdio MCP server (the default) — wire it into your MCP host:
@@ -37,7 +37,7 @@ Run as a stdio MCP server (the default) — wire it into your MCP host:
   "mcpServers": {
     "hyper-email": {
       "command": "npx",
-      "args": ["-y", "hyper-email-mcp"]
+      "args": ["-y", "hypermail-mcp"]
     }
   }
 }
@@ -46,25 +46,25 @@ Run as a stdio MCP server (the default) — wire it into your MCP host:
 Or via the CLI:
 
 ```bash
-claude mcp add hyper-email -- npx -y hyper-email-mcp
+claude mcp add hypermail -- npx -y hypermail-mcp
 ```
 
 ### As a hosted HTTP server
 
 ```bash
-hyper-email-mcp --http --port 3000 --host 0.0.0.0
+hypermail-mcp --http --port 3000 --host 0.0.0.0
 # endpoint: http://<host>:3000/mcp  (Streamable HTTP transport, session-aware)
 ```
 
-When hosted you **must** set `HYPER_EMAIL_MCP_KEY` so the account file is
+When hosted you **must** set `HYPERMAIL_MCP_KEY` so the account file is
 reproducibly decryptable.
 
 ## Configuration
 
 | Env var | Purpose | Default |
 | --- | --- | --- |
-| `HYPER_EMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hyper-email-mcp` |
-| `HYPER_EMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
+| `HYPERMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hypermail-mcp` |
+| `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
 | `MS_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
 | `MS_TENANT_ID` | Tenant for the authority URL | `common` |
 

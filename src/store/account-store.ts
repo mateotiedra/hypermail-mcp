@@ -32,7 +32,7 @@ interface StoreFile {
 export interface OpenOptions {
   dataDir?: string;
   /** Inject the encryption key directly (mostly for tests). Otherwise resolved
-   *  from `HYPER_EMAIL_MCP_KEY` env, then OS keychain, then auto-generated. */
+   *  from `HYPERMAIL_MCP_KEY` env, then OS keychain, then auto-generated. */
   key?: Buffer;
 }
 
@@ -139,9 +139,9 @@ function decrypt(buf: Buffer, key: Buffer): StoreFile {
 
 function resolveDataDir(explicit?: string): string {
   if (explicit && explicit.length > 0) return path.resolve(explicit);
-  const env = process.env.HYPER_EMAIL_MCP_DATA_DIR;
+  const env = process.env.HYPERMAIL_MCP_DATA_DIR;
   if (env && env.length > 0) return path.resolve(env);
-  return path.join(homedir(), ".hyper-email-mcp");
+  return path.join(homedir(), ".hypermail-mcp");
 }
 
 function parseEnvKey(raw: string): Buffer | undefined {
@@ -161,7 +161,7 @@ function parseEnvKey(raw: string): Buffer | undefined {
 }
 
 async function resolveKey(dataDir: string): Promise<Buffer> {
-  const env = process.env.HYPER_EMAIL_MCP_KEY;
+  const env = process.env.HYPERMAIL_MCP_KEY;
   if (env && env.length > 0) {
     const k = parseEnvKey(env);
     if (k) return k;
@@ -173,7 +173,7 @@ async function resolveKey(dataDir: string): Promise<Buffer> {
 
   // Local-dev fallback: persist a generated key to a 0600 file next to the
   // accounts blob so subsequent runs can decrypt. Hosted deployments should
-  // always set HYPER_EMAIL_MCP_KEY explicitly.
+  // always set HYPERMAIL_MCP_KEY explicitly.
   const keyFile = path.join(dataDir, "master.key");
   try {
     const existing = await fs.readFile(keyFile);
@@ -190,7 +190,7 @@ async function resolveKey(dataDir: string): Promise<Buffer> {
 async function tryKeytarGet(): Promise<Buffer | undefined> {
   try {
     const mod = (await import("keytar")) as typeof import("keytar");
-    const val = await mod.getPassword("hyper-email-mcp", "master");
+    const val = await mod.getPassword("hypermail-mcp", "master");
     if (val) {
       const buf = Buffer.from(val, "base64");
       if (buf.length === KEY_LEN) return buf;
@@ -204,7 +204,7 @@ async function tryKeytarGet(): Promise<Buffer | undefined> {
 async function tryKeytarSet(key: Buffer): Promise<void> {
   try {
     const mod = (await import("keytar")) as typeof import("keytar");
-    await mod.setPassword("hyper-email-mcp", "master", key.toString("base64"));
+    await mod.setPassword("hypermail-mcp", "master", key.toString("base64"));
   } catch {
     /* ignore */
   }

@@ -22,7 +22,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<void> {
   const registry = buildRegistry({ store });
 
   const server = new McpServer(
-    { name: "hyper-email-mcp", version: VERSION },
+    { name: "hypermail-mcp", version: VERSION },
     { capabilities: { tools: {}, logging: {} } },
   );
 
@@ -74,7 +74,7 @@ async function startHttp(server: McpServer, host: string, port: number): Promise
       await transport.handleRequest(req, res, body);
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.error("[hyper-email-mcp] http error:", err);
+      console.error("[hypermail-mcp] http error:", err);
       if (!res.headersSent) {
         res.statusCode = 500;
         res.end("internal error");
@@ -84,5 +84,5 @@ async function startHttp(server: McpServer, host: string, port: number): Promise
 
   await new Promise<void>((resolve) => http.listen(port, host, resolve));
   // eslint-disable-next-line no-console
-  console.error(`[hyper-email-mcp] listening on http://${host}:${port}/mcp`);
+  console.error(`[hypermail-mcp] listening on http://${host}:${port}/mcp`);
 }
