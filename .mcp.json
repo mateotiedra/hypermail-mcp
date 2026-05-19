@@ -5,7 +5,7 @@
       "args": [
         "dist/cli.js"
       ],
-      "cwd": "."
+      "cwd": ".",
       "lifecycle": "lazy",
       "env": {
         "MS_CLIENT_ID": "${MS_CLIENT_ID}",
