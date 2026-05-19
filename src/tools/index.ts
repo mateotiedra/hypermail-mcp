@@ -323,6 +323,9 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         "`remove_signature` is true. " +
         "When `inReplyTo` is set, sends as a reply (or reply-all) which " +
         "preserves thread history and conversation threading. " +
+        "When `forwardMessageId` is set, sends as a forward of the " +
+        "specified message, preserving the original content. " +
+        "`inReplyTo` and `forwardMessageId` are mutually exclusive. " +
         "Disabled in --read-only mode.",
       inputSchema: {
         account: z.string().email(),
@@ -352,6 +355,14 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
             "When true and `inReplyTo` is set, reply to all recipients " +
               "instead of just the sender.",
           ),
+        forwardMessageId: z
+          .string()
+          .optional()
+          .describe(
+            "Message ID to forward. When set, sends as a forward of the " +
+              "specified message, preserving the original content. " +
+              "Mutually exclusive with `inReplyTo`.",
+          ),
       },
     },
     async (args) => {
@@ -365,6 +376,11 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           style: account.style,
           removeSignature: args.remove_signature,
         });
+        if (args.inReplyTo && args.forwardMessageId) {
+          return fail(
+            "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
+          );
+        }
         const res = await provider.sendEmail(account, {
           to: args.to,
           cc: args.cc,
@@ -374,6 +390,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           isHtml: composed.isHtml,
           inReplyTo: args.inReplyTo,
           replyAll: args.replyAll,
+          forwardMessageId: args.forwardMessageId,
         });
         return ok({ sent: true, ...res });
       } catch (err) {
