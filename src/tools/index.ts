@@ -1,15 +1,17 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { AccountStore } from "../store/account-store.js";
+import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
-import type { ProviderId } from "../providers/types.js";
+import type { EmailProvider, ProviderId, SendInput } from "../providers/types.js";
 import { selectBody } from "../html-to-markdown.js";
 
 export interface RegisterToolsOptions {
   store: AccountStore;
   registry: Registry;
   readOnly?: boolean;
+  /** When true, send_email is not registered — only send_draft is available. */
+  draftOnly?: boolean;
 }
 
 /** JSON-stringify a value into a single MCP text content block. */
@@ -33,7 +35,7 @@ const emailAddrSchema = z.object({
 });
 
 export function registerTools(server: McpServer, opts: RegisterToolsOptions): void {
-  const { store, registry, readOnly = false } = opts;
+  const { store, registry, readOnly = false, draftOnly = false } = opts;
 
   // ---------- account management ----------
 
@@ -314,89 +316,146 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
     },
   );
 
+  // ---------- shared send/draft helpers ----------
+
+  const sendEmailSchema = z.object({
+    account: z.string().email(),
+    to: z.array(emailAddrSchema).min(1),
+    cc: z.array(emailAddrSchema).optional(),
+    bcc: z.array(emailAddrSchema).optional(),
+    subject: z.string(),
+    body: z.string(),
+    isHtml: z.boolean().optional(),
+    include_signature: z
+      .boolean()
+      .describe(
+        "Whether to append the account's HTML signature to the email. " +
+          "Returns an error if true but no signature is configured for this account.",
+      ),
+    inReplyTo: z
+      .string()
+      .optional()
+      .describe(
+        "Message ID to reply to. When set, sends as a threaded reply " +
+          "which includes the quoted thread history automatically.",
+      ),
+    replyAll: z
+      .boolean()
+      .default(false)
+      .optional()
+      .describe(
+        "When true and `inReplyTo` is set, reply to all recipients " +
+          "instead of just the sender.",
+      ),
+    forwardMessageId: z
+      .string()
+      .optional()
+      .describe(
+        "Message ID to forward. When set, sends as a forward of the " +
+          "specified message, preserving the original content. " +
+          "Mutually exclusive with `inReplyTo`.",
+      ),
+  });
+
+  type SendEmailArgs = z.infer<typeof sendEmailSchema>;
+
+  async function handleSendOrDraft(
+    args: SendEmailArgs,
+    action: (
+      provider: EmailProvider,
+      account: AccountRecord,
+      msg: SendInput,
+    ) => Promise<{ id: string }>,
+    resultKey: string,
+    toolName: string,
+  ) {
+    if (readOnly) return fail(`server is in --read-only mode; ${toolName} is disabled`);
+    try {
+      const { provider, account } = registry.resolveByEmail(args.account);
+      if (args.include_signature && !account.signature) {
+        return fail(
+          "include_signature is true but no signature is configured for this account. " +
+            "Set up a signature first with set_account_settings.",
+        );
+      }
+      const composed = composeBody({
+        body: args.body,
+        isHtml: args.isHtml,
+        signature: account.signature,
+        style: account.style,
+        includeSignature: args.include_signature,
+      });
+      if (args.inReplyTo && args.forwardMessageId) {
+        return fail(
+          "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
+        );
+      }
+      const res = await action(provider, account, {
+        to: args.to,
+        cc: args.cc,
+        bcc: args.bcc,
+        subject: args.subject,
+        body: composed.body,
+        isHtml: composed.isHtml,
+        inReplyTo: args.inReplyTo,
+        replyAll: args.replyAll,
+        forwardMessageId: args.forwardMessageId,
+      });
+      return ok({ [resultKey]: true, ...res });
+    } catch (err) {
+      return fail(errMsg(err));
+    }
+  }
+
+  // ---------- send / draft ----------
+
+  if (!draftOnly) {
+    server.registerTool(
+      "send_email",
+      {
+        description:
+          "Send an email from the given account. Appends the " +
+          "account's signature (HTML) and applies style preferences when " +
+          "`include_signature` is true. Returns an error if " +
+          "`include_signature` is true but no signature is configured. " +
+          "When `inReplyTo` is set, sends as a reply (or reply-all) which " +
+          "preserves thread history and conversation threading. " +
+          "When `forwardMessageId` is set, sends as a forward of the " +
+          "specified message, preserving the original content. " +
+          "`inReplyTo` and `forwardMessageId` are mutually exclusive. " +
+          "Disabled in --read-only mode.",
+        inputSchema: sendEmailSchema,
+      },
+      async (args) =>
+        handleSendOrDraft(
+          args as SendEmailArgs,
+          (p, a, m) => p.sendEmail(a, m),
+          "sent",
+          "send_email",
+        ),
+    );
+  }
+
   server.registerTool(
-    "send_email",
+    "draft_email",
     {
       description:
-        "Send an email from the given account. Automatically appends the " +
-        "account's signature (HTML) and applies style preferences unless " +
-        "`remove_signature` is true. " +
-        "When `inReplyTo` is set, sends as a reply (or reply-all) which " +
-        "preserves thread history and conversation threading. " +
-        "When `forwardMessageId` is set, sends as a forward of the " +
-        "specified message, preserving the original content. " +
-        "`inReplyTo` and `forwardMessageId` are mutually exclusive. " +
+        "Create a draft email from the given account without sending it. " +
+        "Works identically to send_email — appends signature when " +
+        "`include_signature` is true, applies style, and supports replies " +
+        "and forwards — but saves the message to the Drafts folder " +
+        "instead of sending. Returns the draft message ID so you can " +
+        "later find it, edit it, or send it manually. " +
         "Disabled in --read-only mode.",
-      inputSchema: {
-        account: z.string().email(),
-        to: z.array(emailAddrSchema).min(1),
-        cc: z.array(emailAddrSchema).optional(),
-        bcc: z.array(emailAddrSchema).optional(),
-        subject: z.string(),
-        body: z.string(),
-        isHtml: z.boolean().optional(),
-        remove_signature: z
-          .boolean()
-          .default(false)
-          .optional()
-          .describe("Skip appending the account signature. Style is still applied."),
-        inReplyTo: z
-          .string()
-          .optional()
-          .describe(
-            "Message ID to reply to. When set, sends as a threaded reply " +
-              "which includes the quoted thread history automatically.",
-          ),
-        replyAll: z
-          .boolean()
-          .default(false)
-          .optional()
-          .describe(
-            "When true and `inReplyTo` is set, reply to all recipients " +
-              "instead of just the sender.",
-          ),
-        forwardMessageId: z
-          .string()
-          .optional()
-          .describe(
-            "Message ID to forward. When set, sends as a forward of the " +
-              "specified message, preserving the original content. " +
-              "Mutually exclusive with `inReplyTo`.",
-          ),
-      },
+      inputSchema: sendEmailSchema,
     },
-    async (args) => {
-      if (readOnly) return fail("server is in --read-only mode; send_email is disabled");
-      try {
-        const { provider, account } = registry.resolveByEmail(args.account);
-        const composed = composeBody({
-          body: args.body,
-          isHtml: args.isHtml,
-          signature: account.signature,
-          style: account.style,
-          removeSignature: args.remove_signature,
-        });
-        if (args.inReplyTo && args.forwardMessageId) {
-          return fail(
-            "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
-          );
-        }
-        const res = await provider.sendEmail(account, {
-          to: args.to,
-          cc: args.cc,
-          bcc: args.bcc,
-          subject: args.subject,
-          body: composed.body,
-          isHtml: composed.isHtml,
-          inReplyTo: args.inReplyTo,
-          replyAll: args.replyAll,
-          forwardMessageId: args.forwardMessageId,
-        });
-        return ok({ sent: true, ...res });
-      } catch (err) {
-        return fail(errMsg(err));
-      }
-    },
+    async (args) =>
+      handleSendOrDraft(
+        args as SendEmailArgs,
+        (p, a, m) => p.saveDraft(a, m),
+        "draft",
+        "draft_email",
+      ),
   );
 }
 
@@ -407,12 +466,12 @@ interface ComposeBodyInput {
   isHtml?: boolean;
   signature?: string;
   style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
-  removeSignature?: boolean;
+  includeSignature: boolean;
 }
 
 export function composeBody(input: ComposeBodyInput): { body: string; isHtml: boolean } {
-  const { body, isHtml = false, signature, style, removeSignature = false } = input;
-  const hasSignature = !removeSignature && !!signature;
+  const { body, isHtml = false, signature, style, includeSignature } = input;
+  const hasSignature = includeSignature && !!signature;
   const hasStyle = !!(style && (style.fontFamily || style.fontSize || style.fontColor));
 
   // Nothing to inject — pass through unchanged

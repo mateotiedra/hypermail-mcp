@@ -55,6 +55,7 @@ describe("composeBody", () => {
       const result = composeBody({
         body: "Hello world",
         isHtml: false,
+        includeSignature: false,
       });
       expect(result).toEqual({ body: "Hello world", isHtml: false });
     });
@@ -63,6 +64,7 @@ describe("composeBody", () => {
       const result = composeBody({
         body: "<p>Hello world</p>",
         isHtml: true,
+        includeSignature: false,
       });
       expect(result).toEqual({ body: "<p>Hello world</p>", isHtml: true });
     });
@@ -74,6 +76,7 @@ describe("composeBody", () => {
         body: "<p>Hello</p>",
         isHtml: true,
         signature: "<b>John Doe</b><br>CEO",
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("<p>Hello</p>");
@@ -87,28 +90,29 @@ describe("composeBody", () => {
         body: "Hello world",
         isHtml: false,
         signature: "<b>John</b>",
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("Hello world"); // escaped
       expect(result.body).toContain('<div class="signature"><b>John</b></div>');
     });
 
-    it("respects remove_signature", () => {
+    it("skips signature when include_signature is false", () => {
       const result = composeBody({
         body: "<p>Hello</p>",
         isHtml: true,
         signature: "<b>John</b>",
-        removeSignature: true,
+        includeSignature: false,
       });
       expect(result).toEqual({ body: "<p>Hello</p>", isHtml: true });
     });
 
-    it("stays text when remove_signature and no style", () => {
+    it("stays text when include_signature false and no style", () => {
       const result = composeBody({
         body: "Hello",
         isHtml: false,
         signature: "<b>John</b>",
-        removeSignature: true,
+        includeSignature: false,
       });
       expect(result).toEqual({ body: "Hello", isHtml: false });
     });
@@ -120,6 +124,7 @@ describe("composeBody", () => {
         body: "<p>Hello</p>",
         isHtml: true,
         style: { fontFamily: "Arial", fontSize: "12pt" },
+        includeSignature: false,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toBe(
@@ -132,6 +137,7 @@ describe("composeBody", () => {
         body: "Hello world",
         isHtml: false,
         style: { fontFamily: "Arial", fontSize: "12pt" },
+        includeSignature: false,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("Hello world");
@@ -143,6 +149,7 @@ describe("composeBody", () => {
         body: "<p>Hello</p>",
         isHtml: true,
         style: {},
+        includeSignature: false,
       });
       expect(result).toEqual({ body: "<p>Hello</p>", isHtml: true });
     });
@@ -155,6 +162,7 @@ describe("composeBody", () => {
         isHtml: true,
         signature: "<b>John</b>",
         style: { fontFamily: "Arial" },
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain('style="font-family: Arial"');
@@ -167,6 +175,7 @@ describe("composeBody", () => {
         isHtml: false,
         signature: "<b>John</b>",
         style: { fontFamily: "Arial" },
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("Hello world");
@@ -174,13 +183,13 @@ describe("composeBody", () => {
       expect(result.body).toContain('<div class="signature"><b>John</b></div>');
     });
 
-    it("applies style only when remove_signature is true", () => {
+    it("applies style only when include_signature is false", () => {
       const result = composeBody({
         body: "<p>Hello</p>",
         isHtml: true,
         signature: "<b>John</b>",
         style: { fontFamily: "Arial" },
-        removeSignature: true,
+        includeSignature: false,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("font-family: Arial");
@@ -194,6 +203,7 @@ describe("composeBody", () => {
         body: "",
         isHtml: false,
         signature: "<b>John</b>",
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain('<div class="signature"><b>John</b></div>');
@@ -204,6 +214,7 @@ describe("composeBody", () => {
         body: "<p>Hello</p>",
         isHtml: true,
         signature: "",
+        includeSignature: true,
       });
       expect(result).toEqual({ body: "<p>Hello</p>", isHtml: true });
     });
@@ -213,10 +224,23 @@ describe("composeBody", () => {
         body: "Line 1\nLine 2",
         isHtml: false,
         signature: "<b>Sig</b>",
+        includeSignature: true,
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("Line 1<br>Line 2");
       expect(result.body).toContain('<div class="signature"><b>Sig</b></div>');
+    });
+
+    it("passes through unchanged when includeSignature true but signature is undefined", () => {
+      // Validation is upstream in handleSendOrDraft — composeBody just treats
+      // missing signature the same as signature="" or signature=undefined.
+      const result = composeBody({
+        body: "<p>Hello</p>",
+        isHtml: true,
+        includeSignature: true,
+        // no signature key at all
+      });
+      expect(result).toEqual({ body: "<p>Hello</p>", isHtml: true });
     });
   });
 });
