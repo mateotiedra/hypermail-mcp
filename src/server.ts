@@ -15,6 +15,8 @@ export interface ServerOptions {
   host?: string;
   dataDir?: string;
   readOnly?: boolean;
+  /** When true, hide send_email and only expose draft_email. */
+  draftOnly?: boolean;
 }
 
 export async function startServer(opts: ServerOptions = {}): Promise<void> {
@@ -26,7 +28,7 @@ export async function startServer(opts: ServerOptions = {}): Promise<void> {
     { capabilities: { tools: {}, logging: {} } },
   );
 
-  registerTools(server, { store, registry, readOnly: !!opts.readOnly });
+  registerTools(server, { store, registry, readOnly: !!opts.readOnly, draftOnly: !!opts.draftOnly });
 
   if (opts.http) {
     await startHttp(server, opts.host ?? "127.0.0.1", opts.port ?? 3000);

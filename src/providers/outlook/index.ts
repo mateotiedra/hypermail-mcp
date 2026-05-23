@@ -3,7 +3,7 @@ import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join as pathJoin } from "node:path";
 
-import { ResponseType } from "@microsoft/microsoft-graph-client";
+import { ResponseType, type Client } from "@microsoft/microsoft-graph-client";
 
 import type { AccountRecord, AccountStore } from "../../store/account-store.js";
 import type {
@@ -314,13 +314,47 @@ export class OutlookProvider implements EmailProvider {
     };
   }
 
+  // Shared helper — creates a draft from a reference message (forward or
+  // reply), prepends our composed body before the existing content, and
+  // attaches inline images. Returns the draft message ID.
+  private async buildDraftFromReference(
+    client: Client,
+    createEndpoint: string,
+    createPayload: Record<string, unknown>,
+    converted: { body: string; attachments: InlineAttachment[] },
+  ): Promise<string> {
+    const draft: { id: string } = await client
+      .api(createEndpoint)
+      .post(createPayload);
+
+    const draftMsg: { body?: { content?: string; contentType?: string } } =
+      await client.api(`/me/messages/${draft.id}`).select("body").get();
+
+    const draftBody = draftMsg.body?.content ?? "";
+    const draftContentType = draftMsg.body?.contentType ?? "HTML";
+    const spacer = '<div style="line-height:12px"><br></div>';
+    const prepend = converted.body + spacer;
+    const finalBody = draftBody.includes("<body")
+      ? draftBody.replace(/(<body[^>]*>)/i, `$1${prepend}`)
+      : prepend + draftBody;
+
+    await client.api(`/me/messages/${draft.id}`).patch({
+      body: { contentType: draftContentType, content: finalBody },
+    });
+
+    for (const att of converted.attachments) {
+      await client.api(`/me/messages/${draft.id}/attachments`).post(att);
+    }
+
+    return draft.id;
+  }
+
   async sendEmail(
     account: AccountRecord,
     msg: SendInput,
   ): Promise<{ id: string }> {
     const client = this.clients.get(account);
 
-    // Mutual exclusivity: cannot both reply and forward in one call.
     if (msg.inReplyTo && msg.forwardMessageId) {
       throw new Error(
         "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
@@ -328,121 +362,38 @@ export class OutlookProvider implements EmailProvider {
     }
 
     // Convert data:image URIs to cid: references + inline attachments.
-    // This prevents Outlook's reading pane from truncating long base64 src
-    // attributes, a known client-side rendering bug.
     const converted = convertInlineImages(msg.body);
 
-    // When forwarding, use createForward + PATCH + send (same 6-step
-    // pattern as reply). Forward has no replyAll equivalent — recipients
-    // are always explicitly specified by the caller.
     if (msg.forwardMessageId) {
-      // Step 1: Create forward draft with recipients.
-      // Unlike createReply, createForward does NOT auto-populate recipients —
-      // they must be set here. Graph auto-generates "FW: original subject"
-      // if subject is not overridden.
-      const draft: { id: string } = await client
-        .api(
-          `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
-        )
-        .post({
+      const draftId = await this.buildDraftFromReference(
+        client,
+        `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
+        {
           message: {
             toRecipients: msg.to.map(toRecipient),
             ccRecipients: (msg.cc ?? []).map(toRecipient),
             bccRecipients: (msg.bcc ?? []).map(toRecipient),
           },
           comment: "",
-        });
-
-      // Step 2: Read the draft body (contains the forwarded message)
-      const draftMsg: {
-        body?: { content?: string; contentType?: string };
-      } = await client
-        .api(`/me/messages/${draft.id}`)
-        .select("body")
-        .get();
-
-      // Step 3: Insert our composed body before the forwarded content
-      const draftBody = draftMsg.body?.content ?? "";
-      const draftContentType = draftMsg.body?.contentType ?? "HTML";
-      const spacer = '<div style="line-height:12px"><br></div>';
-      const prepend = converted.body + spacer;
-      const finalBody = draftBody.includes("<body")
-        ? draftBody.replace(/(<body[^>]*>)/i, `$1${prepend}`)
-        : prepend + draftBody;
-
-      // Step 4: Update the draft body
-      await client.api(`/me/messages/${draft.id}`).patch({
-        body: {
-          contentType: draftContentType,
-          content: finalBody,
         },
-      });
-
-      // Step 5: Attach inline images (cid: references backed by fileAttachment)
-      for (const att of converted.attachments) {
-        await client
-          .api(`/me/messages/${draft.id}/attachments`)
-          .post(att);
-      }
-
-      // Step 6: Send
-      await client.api(`/me/messages/${draft.id}/send`).post({});
-      return { id: draft.id };
+        converted,
+      );
+      await client.api(`/me/messages/${draftId}/send`).post({});
+      return { id: draftId };
     }
 
-    // When replying, use createReply + PATCH + send (three-step).
-    // The single-step /reply endpoint forces a trade-off:
-    //   comment  → preserves thread, but strips/truncates data: URIs
-    //   message.body → preserves body, but replaces entire body (no thread)
-    // Solution: createReply with empty body preserves thread history,
-    // then PATCH our composed body prepended to the existing content,
-    // then send. The PATCH/send path uses the normal message pipeline.
     if (msg.inReplyTo) {
       const createEndpoint = msg.replyAll
         ? `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReplyAll`
         : `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReply`;
-
-      // Step 1: Create empty reply draft — preserves quoted thread history
-      const draft: { id: string } = await client
-        .api(createEndpoint)
-        .post({});
-
-      // Step 2: Read the draft body (contains the quoted thread)
-      const draftMsg: { body?: { content?: string; contentType?: string } } =
-        await client
-          .api(`/me/messages/${draft.id}`)
-          .select("body")
-          .get();
-
-      // Step 3: Insert our composed body before the thread history,
-      // with a separator to prevent the signature image from bleeding
-      // into the thread HTML.
-      const draftBody = draftMsg.body?.content ?? "";
-      const draftContentType = draftMsg.body?.contentType ?? "HTML";
-      const spacer = '<div style="line-height:12px"><br></div>';
-      const prepend = converted.body + spacer;
-      const finalBody = draftBody.includes("<body")
-        ? draftBody.replace(/(<body[^>]*>)/i, `$1${prepend}`)
-        : prepend + draftBody;
-
-      // Step 4: Update the draft body
-      await client.api(`/me/messages/${draft.id}`).patch({
-        body: {
-          contentType: draftContentType,
-          content: finalBody,
-        },
-      });
-
-      // Step 5: Attach inline images (cid: references backed by fileAttachment)
-      for (const att of converted.attachments) {
-        await client
-          .api(`/me/messages/${draft.id}/attachments`)
-          .post(att);
-      }
-
-      // Step 6: Send
-      await client.api(`/me/messages/${draft.id}/send`).post({});
-      return { id: draft.id };
+      const draftId = await this.buildDraftFromReference(
+        client,
+        createEndpoint,
+        {},
+        converted,
+      );
+      await client.api(`/me/messages/${draftId}/send`).post({});
+      return { id: draftId };
     }
 
     // New email — use sendMail with inline attachments
@@ -466,6 +417,72 @@ export class OutlookProvider implements EmailProvider {
     await client.api("/me/sendMail").post(payload);
     // Graph's sendMail returns 202 with no body; we don't have an id back.
     return { id: "" };
+  }
+
+  async saveDraft(
+    account: AccountRecord,
+    msg: SendInput,
+  ): Promise<{ id: string }> {
+    const client = this.clients.get(account);
+
+    if (msg.inReplyTo && msg.forwardMessageId) {
+      throw new Error(
+        "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
+      );
+    }
+
+    const converted = convertInlineImages(msg.body);
+
+    // Forward/reply drafts: same flow as sendEmail, but skip the final send.
+    if (msg.forwardMessageId) {
+      const draftId = await this.buildDraftFromReference(
+        client,
+        `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
+        {
+          message: {
+            toRecipients: msg.to.map(toRecipient),
+            ccRecipients: (msg.cc ?? []).map(toRecipient),
+            bccRecipients: (msg.bcc ?? []).map(toRecipient),
+          },
+          comment: "",
+        },
+        converted,
+      );
+      return { id: draftId };
+    }
+
+    if (msg.inReplyTo) {
+      const createEndpoint = msg.replyAll
+        ? `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReplyAll`
+        : `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReply`;
+      const draftId = await this.buildDraftFromReference(
+        client,
+        createEndpoint,
+        {},
+        converted,
+      );
+      return { id: draftId };
+    }
+
+    // New email — create a draft message directly (POST /me/messages).
+    // Graph creates drafts by default when posting to /me/messages.
+    const draftPayload: Record<string, unknown> = {
+      subject: msg.subject,
+      body: {
+        contentType: msg.isHtml ? "HTML" : "Text",
+        content: converted.body,
+      },
+      toRecipients: msg.to.map(toRecipient),
+      ccRecipients: (msg.cc ?? []).map(toRecipient),
+      bccRecipients: (msg.bcc ?? []).map(toRecipient),
+    };
+    if (converted.attachments.length > 0) {
+      draftPayload.attachments = converted.attachments;
+    }
+    const draft: { id: string } = await client
+      .api("/me/messages")
+      .post(draftPayload);
+    return { id: draft.id };
   }
 }
 

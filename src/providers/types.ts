@@ -126,4 +126,10 @@ export interface EmailProvider {
     attachmentId: string,
   ): Promise<AttachmentContent>;
   sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
+  /**
+   * Create a draft message from the given input without sending it.
+   * Returns the draft message ID so the caller can later find it in the
+   * Drafts folder, open it for further editing, or send it manually.
+   */
+  saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
 }
