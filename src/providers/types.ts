@@ -132,4 +132,10 @@ export interface EmailProvider {
    * Drafts folder, open it for further editing, or send it manually.
    */
   saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
+  /**
+   * Move a message to another folder.
+   * `destinationId` can be a well-known folder name (e.g. "archive",
+   * "deleteditems", "inbox") or a custom folder ID.
+   */
+  moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void>;
 }

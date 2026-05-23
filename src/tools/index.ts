@@ -316,7 +316,84 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
     },
   );
 
-  // ---------- shared send/draft helpers ----------
+  // ---------- move / archive ----------
+
+  {
+    const schema = {
+      account: z.string().email(),
+      id: z.string().min(1).describe("Message ID to move"),
+    };
+
+    server.registerTool(
+      "archive_email",
+      {
+        description:
+          "Move a message to the Archive folder. Disabled in --read-only mode.",
+        inputSchema: schema,
+      },
+      async (args) => {
+        if (readOnly) return fail("server is in --read-only mode; archive_email is disabled");
+        try {
+          const { provider, account } = registry.resolveByEmail(args.account);
+          await provider.moveEmail(account, args.id, "archive");
+          return ok({ archived: true, id: args.id });
+        } catch (err) {
+          return fail(errMsg(err));
+        }
+      },
+    );
+
+    server.registerTool(
+      "trash_email",
+      {
+        description:
+          "Move a message to the Deleted Items (trash) folder. Disabled in --read-only mode.",
+        inputSchema: schema,
+      },
+      async (args) => {
+        if (readOnly) return fail("server is in --read-only mode; trash_email is disabled");
+        try {
+          const { provider, account } = registry.resolveByEmail(args.account);
+          await provider.moveEmail(account, args.id, "deleteditems");
+          return ok({ trashed: true, id: args.id });
+        } catch (err) {
+          return fail(errMsg(err));
+        }
+      },
+    );
+  }
+
+  server.registerTool(
+    "move_email",
+    {
+      description:
+        "Move a message to any folder by well-known name (e.g. 'inbox', 'drafts', " +
+        "'junkemail', 'sentitems', 'outbox') or custom folder ID. " +
+        "Disabled in --read-only mode.",
+      inputSchema: {
+        account: z.string().email(),
+        id: z.string().min(1).describe("Message ID to move"),
+        destination: z
+          .string()
+          .min(1)
+          .describe(
+            "Destination folder — a well-known folder name " +
+              "('archive', 'deleteditems', 'inbox', 'drafts', 'junkemail', " +
+              "'sentitems', 'outbox') or a raw folder ID.",
+          ),
+      },
+    },
+    async (args) => {
+      if (readOnly) return fail("server is in --read-only mode; move_email is disabled");
+      try {
+        const { provider, account } = registry.resolveByEmail(args.account);
+        await provider.moveEmail(account, args.id, args.destination);
+        return ok({ moved: true, id: args.id, destination: args.destination });
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
 
   const sendEmailSchema = z.object({
     account: z.string().email(),

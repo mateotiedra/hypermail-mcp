@@ -484,6 +484,17 @@ export class OutlookProvider implements EmailProvider {
       .post(draftPayload);
     return { id: draft.id };
   }
+
+  async moveEmail(
+    account: AccountRecord,
+    id: string,
+    destinationId: string,
+  ): Promise<void> {
+    const client = this.clients.get(account);
+    await client
+      .api(`/me/messages/${encodeURIComponent(id)}/move`)
+      .post({ destinationId });
+  }
 }
 
 // ---------- mapping helpers ----------
