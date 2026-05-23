@@ -77,4 +77,12 @@ export class ImapProvider implements EmailProvider {
   ): Promise<{ id: string }> {
     throw new Error(NOT_IMPLEMENTED);
   }
+
+  async moveEmail(
+    _account: AccountRecord,
+    _id: string,
+    _destinationId: string,
+  ): Promise<void> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
 }
