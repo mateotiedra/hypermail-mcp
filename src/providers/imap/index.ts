@@ -70,4 +70,11 @@ export class ImapProvider implements EmailProvider {
   ): Promise<{ id: string }> {
     throw new Error(NOT_IMPLEMENTED);
   }
+
+  async saveDraft(
+    _account: AccountRecord,
+    _msg: SendInput,
+  ): Promise<{ id: string }> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
 }

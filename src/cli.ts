@@ -79,12 +79,15 @@ async function main(): Promise<void> {
     printHelp();
     return;
   }
+  const draftOnly = process.env.HYPERMAIL_DRAFT_ONLY === "true";
+
   await startServer({
     http: opts.http,
     port: opts.port,
     host: opts.host,
     dataDir: opts.dataDir,
     readOnly: opts.readOnly,
+    draftOnly,
   });
 }
 
