@@ -646,8 +646,14 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         replyAll: args.replyAll,
         forwardMessageId: args.forwardMessageId,
       });
-      const data = { [resultKey]: true, ...res };
-      return ok(data, data);
+      const result: Record<string, unknown> = { [resultKey]: true, ...res };
+      // For draft_email, fetch the created draft back so the agent can
+      // inspect the actual HTML content before deciding to send it.
+      if (toolName === "draft_email" && res.id) {
+        const draft = await provider.readEmail(account, res.id);
+        result.draftHtml = draft.bodyHtml;
+      }
+      return ok(result, result);
     } catch (err) {
       return fail(errMsg(err));
     }
@@ -691,6 +697,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
   const draftEmailOutputSchema = {
     draft: z.literal(true),
     id: z.string(),
+    draftHtml: z.string().optional(),
   };
 
   server.registerTool(
