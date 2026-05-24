@@ -15,12 +15,16 @@ export interface RegisterToolsOptions {
 }
 
 /** JSON-stringify a value into a single MCP text content block. */
-function ok(data: unknown) {
-  return {
+function ok(data: unknown, structuredContent?: Record<string, unknown>) {
+  const result: { content: Array<{ type: "text"; text: string }>; structuredContent?: Record<string, unknown> } = {
     content: [
       { type: "text" as const, text: JSON.stringify(data, null, 2) },
     ],
   };
+  if (structuredContent !== undefined) {
+    result.structuredContent = structuredContent;
+  }
+  return result;
 }
 function fail(message: string) {
   return {
@@ -34,10 +38,55 @@ const emailAddrSchema = z.object({
   name: z.string().optional(),
 });
 
+// ---------- shared output schemas ----------
+
+const emailAddrOutputSchema = z.object({
+  name: z.string().optional(),
+  address: z.string(),
+});
+
+const accountSummaryOutputSchema = z.object({
+  email: z.string(),
+  provider: z.enum(["outlook", "imap", "gmail"]),
+  displayName: z.string().optional(),
+  addedAt: z.string(),
+  hasSignature: z.boolean(),
+  hasStyle: z.boolean(),
+});
+
+const emailSummaryOutputSchema = z.object({
+  id: z.string(),
+  subject: z.string(),
+  from: emailAddrOutputSchema.optional(),
+  to: z.array(emailAddrOutputSchema).optional(),
+  receivedAt: z.string().optional(),
+  preview: z.string().optional(),
+  isRead: z.boolean().optional(),
+  hasAttachments: z.boolean().optional(),
+  folder: z.string().optional(),
+});
+
+const attachmentMetaOutputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  contentType: z.string().optional(),
+  size: z.number().optional(),
+});
+
+const styleOutputSchema = z.object({
+  fontFamily: z.string().optional(),
+  fontSize: z.string().optional(),
+  fontColor: z.string().optional(),
+});
+
 export function registerTools(server: McpServer, opts: RegisterToolsOptions): void {
   const { store, registry, readOnly = false, draftOnly = false } = opts;
 
   // ---------- account management ----------
+
+  const listAccountsOutputSchema = {
+    accounts: z.array(accountSummaryOutputSchema),
+  };
 
   server.registerTool(
     "list_accounts",
@@ -46,6 +95,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         "List all email accounts known to this server (no secrets). " +
         "Use the returned `email` value as the `account` argument to other tools.",
       inputSchema: {},
+      outputSchema: listAccountsOutputSchema,
     },
     async () => {
       const rows = store.listAccounts().map((a) => ({
@@ -56,9 +106,35 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         hasSignature: !!a.signature,
         hasStyle: !!(a.style && (a.style.fontFamily || a.style.fontSize || a.style.fontColor)),
       }));
-      return ok({ accounts: rows });
+      const data = { accounts: rows };
+      return ok(data, data);
     },
   );
+
+  const addAccountOutputSchema = z.discriminatedUnion("status", [
+    z.object({
+      status: z.literal("pending"),
+      handle: z.string(),
+      verification: z.object({
+        userCode: z.string(),
+        verificationUri: z.string(),
+        expiresAt: z.string(),
+        message: z.string(),
+      }),
+    }),
+    z.object({
+      status: z.literal("ready"),
+      account: z.object({
+        email: z.string(),
+        provider: z.enum(["outlook", "imap", "gmail"]),
+        displayName: z.string().optional(),
+        tokens: z.record(z.unknown()),
+        addedAt: z.string(),
+        signature: z.string().optional(),
+        style: styleOutputSchema.optional(),
+      }),
+    }),
+  ]);
 
   server.registerTool(
     "add_account",
@@ -81,18 +157,35 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           .optional()
           .describe("Provider-specific config (e.g. IMAP host/port). Unused for Outlook."),
       },
+      outputSchema: addAccountOutputSchema,
     },
     async (args) => {
       if (readOnly) return fail("server is in --read-only mode; add_account is disabled");
       const provider = registry.get(args.provider as ProviderId);
       try {
         const res = await provider.addAccount({ email: args.email, config: args.config });
-        return ok(res);
+        return ok(res, res as unknown as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
     },
   );
+
+  const completeAddAccountOutputSchema = z.object({
+    status: z.enum(["pending", "ready", "expired", "error"]),
+    account: z
+      .object({
+        email: z.string(),
+        provider: z.enum(["outlook", "imap", "gmail"]),
+        displayName: z.string().optional(),
+        tokens: z.record(z.unknown()),
+        addedAt: z.string(),
+        signature: z.string().optional(),
+        style: styleOutputSchema.optional(),
+      })
+      .optional(),
+    error: z.string().optional(),
+  });
 
   server.registerTool(
     "complete_add_account",
@@ -104,6 +197,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         provider: z.enum(["outlook", "imap", "gmail"]),
         handle: z.string().min(1),
       },
+      outputSchema: completeAddAccountOutputSchema,
     },
     async (args) => {
       const provider = registry.get(args.provider as ProviderId);
@@ -112,7 +206,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       }
       try {
         const res = await provider.completeAddAccount(args.handle);
-        return ok(res);
+        return ok(res, res as unknown as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -121,18 +215,25 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
 
   // ---------- account settings ----------
 
+  const accountSettingsOutputSchema = {
+    signature: z.string().nullable(),
+    style: styleOutputSchema.nullable(),
+  };
+
   server.registerTool(
     "get_account_settings",
     {
       description:
         "Get signature (HTML) and style preferences for an account.",
       inputSchema: { account: z.string().email() },
+      outputSchema: accountSettingsOutputSchema,
     },
     async (args) => {
       try {
         const acct = store.getAccount(args.account);
         if (!acct) return fail(`no account registered for "${args.account}"`);
-        return ok({ signature: acct.signature ?? null, style: acct.style ?? null });
+        const data = { signature: acct.signature ?? null, style: acct.style ?? null };
+        return ok(data, data as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -160,6 +261,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           .optional()
           .describe("Font preferences applied to outgoing HTML emails. Pass null to clear."),
       },
+      outputSchema: accountSettingsOutputSchema,
     },
     async (args) => {
       if (readOnly) return fail("server is in --read-only mode; set_account_settings is disabled");
@@ -171,27 +273,41 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           signature: args.signature ?? acct.signature,
           style: args.style ?? acct.style,
         });
-        return ok({ signature: updated.signature ?? null, style: updated.style ?? null });
+        const data = { signature: updated.signature ?? null, style: updated.style ?? null };
+        return ok(data, data as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
     },
   );
 
+  const removeAccountOutputSchema = {
+    removed: z.boolean(),
+    email: z.string(),
+  };
+
   server.registerTool(
     "remove_account",
     {
       description: "Forget an account and delete its stored tokens. Disabled in --read-only mode.",
       inputSchema: { email: z.string().email() },
+      outputSchema: removeAccountOutputSchema,
     },
     async (args) => {
       if (readOnly) return fail("server is in --read-only mode; remove_account is disabled");
       const removed = await store.removeAccount(args.email);
-      return ok({ removed, email: args.email });
+      const data = { removed, email: args.email };
+      return ok(data, data);
     },
   );
 
   // ---------- email ops ----------
+
+  const emailListOutputSchema = {
+    account: z.string(),
+    count: z.number(),
+    items: z.array(emailSummaryOutputSchema),
+  };
 
   server.registerTool(
     "list_emails",
@@ -205,6 +321,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         limit: z.number().int().positive().max(100).optional(),
         unreadOnly: z.boolean().optional(),
       },
+      outputSchema: emailListOutputSchema,
     },
     async (args) => {
       try {
@@ -214,7 +331,8 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           limit: args.limit,
           unreadOnly: args.unreadOnly,
         });
-        return ok({ account: account.email, count: items.length, items });
+        const data = { account: account.email, count: items.length, items };
+        return ok(data, data);
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -231,6 +349,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         query: z.string().min(1),
         limit: z.number().int().positive().max(100).optional(),
       },
+      outputSchema: emailListOutputSchema,
     },
     async (args) => {
       try {
@@ -238,12 +357,30 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         const items = await provider.searchEmails(account, args.query, {
           limit: args.limit,
         });
-        return ok({ account: account.email, count: items.length, items });
+        const data = { account: account.email, count: items.length, items };
+        return ok(data, data);
       } catch (err) {
         return fail(errMsg(err));
       }
     },
   );
+
+  const readEmailOutputSchema = {
+    id: z.string(),
+    subject: z.string(),
+    from: emailAddrOutputSchema.optional(),
+    to: z.array(emailAddrOutputSchema).optional(),
+    cc: z.array(emailAddrOutputSchema).optional(),
+    bcc: z.array(emailAddrOutputSchema).optional(),
+    receivedAt: z.string().optional(),
+    preview: z.string().optional(),
+    isRead: z.boolean().optional(),
+    hasAttachments: z.boolean().optional(),
+    folder: z.string().optional(),
+    attachments: z.array(attachmentMetaOutputSchema).optional(),
+    body: z.string(),
+    bodyFormat: z.enum(["markdown", "html", "text"]),
+  };
 
   server.registerTool(
     "read_email",
@@ -264,6 +401,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
               "'html' returns the raw HTML, 'text' returns plain text.",
           ),
       },
+      outputSchema: readEmailOutputSchema,
     },
     async (args) => {
       try {
@@ -271,7 +409,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         const msg = await provider.readEmail(account, args.id);
         const format = args.format ?? "markdown";
         const body = selectBody(msg, format);
-        return ok({
+        const data = {
           id: msg.id,
           subject: msg.subject,
           from: msg.from,
@@ -286,12 +424,19 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           attachments: msg.attachments,
           body,
           bodyFormat: format,
-        });
+        };
+        return ok(data, data as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
     },
   );
+
+  const readAttachmentOutputSchema = {
+    name: z.string(),
+    contentType: z.string().optional(),
+    path: z.string(),
+  };
 
   server.registerTool(
     "read_attachment",
@@ -304,12 +449,13 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         messageId: z.string().min(1),
         attachmentId: z.string().min(1),
       },
+      outputSchema: readAttachmentOutputSchema,
     },
     async (args) => {
       try {
         const { provider, account } = registry.resolveByEmail(args.account);
         const res = await provider.readAttachment(account, args.messageId, args.attachmentId);
-        return ok(res);
+        return ok(res, res as unknown as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -324,24 +470,36 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       id: z.string().min(1).describe("Message ID to move"),
     };
 
+    const archiveOutputSchema = {
+      archived: z.literal(true),
+      id: z.string(),
+    };
+
     server.registerTool(
       "archive_email",
       {
         description:
           "Move a message to the Archive folder. Disabled in --read-only mode.",
         inputSchema: schema,
+        outputSchema: archiveOutputSchema,
       },
       async (args) => {
         if (readOnly) return fail("server is in --read-only mode; archive_email is disabled");
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
           await provider.moveEmail(account, args.id, "archive");
-          return ok({ archived: true, id: args.id });
+          const data = { archived: true as const, id: args.id };
+          return ok(data, data);
         } catch (err) {
           return fail(errMsg(err));
         }
       },
     );
+
+    const trashOutputSchema = {
+      trashed: z.literal(true),
+      id: z.string(),
+    };
 
     server.registerTool(
       "trash_email",
@@ -349,19 +507,27 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         description:
           "Move a message to the Deleted Items (trash) folder. Disabled in --read-only mode.",
         inputSchema: schema,
+        outputSchema: trashOutputSchema,
       },
       async (args) => {
         if (readOnly) return fail("server is in --read-only mode; trash_email is disabled");
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
           await provider.moveEmail(account, args.id, "deleteditems");
-          return ok({ trashed: true, id: args.id });
+          const data = { trashed: true as const, id: args.id };
+          return ok(data, data);
         } catch (err) {
           return fail(errMsg(err));
         }
       },
     );
   }
+
+  const moveEmailOutputSchema = {
+    moved: z.literal(true),
+    id: z.string(),
+    destination: z.string(),
+  };
 
   server.registerTool(
     "move_email",
@@ -382,13 +548,15 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
               "'sentitems', 'outbox') or a raw folder ID.",
           ),
       },
+      outputSchema: moveEmailOutputSchema,
     },
     async (args) => {
       if (readOnly) return fail("server is in --read-only mode; move_email is disabled");
       try {
         const { provider, account } = registry.resolveByEmail(args.account);
         await provider.moveEmail(account, args.id, args.destination);
-        return ok({ moved: true, id: args.id, destination: args.destination });
+        const data = { moved: true as const, id: args.id, destination: args.destination };
+        return ok(data, data);
       } catch (err) {
         return fail(errMsg(err));
       }
@@ -478,13 +646,19 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         replyAll: args.replyAll,
         forwardMessageId: args.forwardMessageId,
       });
-      return ok({ [resultKey]: true, ...res });
+      const data = { [resultKey]: true, ...res };
+      return ok(data, data);
     } catch (err) {
       return fail(errMsg(err));
     }
   }
 
   // ---------- send / draft ----------
+
+  const sendEmailOutputSchema = {
+    sent: z.literal(true),
+    id: z.string(),
+  };
 
   if (!draftOnly) {
     server.registerTool(
@@ -502,6 +676,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           "`inReplyTo` and `forwardMessageId` are mutually exclusive. " +
           "Disabled in --read-only mode.",
         inputSchema: sendEmailSchema,
+        outputSchema: sendEmailOutputSchema,
       },
       async (args) =>
         handleSendOrDraft(
@@ -512,6 +687,11 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         ),
     );
   }
+
+  const draftEmailOutputSchema = {
+    draft: z.literal(true),
+    id: z.string(),
+  };
 
   server.registerTool(
     "draft_email",
@@ -525,6 +705,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         "later find it, edit it, or send it manually. " +
         "Disabled in --read-only mode.",
       inputSchema: sendEmailSchema,
+      outputSchema: draftEmailOutputSchema,
     },
     async (args) =>
       handleSendOrDraft(
