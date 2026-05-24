@@ -261,7 +261,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           .optional()
           .describe(
             "Output body format. 'markdown' converts HTML to Markdown (default), " +
-              "'html' returns the raw HTML, 'text' returns plain text.",
+            "'html' returns the raw HTML, 'text' returns plain text.",
           ),
       },
     },
@@ -378,8 +378,8 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           .min(1)
           .describe(
             "Destination folder — a well-known folder name " +
-              "('archive', 'deleteditems', 'inbox', 'drafts', 'junkemail', " +
-              "'sentitems', 'outbox') or a raw folder ID.",
+            "('archive', 'deleteditems', 'inbox', 'drafts', 'junkemail', " +
+            "'sentitems', 'outbox') or a raw folder ID.",
           ),
       },
     },
@@ -406,15 +406,16 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
     include_signature: z
       .boolean()
       .describe(
-        "Whether to append the account's HTML signature to the email. " +
-          "Returns an error if true but no signature is configured for this account.",
+        "Whether to append the account's saved HTML signature to the email. " +
+        "If true, don't include a signature in the body param to avoid double signature. " +
+        "Returns an error if true but no signature is configured for this account.",
       ),
     inReplyTo: z
       .string()
       .optional()
       .describe(
         "Message ID to reply to. When set, sends as a threaded reply " +
-          "which includes the quoted thread history automatically.",
+        "which includes the quoted thread history automatically.",
       ),
     replyAll: z
       .boolean()
@@ -422,15 +423,15 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       .optional()
       .describe(
         "When true and `inReplyTo` is set, reply to all recipients " +
-          "instead of just the sender.",
+        "instead of just the sender.",
       ),
     forwardMessageId: z
       .string()
       .optional()
       .describe(
         "Message ID to forward. When set, sends as a forward of the " +
-          "specified message, preserving the original content. " +
-          "Mutually exclusive with `inReplyTo`.",
+        "specified message, preserving the original content. " +
+        "Mutually exclusive with `inReplyTo`.",
       ),
   });
 
@@ -452,7 +453,7 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
       if (args.include_signature && !account.signature) {
         return fail(
           "include_signature is true but no signature is configured for this account. " +
-            "Set up a signature first with set_account_settings.",
+          "Set up a signature first with set_account_settings.",
         );
       }
       const composed = composeBody({
@@ -478,7 +479,14 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         replyAll: args.replyAll,
         forwardMessageId: args.forwardMessageId,
       });
-      return ok({ [resultKey]: true, ...res });
+      const result: Record<string, unknown> = { [resultKey]: true, ...res };
+      // For draft_email, fetch the created draft back so the agent can
+      // inspect the actual HTML content before deciding to send it.
+      if (toolName === "draft_email" && res.id) {
+        const draft = await provider.readEmail(account, res.id);
+        result.draftHtml = draft.bodyHtml;
+      }
+      return ok(result);
     } catch (err) {
       return fail(errMsg(err));
     }
@@ -521,8 +529,11 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         "Works identically to send_email — appends signature when " +
         "`include_signature` is true, applies style, and supports replies " +
         "and forwards — but saves the message to the Drafts folder " +
-        "instead of sending. Returns the draft message ID so you can " +
-        "later find it, edit it, or send it manually. " +
+        "instead of sending. Returns the draft message ID and the draft's " +
+        "HTML body content (`draftHtml`). Before sending the draft, " +
+        "inspect `draftHtml` to verify the draft looks correct: no " +
+        "duplicate signature blocks, no broken or missing inline images, " +
+        "no malformed HTML, and no other formatting issues. " +
         "Disabled in --read-only mode.",
       inputSchema: sendEmailSchema,
     },
