@@ -4,6 +4,7 @@ import type {
   AddAccountResult,
   AttachmentContent,
   CompleteAddAccountResult,
+  DraftUpdateInput,
   EmailFull,
   EmailProvider,
   EmailSummary,
@@ -74,6 +75,14 @@ export class ImapProvider implements EmailProvider {
   async saveDraft(
     _account: AccountRecord,
     _msg: SendInput,
+  ): Promise<{ id: string }> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
+
+  async updateDraft(
+    _account: AccountRecord,
+    _id: string,
+    _update: DraftUpdateInput,
   ): Promise<{ id: string }> {
     throw new Error(NOT_IMPLEMENTED);
   }
