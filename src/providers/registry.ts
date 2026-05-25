@@ -3,6 +3,7 @@ import type { EmailProvider, ProviderId } from "./types.js";
 import type { ProvidersConfig } from "../config.js";
 import { OutlookProvider } from "./outlook/index.js";
 import { ImapProvider } from "./imap/index.js";
+import { GmailProvider } from "./gmail/index.js";
 
 export interface Registry {
   get(id: ProviderId): EmailProvider;
@@ -24,7 +25,12 @@ export function buildRegistry(opts: BuildRegistryOptions): Registry {
     tenantId: outlookCfg?.tenantId,
   }));
   providers.set("imap", new ImapProvider(opts.store));
-  // gmail can be added later — registry will return a clear error if asked.
+  const gmailCfg = opts.providers?.gmail;
+  providers.set("gmail", new GmailProvider({
+    store: opts.store,
+    clientId: gmailCfg?.clientId,
+    clientSecret: gmailCfg?.clientSecret,
+  }));
 
   function get(id: ProviderId): EmailProvider {
     const p = providers.get(id);
