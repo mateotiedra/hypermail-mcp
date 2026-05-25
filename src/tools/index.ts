@@ -726,6 +726,98 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         "draft_email",
       ),
   );
+
+  // ---------- edit draft ----------
+
+  const editDraftSchema = z.object({
+    account: z.string().email(),
+    id: z.string().min(1).describe("Draft message ID to edit"),
+    to: z.array(emailAddrSchema).optional(),
+    cc: z.array(emailAddrSchema).optional(),
+    bcc: z.array(emailAddrSchema).optional(),
+    subject: z.string().optional(),
+    body: z.string().optional(),
+    isHtml: z.boolean().optional(),
+    include_signature: z
+      .boolean()
+      .optional()
+      .describe(
+        "Whether to re-apply the account's saved HTML signature to the body. " +
+        "If true, don't include a signature in the body param. " +
+        "Only meaningful when `body` is also provided. " +
+        "Returns an error if true but no signature is configured for this account.",
+      ),
+  });
+
+  type EditDraftArgs = z.infer<typeof editDraftSchema>;
+
+  const editDraftOutputSchema = {
+    edited: z.literal(true),
+    id: z.string(),
+    draftHtml: z.string().optional(),
+  };
+
+  server.registerTool(
+    "edit_draft",
+    {
+      description:
+        "Edit an existing draft email by ID. Only the fields you provide " +
+        "are updated — unmentioned fields stay unchanged. When `body` is " +
+        "provided and `include_signature` is true, the account's signature " +
+        "is re-applied. Returns the draft ID and the draft's updated HTML " +
+        "body content (`draftHtml`). Before sending, inspect `draftHtml` " +
+        "to verify the draft looks correct. " +
+        "Does not support changing `inReplyTo` or `forwardMessageId` — " +
+        "those are set at creation time via `draft_email`. " +
+        "Disabled in --read-only mode.",
+      inputSchema: editDraftSchema,
+      outputSchema: editDraftOutputSchema,
+    },
+    async (args) => {
+      const a = args as EditDraftArgs;
+      if (readOnly) return fail("server is in --read-only mode; edit_draft is disabled");
+      try {
+        const { provider, account } = registry.resolveByEmail(a.account);
+        if (a.include_signature && !account.signature) {
+          return fail(
+            "include_signature is true but no signature is configured for this account. " +
+            "Set up a signature first with set_account_settings.",
+          );
+        }
+        let bodyPayload: string | undefined;
+        let isHtmlPayload: boolean | undefined;
+        if (a.body !== undefined) {
+          const composed = composeBody({
+            body: a.body,
+            isHtml: a.isHtml,
+            signature: account.signature,
+            style: account.style,
+            includeSignature: !!a.include_signature,
+          });
+          bodyPayload = composed.body;
+          isHtmlPayload = composed.isHtml;
+        }
+        const res = await provider.updateDraft(account, a.id, {
+          to: a.to,
+          cc: a.cc,
+          bcc: a.bcc,
+          subject: a.subject,
+          body: bodyPayload,
+          isHtml: isHtmlPayload,
+        });
+        // Fetch the updated draft so the agent can inspect the HTML before sending.
+        const draft = await provider.readEmail(account, res.id);
+        const result: Record<string, unknown> = {
+          edited: true as const,
+          id: res.id,
+          draftHtml: draft.bodyHtml,
+        };
+        return ok(result, result);
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
 }
 
 // ---------- body composition helpers ----------

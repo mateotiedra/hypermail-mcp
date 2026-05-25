@@ -68,6 +68,21 @@ export interface SendInput {
 }
 
 /**
+ * Fields that can be updated on an existing draft. All fields are optional —
+ * only the ones provided will be patched. `inReplyTo` / `replyAll` /
+ * `forwardMessageId` are excluded because they are set at creation time and
+ * cannot be changed on an existing draft.
+ */
+export interface DraftUpdateInput {
+  to?: EmailAddress[];
+  cc?: EmailAddress[];
+  bcc?: EmailAddress[];
+  subject?: string;
+  body?: string;
+  isHtml?: boolean;
+}
+
+/**
  * Result of starting an add-account flow.
  *
  * - `pending` (e.g. device code): the caller must show `verification` to the
@@ -132,6 +147,16 @@ export interface EmailProvider {
    * Drafts folder, open it for further editing, or send it manually.
    */
   saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
+  /**
+   * Update an existing draft message by ID. Only the fields present in
+   * `update` are patched — the rest are left unchanged.
+   * Returns the draft message ID.
+   */
+  updateDraft(
+    account: AccountRecord,
+    id: string,
+    update: DraftUpdateInput,
+  ): Promise<{ id: string }>;
   /**
    * Move a message to another folder.
    * `destinationId` can be a well-known folder name (e.g. "archive",

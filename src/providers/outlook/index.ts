@@ -11,6 +11,7 @@ import type {
   AddAccountResult,
   AttachmentContent,
   CompleteAddAccountResult,
+  DraftUpdateInput,
   EmailFull,
   EmailProvider,
   EmailSummary,
@@ -483,6 +484,46 @@ export class OutlookProvider implements EmailProvider {
       .api("/me/messages")
       .post(draftPayload);
     return { id: draft.id };
+  }
+
+  async updateDraft(
+    account: AccountRecord,
+    id: string,
+    update: DraftUpdateInput,
+  ): Promise<{ id: string }> {
+    const client = this.clients.get(account);
+    const payload: Record<string, unknown> = {};
+
+    if (update.subject !== undefined) {
+      payload.subject = update.subject;
+    }
+    if (update.to !== undefined) {
+      payload.toRecipients = update.to.map(toRecipient);
+    }
+    if (update.cc !== undefined) {
+      payload.ccRecipients = update.cc.map(toRecipient);
+    }
+    if (update.bcc !== undefined) {
+      payload.bccRecipients = update.bcc.map(toRecipient);
+    }
+    if (update.body !== undefined) {
+      const converted = convertInlineImages(update.body);
+      payload.body = {
+        contentType: update.isHtml ? "HTML" : "Text",
+        content: converted.body,
+      };
+      if (converted.attachments.length > 0) {
+        // Patch existing inline attachments: Graph will replace all
+        // attachments on the message. We send only the new ones.
+        payload.attachments = converted.attachments;
+      }
+    }
+
+    await client
+      .api(`/me/messages/${encodeURIComponent(id)}`)
+      .patch(payload);
+
+    return { id };
   }
 
   async moveEmail(
