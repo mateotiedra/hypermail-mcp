@@ -8,19 +8,20 @@ describe("convertInlineImages", () => {
     const result = convertInlineImages(body);
 
     expect(result.attachments).toHaveLength(1);
-    expect(result.attachments[0].name).toBe("signature-image.png");
-    expect(result.attachments[0].contentType).toBe("image/png");
-    expect(result.attachments[0].contentId).toMatch(/^sig-img-/);
-    expect(result.attachments[0].contentBytes).toBe(
+    const att = result.attachments[0]!;
+    expect(att.name).toBe("signature-image.png");
+    expect(att.contentType).toBe("image/png");
+    expect(att.contentId).toMatch(/^sig-img-/);
+    expect(att.contentBytes).toBe(
       "iVBORw0KGgoAAAANSUhEUgAAAAUA",
     );
-    expect(result.attachments[0].isInline).toBe(true);
-    expect(result.attachments[0]["@odata.type"]).toBe(
+    expect(att.isInline).toBe(true);
+    expect(att["@odata.type"]).toBe(
       "#microsoft.graph.fileAttachment",
     );
 
     expect(result.body).toBe(
-      `<div><img src="cid:${result.attachments[0].contentId}"></div>`,
+      `<div><img src="cid:${att.contentId}"></div>`,
     );
     expect(result.body).not.toContain("base64");
     expect(result.body).not.toContain("data:image");
@@ -32,9 +33,9 @@ describe("convertInlineImages", () => {
     const result = convertInlineImages(body);
 
     expect(result.attachments).toHaveLength(1);
-    expect(result.attachments[0].name).toBe("signature-image.jpeg");
-    expect(result.attachments[0].contentType).toBe("image/jpeg");
-    expect(result.attachments[0].contentBytes).toBe("/9j/4AAQSkZJRgABAQEA");
+    expect(result.attachments[0]!.name).toBe("signature-image.jpeg");
+    expect(result.attachments[0]!.contentType).toBe("image/jpeg");
+    expect(result.attachments[0]!.contentBytes).toBe("/9j/4AAQSkZJRgABAQEA");
   });
 
   it("returns body unchanged with empty attachments array when no data URIs", () => {
@@ -51,13 +52,13 @@ describe("convertInlineImages", () => {
     const result = convertInlineImages(body);
 
     expect(result.attachments).toHaveLength(2);
-    expect(result.attachments[0].contentId).not.toBe(
-      result.attachments[1].contentId,
+    expect(result.attachments[0]!.contentId).not.toBe(
+      result.attachments[1]!.contentId,
     );
-    expect(result.attachments[0].contentBytes).toBe("AAA");
-    expect(result.attachments[1].contentBytes).toBe("BBB");
-    expect(result.attachments[0].name).toBe("signature-image.png");
-    expect(result.attachments[1].name).toBe("signature-image.jpeg");
+    expect(result.attachments[0]!.contentBytes).toBe("AAA");
+    expect(result.attachments[1]!.contentBytes).toBe("BBB");
+    expect(result.attachments[0]!.name).toBe("signature-image.png");
+    expect(result.attachments[1]!.name).toBe("signature-image.jpeg");
   });
 
   it("skips non-base64 data URIs gracefully (e.g. raw svg)", () => {
@@ -67,7 +68,7 @@ describe("convertInlineImages", () => {
 
     // Only the base64 one should be captured
     expect(result.attachments).toHaveLength(1);
-    expect(result.attachments[0].contentBytes).toBe("CCC");
+    expect(result.attachments[0]!.contentBytes).toBe("CCC");
   });
 
   it("handles SVG+XML base64 correctly", () => {
@@ -76,9 +77,9 @@ describe("convertInlineImages", () => {
     const result = convertInlineImages(body);
 
     expect(result.attachments).toHaveLength(1);
-    expect(result.attachments[0].name).toBe("signature-image.svg");
-    expect(result.attachments[0].contentType).toBe("image/svg+xml");
-    expect(result.attachments[0].contentBytes).toBe("PHN2Zz48L3N2Zz4=");
+    expect(result.attachments[0]!.name).toBe("signature-image.svg");
+    expect(result.attachments[0]!.contentType).toBe("image/svg+xml");
+    expect(result.attachments[0]!.contentBytes).toBe("PHN2Zz48L3N2Zz4=");
   });
 
   it("handles empty body", () => {
@@ -94,8 +95,8 @@ describe("convertInlineImages", () => {
     const result = convertInlineImages(body);
 
     expect(result.attachments).toHaveLength(1);
-    expect(result.attachments[0].contentBytes).toBe("DDD");
-    expect(result.attachments[0].name).toBe("signature-image.png");
+    expect(result.attachments[0]!.contentBytes).toBe("DDD");
+    expect(result.attachments[0]!.name).toBe("signature-image.png");
   });
 
   it("preserves surrounding HTML structure", () => {

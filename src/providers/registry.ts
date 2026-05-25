@@ -23,7 +23,7 @@ export function buildRegistry(opts: BuildRegistryOptions): Registry {
     clientId: outlookCfg?.clientId,
     tenantId: outlookCfg?.tenantId,
   }));
-  providers.set("imap", new ImapProvider());
+  providers.set("imap", new ImapProvider(opts.store));
   // gmail can be added later — registry will return a clear error if asked.
 
   function get(id: ProviderId): EmailProvider {

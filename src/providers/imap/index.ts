@@ -1,4 +1,4 @@
-import type { AccountRecord } from "../../store/account-store.js";
+import type { AccountRecord, AccountStore } from "../../store/account-store.js";
 import type {
   AddAccountInput,
   AddAccountResult,
@@ -16,135 +16,117 @@ import type {
   SearchEmailsOptions,
   SendInput,
 } from "../types.js";
+import { ImapClientFactory } from "./client.js";
+import {
+  listEmails,
+  searchEmails,
+  readEmail,
+  readAttachment,
+  listFolders,
+} from "./read-ops.js";
+import {
+  addAccount,
+  completeAddAccount,
+  sendEmail,
+  saveDraft,
+  updateDraft,
+  moveEmail,
+  sendDraft,
+  addAttachmentToDraft,
+  markRead,
+  createFolder,
+  renameFolder,
+  deleteFolder,
+} from "./write-ops.js";
 
-const NOT_IMPLEMENTED =
-  "IMAP provider is not yet implemented in v1. Tracked at " +
-  "src/providers/imap/index.ts — see src/providers/types.ts for the contract.";
-
-/**
- * Placeholder IMAP provider — registered so the contract is locked in and
- * `add_account` returns a clear "coming soon" error instead of "unknown provider".
- *
- * v2 plan: use `imapflow` + `nodemailer` (for send). Tokens shape will be
- * `{ host, port, secure, user, password|appPassword }` encrypted at rest by
- * the AccountStore, identical to how Outlook's MSAL cache is stored.
- */
 export class ImapProvider implements EmailProvider {
   readonly id = "imap" as const;
+  private readonly clients = new ImapClientFactory();
 
-  async addAccount(_input: AddAccountInput): Promise<AddAccountResult> {
-    throw new Error(NOT_IMPLEMENTED);
+  constructor(private readonly store?: AccountStore) {}
+
+  // ---------- account lifecycle ----------
+
+  async addAccount(input: AddAccountInput): Promise<AddAccountResult> {
+    if (!this.store) throw new Error("IMAP provider requires an AccountStore");
+    return addAccount(this.clients, this.store, input);
   }
 
   async completeAddAccount(_handle: string): Promise<CompleteAddAccountResult> {
-    return { status: "error", error: NOT_IMPLEMENTED };
+    return completeAddAccount();
   }
 
-  async listEmails(
-    _account: AccountRecord,
-    _opts: ListEmailsOptions,
-  ): Promise<ListEmailsResult> {
-    throw new Error(NOT_IMPLEMENTED);
+  // ---------- browse ----------
+
+  async listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<ListEmailsResult> {
+    return listEmails(this.clients, account, opts);
   }
 
-  async searchEmails(
-    _account: AccountRecord,
-    _query: string,
-    _opts: SearchEmailsOptions,
-  ): Promise<EmailSummary[]> {
-    throw new Error(NOT_IMPLEMENTED);
+  async searchEmails(account: AccountRecord, query: string, opts: SearchEmailsOptions): Promise<EmailSummary[]> {
+    return searchEmails(this.clients, account, query, opts);
   }
 
-  async readEmail(_account: AccountRecord, _id: string): Promise<EmailFull> {
-    throw new Error(NOT_IMPLEMENTED);
+  async readEmail(account: AccountRecord, id: string): Promise<EmailFull> {
+    return readEmail(this.clients, account, id);
   }
 
-  async readAttachment(
-    _account: AccountRecord,
-    _messageId: string,
-    _attachmentId: string,
-  ): Promise<AttachmentContent> {
-    throw new Error(NOT_IMPLEMENTED);
+  async readAttachment(account: AccountRecord, messageId: string, attachmentId: string): Promise<AttachmentContent> {
+    return readAttachment(this.clients, account, messageId, attachmentId);
   }
 
-  async sendEmail(
-    _account: AccountRecord,
-    _msg: SendInput,
-  ): Promise<{ id: string }> {
-    throw new Error(NOT_IMPLEMENTED);
+  // ---------- compose ----------
+
+  async sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+    return sendEmail(this.clients, account, msg);
   }
 
-  async saveDraft(
-    _account: AccountRecord,
-    _msg: SendInput,
-  ): Promise<{ id: string }> {
-    throw new Error(NOT_IMPLEMENTED);
+  async saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+    return saveDraft(this.clients, account, msg);
   }
 
-  async updateDraft(
-    _account: AccountRecord,
-    _id: string,
-    _update: DraftUpdateInput,
-  ): Promise<{ id: string }> {
-    throw new Error(NOT_IMPLEMENTED);
+  async updateDraft(account: AccountRecord, id: string, update: DraftUpdateInput): Promise<{ id: string }> {
+    return updateDraft(this.clients, account, id, update);
   }
 
-  async moveEmail(
-    _account: AccountRecord,
-    _id: string,
-    _destinationId: string,
-  ): Promise<void> {
-    throw new Error(NOT_IMPLEMENTED);
+  async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void> {
+    return moveEmail(this.clients, account, id, destinationId);
   }
 
-  async sendDraft(_account: AccountRecord, _id: string): Promise<{ id: string }> {
-    throw new Error(NOT_IMPLEMENTED);
+  async sendDraft(account: AccountRecord, id: string): Promise<{ id: string }> {
+    return sendDraft(this.clients, account, id);
   }
 
   async addAttachmentToDraft(
-    _account: AccountRecord,
-    _draftId: string,
-    _name: string,
-    _contentBytes: string,
-    _contentType?: string,
+    account: AccountRecord,
+    draftId: string,
+    name: string,
+    contentBytes: string,
+    contentType?: string,
   ): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }> {
-    throw new Error(NOT_IMPLEMENTED);
+    return addAttachmentToDraft(this.clients, account, draftId, name, contentBytes, contentType);
   }
 
-  async markRead(
-    _account: AccountRecord,
-    _id: string,
-    _isRead: boolean,
-  ): Promise<void> {
-    throw new Error(NOT_IMPLEMENTED);
+  // ---------- organize ----------
+
+  async markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void> {
+    return markRead(this.clients, account, id, isRead);
   }
 
-  async listFolders(
-    _account: AccountRecord,
-    _opts: ListFoldersOptions,
-  ): Promise<FolderInfo[]> {
-    throw new Error(NOT_IMPLEMENTED);
+  // ---------- folders ----------
+
+  async listFolders(account: AccountRecord, opts: ListFoldersOptions): Promise<FolderInfo[]> {
+    return listFolders(this.clients, account, opts);
   }
 
-  async createFolder(
-    _account: AccountRecord,
-    _input: CreateFolderInput,
-  ): Promise<FolderInfo> {
-    throw new Error(NOT_IMPLEMENTED);
+  async createFolder(account: AccountRecord, input: CreateFolderInput): Promise<FolderInfo> {
+    return createFolder(this.clients, account, input);
   }
 
-  async renameFolder(
-    _account: AccountRecord,
-    _folderId: string,
-    _newName: string,
-  ): Promise<FolderInfo> {
-    throw new Error(NOT_IMPLEMENTED);
+  async renameFolder(account: AccountRecord, folderId: string, newName: string): Promise<FolderInfo> {
+    return renameFolder(this.clients, account, folderId, newName);
   }
 
-  async deleteFolder(
-    _account: AccountRecord,
-    _folderId: string,
-  ): Promise<void> {
-    throw new Error(NOT_IMPLEMENTED);
+  async deleteFolder(account: AccountRecord, folderId: string): Promise<void> {
+    return deleteFolder(this.clients, account, folderId);
   }
 }

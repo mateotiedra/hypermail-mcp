@@ -88,7 +88,7 @@ export function registerAccountTools(
           "the user must enter at the verification URL; then call `complete_add_account` " +
           "with the returned `handle` to finalize. Disabled in --read-only mode.",
         inputSchema: {
-          provider: providerIdEnum.describe("Email backend. v1 only fully implements 'outlook'."),
+          provider: providerIdEnum.describe("Email backend. 'outlook' (Microsoft Graph) and 'imap' are fully implemented."),
           email: z
             .string()
             .email()

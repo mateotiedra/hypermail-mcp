@@ -5,6 +5,8 @@ import { join as pathJoin } from "node:path";
 
 import { ResponseType, type Client } from "@microsoft/microsoft-graph-client";
 
+import { parseInlineImages } from "../shared/inline-images.js";
+
 import type { AccountRecord, AccountStore } from "../../store/account-store.js";
 import type {
   AddAccountInput,
@@ -49,6 +51,9 @@ interface InlineAttachment {
  * (with src="cid:..." references) plus an array of inline fileAttachment
  * objects ready for the Graph API.
  *
+ * Delegates the HTML parsing to the shared {@link parseInlineImages} and
+ * then wraps each image in an Outlook-specific `@odata.type` attachment.
+ *
  * Pass-through when there are no matches — returns the original body with
  * an empty attachments array.
  */
@@ -56,27 +61,15 @@ export function convertInlineImages(body: string): {
   body: string;
   attachments: InlineAttachment[];
 } {
-  const attachments: InlineAttachment[] = [];
-  // Match src="data:image/<subtype>;base64,<payload>"
-  // Supports png, jpg, jpeg, gif, svg+xml, webp, bmp, etc.
-  const re = /src="data:image\/([\w+]+);base64,([^"]+)"/gi;
-
-  const transformed = body.replace(re, (_fullMatch, mimeSubtype, b64) => {
-    const contentId = `sig-img-${randomUUID()}`;
-    const ext = mimeSubtype.toLowerCase().replace(/\+/g, "-") === "svg-xml"
-      ? "svg"
-      : mimeSubtype.toLowerCase().replace(/\+/g, "-");
-    attachments.push({
-      "@odata.type": "#microsoft.graph.fileAttachment",
-      name: `signature-image.${ext}`,
-      contentType: `image/${mimeSubtype}`,
-      contentId,
-      contentBytes: b64,
-      isInline: true,
-    });
-    return `src="cid:${contentId}"`;
-  });
-
+  const { body: transformed, images } = parseInlineImages(body);
+  const attachments: InlineAttachment[] = images.map((img) => ({
+    "@odata.type": "#microsoft.graph.fileAttachment",
+    name: img.filename,
+    contentType: img.contentType,
+    contentId: img.cid,
+    contentBytes: img.contentBytes,
+    isInline: true,
+  }));
   return { body: transformed, attachments };
 }
 
