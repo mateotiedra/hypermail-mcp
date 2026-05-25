@@ -11,6 +11,7 @@ import type {
   EmailSummary,
   FolderInfo,
   ListEmailsOptions,
+  ListEmailsResult,
   ListFoldersOptions,
   SearchEmailsOptions,
   SendInput,
@@ -44,7 +45,7 @@ export class ImapProvider implements EmailProvider {
   async listEmails(
     _account: AccountRecord,
     _opts: ListEmailsOptions,
-  ): Promise<EmailSummary[]> {
+  ): Promise<ListEmailsResult> {
     throw new Error(NOT_IMPLEMENTED);
   }
 
@@ -95,6 +96,22 @@ export class ImapProvider implements EmailProvider {
     _id: string,
     _destinationId: string,
   ): Promise<void> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async sendDraft(_account: AccountRecord, _id: string): Promise<{ id: string }> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async addAttachmentToDraft(
+    _account: AccountRecord,
+    _draftId: string,
+    _name: string,
+    _contentBytes: string,
+    _contentType?: string,
+  ): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }> {
     throw new Error(NOT_IMPLEMENTED);
   }
 

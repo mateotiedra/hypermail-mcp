@@ -42,6 +42,14 @@ export interface ListEmailsOptions {
   folder?: string;
   limit?: number;
   unreadOnly?: boolean;
+  /** Number of items to skip for pagination (offset-based). Defaults to 0. */
+  skip?: number;
+}
+
+/** Paginated result from `listEmails`. */
+export interface ListEmailsResult {
+  items: EmailSummary[];
+  hasMore: boolean;
 }
 
 export interface SearchEmailsOptions {
@@ -150,7 +158,7 @@ export interface EmailProvider {
   /** Optional — only providers with async flows (device code) need this. */
   completeAddAccount?(handle: string): Promise<CompleteAddAccountResult>;
 
-  listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<EmailSummary[]>;
+  listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<ListEmailsResult>;
   searchEmails(
     account: AccountRecord,
     query: string,
@@ -185,6 +193,23 @@ export interface EmailProvider {
    * "deleteditems", "inbox") or a custom folder ID.
    */
   moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void>;
+  /**
+   * Send an existing draft message by ID.
+   * Returns the message ID.
+   */
+  sendDraft(account: AccountRecord, id: string): Promise<{ id: string }>;
+  /**
+   * Add a file attachment to an existing draft message.
+   * `contentBytes` must be base64-encoded file content.
+   * Returns the draft ID and the created attachment metadata.
+   */
+  addAttachmentToDraft(
+    account: AccountRecord,
+    draftId: string,
+    name: string,
+    contentBytes: string,
+    contentType?: string,
+  ): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }>;
 
   /** Mark a message as read (isRead=true) or unread (isRead=false). */
   markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void>;

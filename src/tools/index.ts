@@ -316,6 +316,8 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
     account: z.string(),
     count: z.number(),
     items: z.array(emailSummaryOutputSchema),
+    skip: z.number(),
+    hasMore: z.boolean(),
   };
 
   server.registerTool(
@@ -329,18 +331,20 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
         folder: z.string().default("inbox").optional(),
         limit: z.number().int().positive().max(100).optional(),
         unreadOnly: z.boolean().optional(),
+        skip: z.number().int().min(0).optional(),
       },
       outputSchema: emailListOutputSchema,
     },
     async (args) => {
       try {
         const { provider, account } = registry.resolveByEmail(args.account);
-        const items = await provider.listEmails(account, {
+        const { items, hasMore } = await provider.listEmails(account, {
           folder: args.folder,
           limit: args.limit,
           unreadOnly: args.unreadOnly,
+          skip: args.skip,
         });
-        const data = { account: account.email, count: items.length, items };
+        const data = { account: account.email, count: items.length, items, skip: args.skip ?? 0, hasMore };
         return ok(data, data);
       } catch (err) {
         return fail(errMsg(err));
@@ -1017,6 +1021,88 @@ export function registerTools(server: McpServer, opts: RegisterToolsOptions): vo
           draftHtml: draft.bodyHtml,
         };
         return ok(result, result);
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  // ---------- send draft ----------
+
+  const sendDraftOutputSchema = {
+    sent: z.literal(true),
+    id: z.string(),
+  };
+
+  server.registerTool(
+    "send_draft",
+    {
+      description:
+        "Send an existing draft email by ID. " +
+        "Use this with draft IDs returned by `draft_email` or `edit_draft`. " +
+        "Disabled in --read-only mode.",
+      inputSchema: {
+        account: z.string().email(),
+        id: z.string().min(1).describe("Draft message ID to send"),
+      },
+      outputSchema: sendDraftOutputSchema,
+    },
+    async (args) => {
+      if (readOnly) return fail("server is in --read-only mode; send_draft is disabled");
+      try {
+        const { provider, account } = registry.resolveByEmail(args.account);
+        const res = await provider.sendDraft(account, args.id);
+        const data = { sent: true as const, id: res.id };
+        return ok(data, data);
+      } catch (err) {
+        return fail(errMsg(err));
+      }
+    },
+  );
+
+  // ---------- add attachment to draft ----------
+
+  const addAttachmentOutputSchema = {
+    attached: z.literal(true),
+    id: z.string(),
+    attachment: z.object({
+      id: z.string(),
+      name: z.string(),
+      contentType: z.string().optional(),
+    }),
+  };
+
+  server.registerTool(
+    "add_attachment_to_draft",
+    {
+      description:
+        "Add a file attachment to an existing draft email by ID. " +
+        "`contentBytes` must be base64-encoded file content. " +
+        "`contentType` is the MIME type (e.g. 'application/pdf'); " +
+        "defaults to 'application/octet-stream' if omitted. " +
+        "Disabled in --read-only mode.",
+      inputSchema: {
+        account: z.string().email(),
+        id: z.string().min(1).describe("Draft message ID"),
+        name: z.string().min(1).describe("Attachment filename (e.g. 'report.pdf')"),
+        contentBytes: z.string().min(1).describe("Base64-encoded file content"),
+        contentType: z.string().optional().describe("MIME type (e.g. 'application/pdf')"),
+      },
+      outputSchema: addAttachmentOutputSchema,
+    },
+    async (args) => {
+      if (readOnly) return fail("server is in --read-only mode; add_attachment_to_draft is disabled");
+      try {
+        const { provider, account } = registry.resolveByEmail(args.account);
+        const res = await provider.addAttachmentToDraft(
+          account,
+          args.id,
+          args.name,
+          args.contentBytes,
+          args.contentType,
+        );
+        const data = { attached: true as const, id: res.id, attachment: res.attachment };
+        return ok(data, data as unknown as Record<string, unknown>);
       } catch (err) {
         return fail(errMsg(err));
       }
