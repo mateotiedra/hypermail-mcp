@@ -5,7 +5,7 @@ import {
 } from "@microsoft/microsoft-graph-client";
 
 import type { AccountStore, AccountRecord } from "../../store/account-store.js";
-import { acquireAccessToken, type SerializedTokens } from "./auth.js";
+import { acquireAccessToken, isSerializedTokens, type SerializedTokens } from "./auth.js";
 
 /**
  * Builds a Graph `Client` bound to a stored account. The client uses an
@@ -32,7 +32,12 @@ export class OutlookClientFactory {
     const provider: AuthenticationProvider = {
       getAccessToken: async () => {
         const fresh = store.getAccount(account.email) ?? account;
-        const tokens = fresh.tokens as unknown as SerializedTokens;
+        if (!isSerializedTokens(fresh.tokens)) {
+          throw new Error(
+            "Outlook account tokens are missing or corrupted — re-run add_account",
+          );
+        }
+        const tokens: SerializedTokens = fresh.tokens;
         const { accessToken, tokens: nextTokens } = await acquireAccessToken(
           tokens,
           undefined,

@@ -46,6 +46,19 @@ export interface SerializedTokens {
   scopes: string[];
 }
 
+/** Type guard — validates that an unknown value has the shape of SerializedTokens. */
+export function isSerializedTokens(obj: unknown): obj is SerializedTokens {
+  if (typeof obj !== "object" || obj === null) return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.msalCache === "string" &&
+    typeof o.homeAccountId === "string" &&
+    typeof o.tenantId === "string" &&
+    typeof o.username === "string" &&
+    Array.isArray(o.scopes)
+  );
+}
+
 function makeConfig(prevCacheJson?: string, clientIdOverride?: string, tenantOverride?: string): Configuration {
   const clientId = clientIdOverride || process.env.MS_CLIENT_ID || DEFAULT_CLIENT_ID;
   const tenant = tenantOverride || process.env.MS_TENANT_ID || "common";

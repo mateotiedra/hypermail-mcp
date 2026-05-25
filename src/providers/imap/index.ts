@@ -32,12 +32,10 @@ const NOT_IMPLEMENTED =
 export class ImapProvider implements EmailProvider {
   readonly id = "imap" as const;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async addAccount(_input: AddAccountInput): Promise<AddAccountResult> {
     throw new Error(NOT_IMPLEMENTED);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async completeAddAccount(_handle: string): Promise<CompleteAddAccountResult> {
     return { status: "error", error: NOT_IMPLEMENTED };
   }
@@ -99,12 +97,10 @@ export class ImapProvider implements EmailProvider {
     throw new Error(NOT_IMPLEMENTED);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async sendDraft(_account: AccountRecord, _id: string): Promise<{ id: string }> {
     throw new Error(NOT_IMPLEMENTED);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async addAttachmentToDraft(
     _account: AccountRecord,
     _draftId: string,

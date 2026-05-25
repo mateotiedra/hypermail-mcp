@@ -1,7 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
 import { selectBody } from "../html-to-markdown.js";
@@ -18,7 +17,6 @@ import {
 export function registerBrowseTools(
   server: McpServer,
   ctx: {
-    store: AccountStore;
     registry: Registry;
     tools: ResolvedTools;
   },
@@ -33,6 +31,12 @@ export function registerBrowseTools(
     items: z.array(emailSummaryOutputSchema),
     skip: z.number(),
     hasMore: z.boolean(),
+  };
+
+  const searchEmailsOutputSchema = {
+    account: z.string(),
+    count: z.number(),
+    items: z.array(emailSummaryOutputSchema),
   };
 
   if (shouldRegister("list_emails", tools)) {
@@ -86,7 +90,7 @@ export function registerBrowseTools(
           query: z.string().min(1),
           limit: z.number().int().positive().max(100).optional(),
         },
-        outputSchema: emailListOutputSchema,
+        outputSchema: searchEmailsOutputSchema,
       },
       async (args) => {
         try {

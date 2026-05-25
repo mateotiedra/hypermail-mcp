@@ -364,140 +364,91 @@ export class OutlookProvider implements EmailProvider {
     return draft.id;
   }
 
-  async sendEmail(
+  // Shared backend for sendEmail and saveDraft — handles forward, reply, and
+  // new-message paths. The `mode` controls whether the message is sent
+  // immediately or saved as a draft.
+  private async sendOrSave(
     account: AccountRecord,
     msg: SendInput,
+    mode: "send" | "draft",
   ): Promise<{ id: string }> {
     const client = this.clients.get(account);
-
-    if (msg.inReplyTo && msg.forwardMessageId) {
-      throw new Error(
-        "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
-      );
-    }
-
-    // Convert data:image URIs to cid: references + inline attachments.
     const converted = convertInlineImages(msg.body);
 
+    const toRecipients = msg.to.map(toRecipient);
+    const ccRecipients = (msg.cc ?? []).map(toRecipient);
+    const bccRecipients = (msg.bcc ?? []).map(toRecipient);
+
+    // Forward — build a forward draft, then send if mode is "send".
     if (msg.forwardMessageId) {
       const draftId = await this.buildDraftFromReference(
         client,
         `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
-        {
-          message: {
-            toRecipients: msg.to.map(toRecipient),
-            ccRecipients: (msg.cc ?? []).map(toRecipient),
-            bccRecipients: (msg.bcc ?? []).map(toRecipient),
-          },
-          comment: "",
-        },
+        { message: { toRecipients, ccRecipients, bccRecipients }, comment: "" },
         converted,
       );
-      await client.api(`/me/messages/${draftId}/send`).post({});
+      if (mode === "send") {
+        await client.api(`/me/messages/${draftId}/send`).post({});
+      }
       return { id: draftId };
     }
 
+    // Reply — build a reply draft, then send if mode is "send".
     if (msg.inReplyTo) {
       const createEndpoint = msg.replyAll
         ? `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReplyAll`
         : `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReply`;
       const draftId = await this.buildDraftFromReference(
-        client,
-        createEndpoint,
-        {},
-        converted,
+        client, createEndpoint, {}, converted,
       );
-      await client.api(`/me/messages/${draftId}/send`).post({});
+      if (mode === "send") {
+        await client.api(`/me/messages/${draftId}/send`).post({});
+      }
       return { id: draftId };
     }
 
-    // New email — use sendMail with inline attachments
-    const payload: Record<string, unknown> = {
-      message: {
-        subject: msg.subject,
-        body: {
-          contentType: msg.isHtml ? "HTML" : "Text",
-          content: converted.body,
-        },
-        toRecipients: msg.to.map(toRecipient),
-        ccRecipients: (msg.cc ?? []).map(toRecipient),
-        bccRecipients: (msg.bcc ?? []).map(toRecipient),
+    // New email — sendMail (mode=send) or POST /me/messages (mode=draft).
+    const messagePayload: Record<string, unknown> = {
+      subject: msg.subject,
+      body: {
+        contentType: msg.isHtml ? "HTML" : "Text",
+        content: converted.body,
       },
-      saveToSentItems: true,
+      toRecipients,
+      ccRecipients,
+      bccRecipients,
     };
     if (converted.attachments.length > 0) {
-      (payload.message as Record<string, unknown>).attachments =
-        converted.attachments;
+      messagePayload.attachments = converted.attachments;
     }
-    await client.api("/me/sendMail").post(payload);
-    // Graph's sendMail returns 202 with no body; we don't have an id back.
-    return { id: "" };
+
+    if (mode === "send") {
+      await client.api("/me/sendMail").post({
+        message: messagePayload,
+        saveToSentItems: true,
+      });
+      // Graph's sendMail returns 202 with no body; we don't have an id back.
+      return { id: "" };
+    }
+
+    const draft: { id: string } = await client
+      .api("/me/messages")
+      .post(messagePayload);
+    return { id: draft.id };
+  }
+
+  async sendEmail(
+    account: AccountRecord,
+    msg: SendInput,
+  ): Promise<{ id: string }> {
+    return this.sendOrSave(account, msg, "send");
   }
 
   async saveDraft(
     account: AccountRecord,
     msg: SendInput,
   ): Promise<{ id: string }> {
-    const client = this.clients.get(account);
-
-    if (msg.inReplyTo && msg.forwardMessageId) {
-      throw new Error(
-        "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
-      );
-    }
-
-    const converted = convertInlineImages(msg.body);
-
-    // Forward/reply drafts: same flow as sendEmail, but skip the final send.
-    if (msg.forwardMessageId) {
-      const draftId = await this.buildDraftFromReference(
-        client,
-        `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
-        {
-          message: {
-            toRecipients: msg.to.map(toRecipient),
-            ccRecipients: (msg.cc ?? []).map(toRecipient),
-            bccRecipients: (msg.bcc ?? []).map(toRecipient),
-          },
-          comment: "",
-        },
-        converted,
-      );
-      return { id: draftId };
-    }
-
-    if (msg.inReplyTo) {
-      const createEndpoint = msg.replyAll
-        ? `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReplyAll`
-        : `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReply`;
-      const draftId = await this.buildDraftFromReference(
-        client,
-        createEndpoint,
-        {},
-        converted,
-      );
-      return { id: draftId };
-    }
-
-    // New email — create a draft message directly (POST /me/messages).
-    // Graph creates drafts by default when posting to /me/messages.
-    const draftPayload: Record<string, unknown> = {
-      subject: msg.subject,
-      body: {
-        contentType: msg.isHtml ? "HTML" : "Text",
-        content: converted.body,
-      },
-      toRecipients: msg.to.map(toRecipient),
-      ccRecipients: (msg.cc ?? []).map(toRecipient),
-      bccRecipients: (msg.bcc ?? []).map(toRecipient),
-    };
-    if (converted.attachments.length > 0) {
-      draftPayload.attachments = converted.attachments;
-    }
-    const draft: { id: string } = await client
-      .api("/me/messages")
-      .post(draftPayload);
-    return { id: draft.id };
+    return this.sendOrSave(account, msg, "draft");
   }
 
   async updateDraft(

@@ -14,6 +14,31 @@ export function registerOrganizeTools(
 ): void {
   const { registry, tools } = ctx;
 
+  // Shared helpers — extract the resolved-account lookup and error handling
+  // so archive/trash/mark_read/mark_unread handlers stay minimal.
+
+  async function moveToWellKnown(
+    args: { account: string; id: string },
+    destination: string,
+    resultKey: string,
+  ) {
+    const { provider, account } = registry.resolveByEmail(args.account);
+    await provider.moveEmail(account, args.id, destination);
+    const data: Record<string, unknown> = { id: args.id };
+    data[resultKey] = true;
+    return ok(data, data);
+  }
+
+  async function markReadState(
+    args: { account: string; id: string },
+    isRead: boolean,
+  ) {
+    const { provider, account } = registry.resolveByEmail(args.account);
+    await provider.markRead(account, args.id, isRead);
+    const data = { marked: true as const, id: args.id, isRead };
+    return ok(data, data);
+  }
+
   // ---------- archive ----------
 
   const archiveMoveSchema = {
@@ -37,10 +62,7 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-          await provider.moveEmail(account, args.id, "archive");
-          const data = { archived: true as const, id: args.id };
-          return ok(data, data);
+          return await moveToWellKnown(args, "archive", "archived");
         } catch (err) {
           return fail(errMsg(err));
         }
@@ -66,10 +88,7 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-          await provider.moveEmail(account, args.id, "deleteditems");
-          const data = { trashed: true as const, id: args.id };
-          return ok(data, data);
+          return await moveToWellKnown(args, "deleteditems", "trashed");
         } catch (err) {
           return fail(errMsg(err));
         }
@@ -148,14 +167,7 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-          await provider.markRead(account, args.id, true);
-          const data = {
-            marked: true as const,
-            id: args.id,
-            isRead: true,
-          };
-          return ok(data, data);
+          return await markReadState(args, true);
         } catch (err) {
           return fail(errMsg(err));
         }
@@ -174,14 +186,7 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-          await provider.markRead(account, args.id, false);
-          const data = {
-            marked: true as const,
-            id: args.id,
-            isRead: false,
-          };
-          return ok(data, data);
+          return await markReadState(args, false);
         } catch (err) {
           return fail(errMsg(err));
         }

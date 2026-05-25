@@ -9,7 +9,9 @@ import {
   ok,
   fail,
   errMsg,
+  providerIdEnum,
   accountSummaryOutputSchema,
+  accountFullOutputSchema,
   styleOutputSchema,
   shouldRegister,
 } from "./shared.js";
@@ -73,15 +75,7 @@ export function registerAccountTools(
     }),
     z.object({
       status: z.literal("ready"),
-      account: z.object({
-        email: z.string(),
-        provider: z.enum(["outlook", "imap", "gmail"]),
-        displayName: z.string().optional(),
-        tokens: z.record(z.unknown()),
-        addedAt: z.string(),
-        signature: z.string().optional(),
-        style: styleOutputSchema.optional(),
-      }),
+      account: accountFullOutputSchema,
     }),
   ]);
 
@@ -94,9 +88,7 @@ export function registerAccountTools(
           "the user must enter at the verification URL; then call `complete_add_account` " +
           "with the returned `handle` to finalize. Disabled in --read-only mode.",
         inputSchema: {
-          provider: z
-            .enum(["outlook", "imap", "gmail"])
-            .describe("Email backend. v1 only fully implements 'outlook'."),
+          provider: providerIdEnum.describe("Email backend. v1 only fully implements 'outlook'."),
           email: z
             .string()
             .email()
@@ -132,17 +124,7 @@ export function registerAccountTools(
 
   const completeAddAccountOutputSchema = z.object({
     status: z.enum(["pending", "ready", "expired", "error"]),
-    account: z
-      .object({
-        email: z.string(),
-        provider: z.enum(["outlook", "imap", "gmail"]),
-        displayName: z.string().optional(),
-        tokens: z.record(z.unknown()),
-        addedAt: z.string(),
-        signature: z.string().optional(),
-        style: styleOutputSchema.optional(),
-      })
-      .optional(),
+    account: accountFullOutputSchema.optional(),
     error: z.string().optional(),
   });
 
@@ -154,7 +136,7 @@ export function registerAccountTools(
           "Poll/finalize a pending add_account flow. Returns `pending` until the user " +
           "completes the device-code step, then `ready` with the persisted account.",
         inputSchema: {
-          provider: z.enum(["outlook", "imap", "gmail"]),
+          provider: providerIdEnum,
           handle: z.string().min(1),
         },
         outputSchema: completeAddAccountOutputSchema,

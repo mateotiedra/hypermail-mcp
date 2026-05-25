@@ -32,6 +32,9 @@ export function errMsg(err: unknown): string {
 
 // ── shared schemas ──
 
+/** Enum matching {@link import("../providers/types.js").ProviderId}. */
+export const providerIdEnum = z.enum(["outlook", "imap", "gmail"]);
+
 export const emailAddrSchema = z.object({
   address: z.string().email(),
   name: z.string().optional(),
@@ -44,11 +47,28 @@ export const emailAddrOutputSchema = z.object({
 
 export const accountSummaryOutputSchema = z.object({
   email: z.string(),
-  provider: z.enum(["outlook", "imap", "gmail"]),
+  provider: providerIdEnum,
   displayName: z.string().optional(),
   addedAt: z.string(),
   hasSignature: z.boolean(),
   hasStyle: z.boolean(),
+});
+
+export const styleOutputSchema = z.object({
+  fontFamily: z.string().optional(),
+  fontSize: z.string().optional(),
+  fontColor: z.string().optional(),
+});
+
+/** Full account record including tokens, signature, and style. */
+export const accountFullOutputSchema = z.object({
+  email: z.string(),
+  provider: providerIdEnum,
+  displayName: z.string().optional(),
+  tokens: z.record(z.unknown()),
+  addedAt: z.string(),
+  signature: z.string().optional(),
+  style: styleOutputSchema.optional(),
 });
 
 export const emailSummaryOutputSchema = z.object({
@@ -68,12 +88,6 @@ export const attachmentMetaOutputSchema = z.object({
   name: z.string(),
   contentType: z.string().optional(),
   size: z.number().optional(),
-});
-
-export const styleOutputSchema = z.object({
-  fontFamily: z.string().optional(),
-  fontSize: z.string().optional(),
-  fontColor: z.string().optional(),
 });
 
 export const folderInfoOutputSchema = z.object({
