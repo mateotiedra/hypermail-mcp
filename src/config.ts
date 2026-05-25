@@ -19,8 +19,14 @@ const outlookProviderSchema = z.object({
   tenantId: z.string().optional(),
 });
 
+const gmailProviderSchema = z.object({
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+});
+
 const providersConfigSchema = z.object({
   outlook: outlookProviderSchema.optional(),
+  gmail: gmailProviderSchema.optional(),
 });
 
 const rawConfigSchema = z.object({
@@ -48,8 +54,14 @@ export interface OutlookProviderConfig {
   tenantId?: string;
 }
 
+export interface GmailProviderConfig {
+  clientId?: string;
+  clientSecret?: string;
+}
+
 export interface ProvidersConfig {
   outlook?: OutlookProviderConfig;
+  gmail?: GmailProviderConfig;
 }
 
 /** Fully resolved application configuration (after ${VAR} expansion and CLI merge). */

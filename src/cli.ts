@@ -74,7 +74,8 @@ Example hypermail-config.json:
     "http": { "enabled": false },
     "tools": { "disabled": ["send_email"] },
     "providers": {
-      "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" }
+      "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" },
+      "gmail": { "clientId": "\${GOOGLE_CLIENT_ID}", "clientSecret": "\${GOOGLE_CLIENT_SECRET}" }
     }
   }
 `;
