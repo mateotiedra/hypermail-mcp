@@ -1,11 +1,12 @@
 import { startServer } from "./server.js";
+import { loadConfig } from "./config.js";
 
 type ParsedArgs = {
   http: boolean;
   port: number;
   host: string;
   dataDir?: string;
-  readOnly: boolean;
+  config?: string;
   help: boolean;
 };
 
@@ -14,7 +15,6 @@ function parseArgs(argv: string[]): ParsedArgs {
     http: false,
     port: 3000,
     host: "127.0.0.1",
-    readOnly: false,
     help: false,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -32,8 +32,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       case "--data-dir":
         out.dataDir = String(argv[++i] ?? "");
         break;
-      case "--read-only":
-        out.readOnly = true;
+      case "--config":
+        out.config = String(argv[++i] ?? "");
         break;
       case "-h":
       case "--help":
@@ -61,14 +61,22 @@ Options:
   --host <addr>       HTTP bind address (default: 127.0.0.1)
   --data-dir <path>   Where to store the encrypted accounts file
                       (default: $HYPERMAIL_MCP_DATA_DIR or ~/.hypermail-mcp)
-  --read-only         Disable tools that modify state (send_email, remove_account, add_account)
+  --config <path>     Path to hypermail-config.json
   -h, --help          Show this help
 
-Environment:
-  HYPERMAIL_MCP_DATA_DIR   Same as --data-dir
-  HYPERMAIL_MCP_KEY        32-byte key (base64 or hex) for at-rest encryption
-  MS_CLIENT_ID               Azure AD public client (application) ID
-  MS_TENANT_ID               Tenant (default: "common")
+Configuration:
+  All server settings (data dir, HTTP, tool filtering, provider credentials)
+  live in hypermail-config.json. Pass it via --config.
+
+Example hypermail-config.json:
+  {
+    "dataDir": "/path/to/data",
+    "http": { "enabled": false },
+    "tools": { "disabled": ["send_email"] },
+    "providers": {
+      "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" }
+    }
+  }
 `;
   process.stdout.write(msg);
 }
@@ -79,16 +87,15 @@ async function main(): Promise<void> {
     printHelp();
     return;
   }
-  const draftOnly = process.env.HYPERMAIL_DRAFT_ONLY === "true";
 
-  await startServer({
+  const config = loadConfig(opts.config, {
     http: opts.http,
     port: opts.port,
     host: opts.host,
     dataDir: opts.dataDir,
-    readOnly: opts.readOnly,
-    draftOnly,
   });
+
+  await startServer({ config });
 }
 
 main().catch((err) => {

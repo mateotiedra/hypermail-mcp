@@ -17,7 +17,11 @@ import { acquireAccessToken, type SerializedTokens } from "./auth.js";
 export class OutlookClientFactory {
   private readonly cache = new Map<string, Client>();
 
-  constructor(private readonly store: AccountStore) {}
+  constructor(
+    private readonly store: AccountStore,
+    private readonly clientId?: string,
+    private readonly tenantId?: string,
+  ) {}
 
   get(account: AccountRecord): Client {
     const key = account.email.toLowerCase();
@@ -29,7 +33,12 @@ export class OutlookClientFactory {
       getAccessToken: async () => {
         const fresh = store.getAccount(account.email) ?? account;
         const tokens = fresh.tokens as unknown as SerializedTokens;
-        const { accessToken, tokens: nextTokens } = await acquireAccessToken(tokens);
+        const { accessToken, tokens: nextTokens } = await acquireAccessToken(
+          tokens,
+          undefined,
+          this.clientId,
+          this.tenantId,
+        );
         // Persist refreshed cache opportunistically; failures here shouldn't
         // break the in-flight Graph call.
         if (nextTokens.msalCache !== tokens.msalCache) {

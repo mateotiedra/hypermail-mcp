@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/hypersimple/hypermail-mcp/main/schemas/hypermail-config.schema.json",
+  "dataDir": "~/.hypermail-mcp",
+  "http": {
+    "enabled": false,
+    "port": 3000,
+    "host": "127.0.0.1"
+  },
+  "tools": {
+    "disabled": []
+  },
+  "providers": {
+    "outlook": {
+      "clientId": "${MS_CLIENT_ID}",
+      "tenantId": "${MS_TENANT_ID}"
+    }
+  }
+}
