@@ -8,30 +8,29 @@ import { AccountStore } from "./store/account-store.js";
 import { buildRegistry } from "./providers/registry.js";
 import { registerTools } from "./tools/index.js";
 import { VERSION } from "./version.js";
+import type { AppConfig, ProvidersConfig, ResolvedTools } from "./config.js";
+import { resolveTools } from "./config.js";
 
 export interface ServerOptions {
-  http?: boolean;
-  port?: number;
-  host?: string;
-  dataDir?: string;
-  readOnly?: boolean;
-  /** When true, hide send_email and only expose draft_email. */
-  draftOnly?: boolean;
+  /** Fully resolved application config from hypermail-config.json. */
+  config: AppConfig;
 }
 
-export async function startServer(opts: ServerOptions = {}): Promise<void> {
-  const store = await AccountStore.open({ dataDir: opts.dataDir });
-  const registry = buildRegistry({ store });
+export async function startServer(opts: ServerOptions): Promise<void> {
+  const { config } = opts;
+  const store = await AccountStore.open({ dataDir: config.dataDir });
+  const registry = buildRegistry({ store, providers: config.providers });
+  const tools: ResolvedTools = resolveTools(config);
 
   const server = new McpServer(
     { name: "hypermail-mcp", version: VERSION },
     { capabilities: { tools: {}, logging: {} } },
   );
 
-  registerTools(server, { store, registry, readOnly: !!opts.readOnly, draftOnly: !!opts.draftOnly });
+  registerTools(server, { store, registry, tools });
 
-  if (opts.http) {
-    await startHttp(server, opts.host ?? "127.0.0.1", opts.port ?? 3000);
+  if (config.http.enabled) {
+    await startHttp(server, config.http.host, config.http.port);
   } else {
     const transport = new StdioServerTransport();
     await server.connect(transport);

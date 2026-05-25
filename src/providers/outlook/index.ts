@@ -90,21 +90,27 @@ interface PendingFlow {
 
 export interface OutlookProviderOptions {
   store: AccountStore;
+  clientId?: string;
+  tenantId?: string;
 }
 
 export class OutlookProvider implements EmailProvider {
   readonly id = "outlook" as const;
   private readonly clients: OutlookClientFactory;
   private readonly pending = new Map<string, PendingFlow>();
+  private readonly clientId?: string;
+  private readonly tenantId?: string;
 
   constructor(private readonly opts: OutlookProviderOptions) {
-    this.clients = new OutlookClientFactory(opts.store);
+    this.clientId = opts.clientId;
+    this.tenantId = opts.tenantId;
+    this.clients = new OutlookClientFactory(opts.store, opts.clientId, opts.tenantId);
   }
 
   // ---------- account lifecycle ----------
 
   async addAccount(input: AddAccountInput): Promise<AddAccountResult> {
-    const begin = beginDeviceCode();
+    const begin = beginDeviceCode(undefined, this.clientId, this.tenantId);
     await awaitDeviceCodeReady(begin);
 
     const handle = randomUUID();

@@ -46,9 +46,9 @@ export interface SerializedTokens {
   scopes: string[];
 }
 
-function makeConfig(prevCacheJson?: string): Configuration {
-  const clientId = process.env.MS_CLIENT_ID || DEFAULT_CLIENT_ID;
-  const tenant = process.env.MS_TENANT_ID || "common";
+function makeConfig(prevCacheJson?: string, clientIdOverride?: string, tenantOverride?: string): Configuration {
+  const clientId = clientIdOverride || process.env.MS_CLIENT_ID || DEFAULT_CLIENT_ID;
+  const tenant = tenantOverride || process.env.MS_TENANT_ID || "common";
   return {
     auth: {
       clientId,
@@ -63,8 +63,8 @@ function makeConfig(prevCacheJson?: string): Configuration {
   };
 }
 
-export function buildPca(prevCacheJson?: string): PublicClientApplication {
-  const pca = new PublicClientApplication(makeConfig(prevCacheJson));
+export function buildPca(prevCacheJson?: string, clientIdOverride?: string, tenantOverride?: string): PublicClientApplication {
+  const pca = new PublicClientApplication(makeConfig(prevCacheJson, clientIdOverride, tenantOverride));
   if (prevCacheJson) {
     pca.getTokenCache().deserialize(prevCacheJson);
   }
@@ -76,8 +76,12 @@ export function buildPca(prevCacheJson?: string): PublicClientApplication {
  * user has entered the code and consented; callers should poll it (or await it)
  * via `complete_add_account`.
  */
-export function beginDeviceCode(scopes: string[] = DEFAULT_SCOPES): DeviceCodeBegin {
-  const pca = buildPca();
+export function beginDeviceCode(
+  scopes: string[] = DEFAULT_SCOPES,
+  clientIdOverride?: string,
+  tenantOverride?: string,
+): DeviceCodeBegin {
+  const pca = buildPca(undefined, clientIdOverride, tenantOverride);
   let resolve!: (v: { tokens: SerializedTokens; account: AccountInfo }) => void;
   let reject!: (err: unknown) => void;
   const result = new Promise<{ tokens: SerializedTokens; account: AccountInfo }>(
@@ -184,8 +188,10 @@ export async function awaitDeviceCodeReady(b: DeviceCodeBegin): Promise<void> {
 export async function acquireAccessToken(
   tokens: SerializedTokens,
   scopes: string[] = DEFAULT_SCOPES,
+  clientIdOverride?: string,
+  tenantOverride?: string,
 ): Promise<{ accessToken: string; tokens: SerializedTokens }> {
-  const pca = buildPca(tokens.msalCache);
+  const pca = buildPca(tokens.msalCache, clientIdOverride, tenantOverride);
   const cache = pca.getTokenCache();
   const account =
     (await cache.getAccountByHomeId(tokens.homeAccountId)) ??

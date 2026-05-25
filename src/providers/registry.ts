@@ -1,5 +1,6 @@
 import type { AccountStore, AccountRecord } from "../store/account-store.js";
 import type { EmailProvider, ProviderId } from "./types.js";
+import type { ProvidersConfig } from "../config.js";
 import { OutlookProvider } from "./outlook/index.js";
 import { ImapProvider } from "./imap/index.js";
 
@@ -11,11 +12,17 @@ export interface Registry {
 
 export interface BuildRegistryOptions {
   store: AccountStore;
+  providers?: ProvidersConfig;
 }
 
 export function buildRegistry(opts: BuildRegistryOptions): Registry {
+  const outlookCfg = opts.providers?.outlook;
   const providers = new Map<ProviderId, EmailProvider>();
-  providers.set("outlook", new OutlookProvider({ store: opts.store }));
+  providers.set("outlook", new OutlookProvider({
+    store: opts.store,
+    clientId: outlookCfg?.clientId,
+    tenantId: outlookCfg?.tenantId,
+  }));
   providers.set("imap", new ImapProvider());
   // gmail can be added later — registry will return a clear error if asked.
 

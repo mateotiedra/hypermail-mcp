@@ -3,15 +3,15 @@
     "hypermail": {
       "command": "node",
       "args": [
-        "dist/cli.js"
+        "dist/cli.js",
+        "--config",
+        "hypermail-config.json"
       ],
       "cwd": ".",
       "lifecycle": "lazy",
       "env": {
         "MS_CLIENT_ID": "${MS_CLIENT_ID}",
-        "MS_TENANT_ID": "${MS_TENANT_ID}",
-        "HYPERMAIL_MCP_DATA_DIR": "${HYPERMAIL_MCP_DATA_DIR}",
-        "HYPERMAIL_DRAFT_ONLY": "${HYPERMAIL_DRAFT_ONLY}"
+        "MS_TENANT_ID": "${MS_TENANT_ID}"
       },
       "directTools": true
     }
