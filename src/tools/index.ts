@@ -6,6 +6,7 @@ import type { ResolvedTools } from "../config.js";
 
 // Re-export compose helpers for tests
 export { composeBody, escapeHtml, buildStyleAttr } from "./shared.js";
+export { markdownToHtml } from "../markdown-to-html.js";
 
 // Submodule registration functions
 import { registerAccountTools } from "./accounts.js";

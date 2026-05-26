@@ -31,7 +31,12 @@ export function registerComposeTools(
     bcc: z.array(emailAddrSchema).optional(),
     subject: z.string(),
     body: z.string(),
-    isHtml: z.boolean().optional(),
+    format: z
+      .enum(["html", "markdown"])
+      .describe(
+        "Body format. 'html' sends the body as-is (must be valid HTML). " +
+          "'markdown' converts the body from Markdown to HTML for clean rendering on the recipient side.",
+      ),
     include_signature: z
       .boolean()
       .describe(
@@ -86,7 +91,7 @@ export function registerComposeTools(
       }
       const composed = composeBody({
         body: args.body,
-        isHtml: args.isHtml,
+        format: args.format,
         signature: account.signature,
         style: account.style,
         includeSignature: args.include_signature,
@@ -199,7 +204,14 @@ export function registerComposeTools(
     bcc: z.array(emailAddrSchema).optional(),
     subject: z.string().optional(),
     body: z.string().optional(),
-    isHtml: z.boolean().optional(),
+    format: z
+      .enum(["html", "markdown"])
+      .optional()
+      .describe(
+        "Body format. Only meaningful when `body` is also provided. " +
+          "'html' sends the body as-is (must be valid HTML). " +
+          "'markdown' converts the body from Markdown to HTML for clean rendering on the recipient side.",
+      ),
     include_signature: z
       .boolean()
       .optional()
@@ -251,7 +263,7 @@ export function registerComposeTools(
           if (a.body !== undefined) {
             const composed = composeBody({
               body: a.body,
-              isHtml: a.isHtml,
+              format: a.format ?? "html",
               signature: account.signature,
               style: account.style,
               includeSignature: !!a.include_signature,

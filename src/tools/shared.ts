@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ResolvedTools } from "../config.js";
+import { markdownToHtml } from "../markdown-to-html.js";
 
 /** JSON-stringify a value into a single MCP text content block. */
 export function ok(
@@ -103,7 +104,7 @@ export const folderInfoOutputSchema = z.object({
 
 export interface ComposeBodyInput {
   body: string;
-  isHtml?: boolean;
+  format: "html" | "markdown";
   signature?: string;
   style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
   includeSignature: boolean;
@@ -112,7 +113,11 @@ export interface ComposeBodyInput {
 export function composeBody(
   input: ComposeBodyInput,
 ): { body: string; isHtml: boolean } {
-  const { body, isHtml = false, signature, style, includeSignature } = input;
+  const { body, format, signature, style, includeSignature } = input;
+
+  // Convert markdown to HTML first, then proceed as HTML
+  const htmlBody = format === "markdown" ? markdownToHtml(body) : body;
+
   const hasSignature = includeSignature && !!signature;
   const hasStyle = !!(
     style &&
@@ -120,21 +125,13 @@ export function composeBody(
   );
 
   if (!hasSignature && !hasStyle) {
-    return { body, isHtml };
+    return { body: htmlBody, isHtml: true };
   }
 
   const styleAttr = hasStyle ? buildStyleAttr(style!) : "";
-
-  if (isHtml) {
-    let result = hasStyle
-      ? `<div style="${styleAttr}">${body}</div>`
-      : body;
-    if (hasSignature) result += `\n<div class="signature">${signature}</div>`;
-    return { body: result, isHtml: true };
-  }
-
-  const escaped = escapeHtml(body);
-  let result = `<div style="${styleAttr}">${escaped}</div>`;
+  let result = hasStyle
+    ? `<div style="${styleAttr}">${htmlBody}</div>`
+    : htmlBody;
   if (hasSignature) result += `\n<div class="signature">${signature}</div>`;
   return { body: result, isHtml: true };
 }
