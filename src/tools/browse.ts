@@ -25,19 +25,19 @@ export function registerBrowseTools(
 
   // ---------- email ops ----------
 
-  const emailListOutputSchema = {
+  const emailListOutputSchema = z.object({
     account: z.string(),
     count: z.number(),
     items: z.array(emailSummaryOutputSchema),
     skip: z.number(),
     hasMore: z.boolean(),
-  };
+  });
 
-  const searchEmailsOutputSchema = {
+  const searchEmailsOutputSchema = z.object({
     account: z.string(),
     count: z.number(),
     items: z.array(emailSummaryOutputSchema),
-  };
+  });
 
   if (shouldRegister("list_emails", tools)) {
     server.registerTool(
@@ -46,13 +46,13 @@ export function registerBrowseTools(
         description:
           "List recent emails in a folder of the given account. Pass the user's email " +
           "address as `account`; the server routes to the correct backend automatically.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           folder: z.string().default("inbox").optional(),
           limit: z.number().int().positive().max(100).optional(),
           unreadOnly: z.boolean().optional(),
           skip: z.number().int().min(0).optional(),
-        },
+        }),
         outputSchema: emailListOutputSchema,
       },
       async (args) => {
@@ -85,11 +85,11 @@ export function registerBrowseTools(
       {
         description:
           "Search emails by free-text query (KQL on Outlook). Returns lightweight summaries.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           query: z.string().min(1),
           limit: z.number().int().positive().max(100).optional(),
-        },
+        }),
         outputSchema: searchEmailsOutputSchema,
       },
       async (args) => {
@@ -111,7 +111,7 @@ export function registerBrowseTools(
     );
   }
 
-  const readEmailOutputSchema = {
+  const readEmailOutputSchema = z.object({
     id: z.string(),
     subject: z.string(),
     from: emailAddrOutputSchema.optional(),
@@ -126,7 +126,7 @@ export function registerBrowseTools(
     attachments: z.array(attachmentMetaOutputSchema).optional(),
     body: z.string(),
     bodyFormat: z.enum(["markdown", "html", "text"]),
-  };
+  });
 
   if (shouldRegister("read_email", tools)) {
     server.registerTool(
@@ -136,7 +136,7 @@ export function registerBrowseTools(
           "Fetch a single email with full body and recipients by id. " +
           "Body is returned as `body` with `bodyFormat` indicating the format. " +
           "Default format is 'markdown' — HTML is automatically converted to save context tokens.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           id: z.string().min(1),
           format: z
@@ -147,7 +147,7 @@ export function registerBrowseTools(
               "Output body format. 'markdown' converts HTML to Markdown (default), " +
                 "'html' returns the raw HTML, 'text' returns plain text.",
             ),
-        },
+        }),
         outputSchema: readEmailOutputSchema,
       },
       async (args) => {
@@ -180,11 +180,11 @@ export function registerBrowseTools(
     );
   }
 
-  const readAttachmentOutputSchema = {
+  const readAttachmentOutputSchema = z.object({
     name: z.string(),
     contentType: z.string().optional(),
     path: z.string(),
-  };
+  });
 
   if (shouldRegister("read_attachment", tools)) {
     server.registerTool(
@@ -193,11 +193,11 @@ export function registerBrowseTools(
         description:
           "Download an email attachment to a temporary file and return its path. " +
           "Use messageId and attachmentId from a prior read_email call.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           messageId: z.string().min(1),
           attachmentId: z.string().min(1),
-        },
+        }),
         outputSchema: readAttachmentOutputSchema,
       },
       async (args) => {

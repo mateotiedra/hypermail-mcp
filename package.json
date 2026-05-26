@@ -50,7 +50,7 @@
     "isomorphic-fetch": "^3.0.0",
     "nodemailer": "^8.0.8",
     "turndown": "^7.2.4",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "optionalDependencies": {
     "keytar": "^7.9.0"

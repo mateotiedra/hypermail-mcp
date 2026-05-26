@@ -28,9 +28,9 @@ export function registerAccountTools(
 
   // ---------- list_accounts ----------
 
-  const listAccountsOutputSchema = {
+  const listAccountsOutputSchema = z.object({
     accounts: z.array(accountSummaryOutputSchema),
-  };
+  });
 
   if (shouldRegister("list_accounts", tools)) {
     server.registerTool(
@@ -39,7 +39,7 @@ export function registerAccountTools(
         description:
           "List all email accounts known to this server (no secrets). " +
           "Use the returned `email` value as the `account` argument to other tools.",
-        inputSchema: {},
+        inputSchema: z.object({}),
         outputSchema: listAccountsOutputSchema,
       },
       async () => {
@@ -62,22 +62,19 @@ export function registerAccountTools(
 
   // ---------- add_account ----------
 
-  const addAccountOutputSchema = z.discriminatedUnion("status", [
-    z.object({
-      status: z.literal("pending"),
-      handle: z.string(),
-      verification: z.object({
-        userCode: z.string(),
-        verificationUri: z.string(),
-        expiresAt: z.string(),
-        message: z.string(),
-      }),
-    }),
-    z.object({
-      status: z.literal("ready"),
-      account: accountFullOutputSchema,
-    }),
-  ]);
+  const addAccountOutputSchema = z.object({
+      status: z.enum(["pending", "ready"]),
+      handle: z.string().optional(),
+      verification: z
+        .object({
+          userCode: z.string(),
+          verificationUri: z.string(),
+          expiresAt: z.string(),
+          message: z.string(),
+        })
+        .optional(),
+      account: accountFullOutputSchema.optional(),
+    });
 
   if (shouldRegister("add_account", tools)) {
     server.registerTool(
@@ -87,7 +84,7 @@ export function registerAccountTools(
           "Start adding an email account. For Outlook this returns a device code " +
           "the user must enter at the verification URL; then call `complete_add_account` " +
           "with the returned `handle` to finalize. Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           provider: providerIdEnum.describe("Email backend. 'outlook' (Microsoft Graph) and 'imap' are fully implemented."),
           email: z
             .string()
@@ -97,12 +94,12 @@ export function registerAccountTools(
               "Optional hint — the provider will verify it against the auth result.",
             ),
           config: z
-            .record(z.unknown())
+            .record(z.string(), z.unknown())
             .optional()
             .describe(
               "Provider-specific config (e.g. IMAP host/port). Unused for Outlook.",
             ),
-        },
+        }),
         outputSchema: addAccountOutputSchema,
       },
       async (args) => {
@@ -135,10 +132,10 @@ export function registerAccountTools(
         description:
           "Poll/finalize a pending add_account flow. Returns `pending` until the user " +
           "completes the device-code step, then `ready` with the persisted account.",
-        inputSchema: {
+        inputSchema: z.object({
           provider: providerIdEnum,
           handle: z.string().min(1),
-        },
+        }),
         outputSchema: completeAddAccountOutputSchema,
       },
       async (args) => {
@@ -160,10 +157,10 @@ export function registerAccountTools(
 
   // ---------- account settings ----------
 
-  const accountSettingsOutputSchema = {
+  const accountSettingsOutputSchema = z.object({
     signature: z.string().nullable(),
     style: styleOutputSchema.nullable(),
-  };
+  });
 
   if (shouldRegister("get_account_settings", tools)) {
     server.registerTool(
@@ -171,7 +168,7 @@ export function registerAccountTools(
       {
         description:
           "Get signature (HTML) and style preferences for an account.",
-        inputSchema: { account: z.string().email() },
+        inputSchema: z.object({ account: z.string().email() }),
         outputSchema: accountSettingsOutputSchema,
       },
       async (args) => {
@@ -198,7 +195,7 @@ export function registerAccountTools(
         description:
           "Set signature (HTML snippet) and/or style preferences for an account. " +
           "Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           signature: z
             .string()
@@ -216,7 +213,7 @@ export function registerAccountTools(
             .describe(
               "Font preferences applied to outgoing HTML emails. Pass null to clear.",
             ),
-        },
+        }),
         outputSchema: accountSettingsOutputSchema,
       },
       async (args) => {
@@ -243,10 +240,10 @@ export function registerAccountTools(
 
   // ---------- remove_account ----------
 
-  const removeAccountOutputSchema = {
+  const removeAccountOutputSchema = z.object({
     removed: z.boolean(),
     email: z.string(),
-  };
+  });
 
   if (shouldRegister("remove_account", tools)) {
     server.registerTool(
@@ -254,7 +251,7 @@ export function registerAccountTools(
       {
         description:
           "Forget an account and delete its stored tokens. Disabled in --read-only mode.",
-        inputSchema: { email: z.string().email() },
+        inputSchema: z.object({ email: z.string().email() }),
         outputSchema: removeAccountOutputSchema,
       },
       async (args) => {

@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.4.3** — Upgraded Zod to v4.4.3. Fixed MCP SDK v1.29.0 compatibility
+> by wrapping all tool schemas in `z.object()` and replacing discriminated
+> union output schemas that caused `validateToolOutput` crashes.
+
 The agent doesn't care whether an address is a work Outlook account, a personal
 Microsoft account, or (soon) a personal IMAP mailbox — it just calls
 `list_emails`, `search_emails`, `read_email`, `send_email` and passes the email

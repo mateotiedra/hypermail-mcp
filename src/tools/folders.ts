@@ -22,11 +22,11 @@ export function registerFolderTools(
 
   // ---------- list_folders ----------
 
-  const listFoldersOutputSchema = {
+  const listFoldersOutputSchema = z.object({
     account: z.string(),
     count: z.number(),
     items: z.array(folderInfoOutputSchema),
-  };
+  });
 
   if (shouldRegister("list_folders", tools)) {
     server.registerTool(
@@ -35,7 +35,7 @@ export function registerFolderTools(
         description:
           "List available mail folders. Returns top-level folders by default, " +
           "or child folders of the given parent when `parentFolderId` is provided.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           parentFolderId: z
             .string()
@@ -44,7 +44,7 @@ export function registerFolderTools(
               "When provided, lists child folders of this folder. " +
                 "When omitted, lists top-level folders (children of the root).",
             ),
-        },
+        }),
         outputSchema: listFoldersOutputSchema,
       },
       async (args) => {
@@ -68,10 +68,10 @@ export function registerFolderTools(
 
   // ---------- create_folder ----------
 
-  const createFolderOutputSchema = {
+  const createFolderOutputSchema = z.object({
     created: z.literal(true),
     folder: folderInfoOutputSchema,
-  };
+  });
 
   if (shouldRegister("create_folder", tools)) {
     server.registerTool(
@@ -81,7 +81,7 @@ export function registerFolderTools(
           "Create a new mail folder. Creates under the root folder by default, " +
           "or under the specified parent when `parentFolderId` is provided. " +
           "Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           displayName: z
             .string()
@@ -94,7 +94,7 @@ export function registerFolderTools(
               "When provided, creates the folder as a child of this folder. " +
                 "When omitted, creates under the root folder.",
             ),
-        },
+        }),
         outputSchema: createFolderOutputSchema,
       },
       async (args) => {
@@ -115,10 +115,10 @@ export function registerFolderTools(
 
   // ---------- delete_folder ----------
 
-  const deleteFolderOutputSchema = {
+  const deleteFolderOutputSchema = z.object({
     deleted: z.literal(true),
     id: z.string(),
-  };
+  });
 
   if (shouldRegister("delete_folder", tools)) {
     server.registerTool(
@@ -126,13 +126,13 @@ export function registerFolderTools(
       {
         description:
           "Delete a mail folder by ID. Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           folderId: z
             .string()
             .min(1)
             .describe("ID of the folder to delete"),
-        },
+        }),
         outputSchema: deleteFolderOutputSchema,
       },
       async (args) => {
@@ -150,10 +150,10 @@ export function registerFolderTools(
 
   // ---------- rename_folder ----------
 
-  const renameFolderOutputSchema = {
+  const renameFolderOutputSchema = z.object({
     renamed: z.literal(true),
     folder: folderInfoOutputSchema,
-  };
+  });
 
   if (shouldRegister("rename_folder", tools)) {
     server.registerTool(
@@ -161,7 +161,7 @@ export function registerFolderTools(
       {
         description:
           "Rename an existing mail folder. Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           folderId: z
             .string()
@@ -171,7 +171,7 @@ export function registerFolderTools(
             .string()
             .min(1)
             .describe("New display name for the folder"),
-        },
+        }),
         outputSchema: renameFolderOutputSchema,
       },
       async (args) => {

@@ -65,7 +65,7 @@ export const accountFullOutputSchema = z.object({
   email: z.string(),
   provider: providerIdEnum,
   displayName: z.string().optional(),
-  tokens: z.record(z.unknown()),
+  tokens: z.record(z.string(), z.unknown()),
   addedAt: z.string(),
   signature: z.string().optional(),
   style: styleOutputSchema.optional(),

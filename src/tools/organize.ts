@@ -41,15 +41,15 @@ export function registerOrganizeTools(
 
   // ---------- archive ----------
 
-  const archiveMoveSchema = {
+  const archiveMoveSchema = z.object({
     account: z.string().email(),
     id: z.string().min(1).describe("Message ID to move"),
-  };
+  });
 
-  const archiveOutputSchema = {
+  const archiveOutputSchema = z.object({
     archived: z.literal(true),
     id: z.string(),
-  };
+  });
 
   if (shouldRegister("archive_email", tools)) {
     server.registerTool(
@@ -72,10 +72,10 @@ export function registerOrganizeTools(
 
   // ---------- trash ----------
 
-  const trashOutputSchema = {
+  const trashOutputSchema = z.object({
     trashed: z.literal(true),
     id: z.string(),
-  };
+  });
 
   if (shouldRegister("trash_email", tools)) {
     server.registerTool(
@@ -98,11 +98,11 @@ export function registerOrganizeTools(
 
   // ---------- move ----------
 
-  const moveEmailOutputSchema = {
+  const moveEmailOutputSchema = z.object({
     moved: z.literal(true),
     id: z.string(),
     destination: z.string(),
-  };
+  });
 
   if (shouldRegister("move_email", tools)) {
     server.registerTool(
@@ -112,7 +112,7 @@ export function registerOrganizeTools(
           "Move a message to any folder by well-known name (e.g. 'inbox', 'drafts', " +
           "'junkemail', 'sentitems', 'outbox') or custom folder ID. " +
           "Disabled in --read-only mode.",
-        inputSchema: {
+        inputSchema: z.object({
           account: z.string().email(),
           id: z.string().min(1).describe("Message ID to move"),
           destination: z
@@ -123,7 +123,7 @@ export function registerOrganizeTools(
                 "('archive', 'deleteditems', 'inbox', 'drafts', 'junkemail', " +
                 "'sentitems', 'outbox') or a raw folder ID.",
             ),
-        },
+        }),
         outputSchema: moveEmailOutputSchema,
       },
       async (args) => {
@@ -145,16 +145,16 @@ export function registerOrganizeTools(
 
   // ---------- mark_read / mark_unread ----------
 
-  const markReadInputSchema = {
+  const markReadInputSchema = z.object({
     account: z.string().email(),
     id: z.string().min(1).describe("Message ID to mark as read"),
-  };
+  });
 
-  const markReadOutputSchema = {
+  const markReadOutputSchema = z.object({
     marked: z.literal(true),
     id: z.string(),
     isRead: z.boolean(),
-  };
+  });
 
   if (shouldRegister("mark_read", tools)) {
     server.registerTool(
