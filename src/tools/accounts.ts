@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { promises as fs } from "node:fs";
 import { z } from "zod";
 
 import type { AccountStore } from "../store/account-store.js";
@@ -194,26 +195,47 @@ export function registerAccountTools(
       {
         description:
           "Set signature (HTML snippet) and/or style preferences for an account. " +
+          "Use `signaturePath` to load a signature from a file (useful for signatures with base64 images). " +
+          "`signature` and `signaturePath` are mutually exclusive. " +
           "Disabled in --read-only mode.",
-        inputSchema: z.object({
-          account: z.string().email(),
-          signature: z
-            .string()
-            .optional()
-            .describe(
-              "HTML snippet — may contain formatting, images, links. Pass null to clear.",
-            ),
-          style: z
-            .object({
-              fontFamily: z.string().optional(),
-              fontSize: z.string().optional(),
-              fontColor: z.string().optional(),
-            })
-            .optional()
-            .describe(
-              "Font preferences applied to outgoing HTML emails. Pass null to clear.",
-            ),
-        }),
+        inputSchema: z
+          .object({
+            account: z.string().email(),
+            signature: z
+              .string()
+              .optional()
+              .describe(
+                "HTML snippet — may contain formatting, images, links. " +
+                  "Pass an empty string to clear. " +
+                  "Mutually exclusive with `signaturePath`.",
+              ),
+            signaturePath: z
+              .string()
+              .optional()
+              .describe(
+                "Path to a file containing the signature HTML. " +
+                  "The file content is read and stored as the signature. " +
+                  "Useful when the signature contains large base64 images. " +
+                  "Mutually exclusive with `signature`.",
+              ),
+            style: z
+              .object({
+                fontFamily: z.string().optional(),
+                fontSize: z.string().optional(),
+                fontColor: z.string().optional(),
+              })
+              .optional()
+              .describe(
+                "Font preferences applied to outgoing HTML emails. Pass null to clear.",
+              ),
+          })
+          .refine(
+            (data) => !(data.signature !== undefined && data.signaturePath),
+            {
+              message:
+                "signature and signaturePath are mutually exclusive — use one or the other",
+            },
+          ),
         outputSchema: accountSettingsOutputSchema,
       },
       async (args) => {
@@ -221,9 +243,15 @@ export function registerAccountTools(
           const acct = store.getAccount(args.account);
           if (!acct)
             return fail(`no account registered for "${args.account}"`);
+          let resolvedSignature: string | undefined = acct.signature;
+          if (args.signaturePath) {
+            resolvedSignature = await fs.readFile(args.signaturePath, "utf-8");
+          } else if (args.signature !== undefined) {
+            resolvedSignature = args.signature || undefined;
+          }
           const updated = await store.upsertAccount({
             ...acct,
-            signature: args.signature ?? acct.signature,
+            signature: resolvedSignature,
             style: args.style ?? acct.style,
           });
           const data = {
