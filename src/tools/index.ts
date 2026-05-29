@@ -14,11 +14,14 @@ import { registerBrowseTools } from "./browse.js";
 import { registerFolderTools } from "./folders.js";
 import { registerOrganizeTools } from "./organize.js";
 import { registerComposeTools } from "./compose.js";
+import { registerNotificationTools } from "./notifications.js";
+import type { WatchNotification } from "../watcher/index.js";
 
 export interface RegisterToolsOptions {
   store: AccountStore;
   registry: Registry;
   tools: ResolvedTools;
+  notificationBuffer?: WatchNotification[];
 }
 
 export function registerTools(
@@ -32,4 +35,10 @@ export function registerTools(
   registerFolderTools(server, { registry, tools });
   registerOrganizeTools(server, { registry, tools });
   registerComposeTools(server, { store, registry, tools });
+  if (opts.notificationBuffer) {
+    registerNotificationTools(server, {
+      tools,
+      notificationBuffer: opts.notificationBuffer,
+    });
+  }
 }

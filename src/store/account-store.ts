@@ -22,6 +22,9 @@ export interface AccountRecord {
   signature?: string;
   /** Font/style preferences applied to outgoing HTML emails. */
   style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
+  /** ISO timestamp of the newest email the watcher has already seen.
+   *  Used by the email-watcher to detect new mail since last poll. */
+  lastSeenAt?: string;
 }
 
 interface StoreFile {

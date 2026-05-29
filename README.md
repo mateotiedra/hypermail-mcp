@@ -68,6 +68,25 @@ hypermail-mcp --http --port 3000 --host 0.0.0.0
 When hosted you **must** set `HYPERMAIL_MCP_KEY` so the account file is
 reproducibly decryptable.
 
+### Development (HTTP mode + email watch)
+
+To test the email watch feature locally:
+
+```bash
+# Terminal 1: auto-rebuild TypeScript on save
+pnpm dev
+
+# Terminal 2: start HTTP server with dev config (10s poll, separate data dir)
+pnpm dev:http
+```
+
+The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
+`.pi/mcp.json` config (read by `pi-mcp-adapter`). Tools appear as
+`hypermail_http_*` (e.g. `hypermail_http_check_notifications`).
+
+The dev config (`hypermail-config.http.json`) uses a separate data dir
+(`~/.hypermail-mcp-dev`) and a 10-second poll interval for fast feedback.
+
 ## Configuration
 
 | Env var | Purpose | Default |
@@ -137,6 +156,43 @@ account store.
 | `rename_folder` | `account`, `folderId`, `newName` | Rename an existing mail folder. Disabled under `--read-only`. |
 | `mark_read` | `account`, `id` | Mark a message as read. Disabled under `--read-only`. |
 | `mark_unread` | `account`, `id` | Mark a message as unread. Disabled under `--read-only`. |
+| `check_notifications` | — | Returns pending email-watch notifications (new-email alerts, auth failures). Drains the buffer on read. Only registered in HTTP mode. |
+
+## Email Watch
+
+When running in **HTTP mode** (`--http`), the server polls all configured
+accounts every N seconds for new inbox mail. Detected emails and auth failures
+are delivered through two channels:
+
+- **Push** — `notifications/message` sent over the MCP stream. Compatible
+  clients (e.g. Mastra) receive these in real time.
+- **Poll** — `check_notifications` tool drains an in-memory buffer. Works with
+  **any** MCP client, even those that don't maintain an SSE listener.
+
+**Configuration** (in `hypermail-config.json`):
+
+```jsonc
+{
+  "watch": {
+    "enabled": true,            // default true
+    "pollIntervalSeconds": 60   // default 60 (min 10, max 3600)
+  }
+}
+```
+
+**Behavior:**
+
+- Only the **inbox** folder is watched. All stored accounts are polled by default.
+- On first poll per account, the server records the newest email as a baseline
+  (no notifications). Only emails arriving after baseline trigger alerts.
+- Baselines (`lastSeenAt`) persist in the account store — they survive server
+  restarts.
+- Each poll paginates through the inbox (25 items per page) to catch email
+  bursts without missing messages.
+- Auth failures (e.g. expired OAuth tokens) generate immediate notifications.
+
+**Not supported in stdio mode.** The watcher requires a long-lived server
+process. In stdio mode the `check_notifications` tool is not registered.
 
 ### Add-account flow (Outlook)
 
@@ -163,7 +219,7 @@ account store.
 
 - Threading / conversations.
 - Calendar integration.
-- Webhook / push notifications for new mail.
+- ~~Webhook / push notifications for new mail.~~ => Included in v0.5.x (polling-based email watch).
 
 ## Project layout
 
@@ -186,6 +242,7 @@ src/
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
     shared/                    # Shared utilities across providers
+  watcher/manager.ts           # Inbox poller + notification buffer
   tools/index.ts               # MCP tool registrations
 ```
 

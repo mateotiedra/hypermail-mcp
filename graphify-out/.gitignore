@@ -1,0 +1,5 @@
+*
+!.gitignore
+!GRAPH_REPORT.md
+!graph.html
+!graph.json

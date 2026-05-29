@@ -26,7 +26,8 @@ src/
 │   ├── registry.ts     # Provider registry/selection
 │   └── types.ts        # Shared provider interfaces
 ├── store/              # Token and account persistence
-│   └── account-store.ts
+│   └── account-store.ts  # AES-256-GCM encrypted — key from OS keychain in local mode,
+│                           # HYPERMAIL_MCP_KEY env var required in hosted/HTTP mode
 └── tools/              # Per-tool handler implementations
     └── index.ts
 ```
@@ -38,14 +39,16 @@ This MCP is configured in `.mcp.json` with `lifecycle: "lazy"` and `directTools:
 1. **Edit** source files in `src/`
 2. **Build:** `pnpm build` (TypeScript → `dist/` via tsup)
    - Or `pnpm dev` for watch mode (auto-rebuild on save)
-3. **Test with pi:** use the `hyper_email_*` tools directly — the lazy server restarts on next invocation, picking up the rebuilt `dist/cli.js` automatically
-4. **Iterate** — no manual restarts or re-registration needed
+3. **Test with pi (stdio):** use the `hyper_*` tools directly — the lazy server restarts on next invocation, picking up the rebuilt `dist/cli.js` automatically
+4. **Test with pi (HTTP, email watch):** start `pnpm dev:http` in a separate terminal FIRST. This starts the server in persistent HTTP mode so the email watcher runs. Pi connects via `.pi/mcp.json` (read by `pi-mcp-adapter`). Tools appear as `hypermail_http_*`. On first session, run `/mcp reconnect hypermail-http` if tools don't appear — the adapter caches metadata after first connection.
+5. **Iterate** — no manual restarts or re-registration needed
 
 ### Commands
 
 ```bash
 pnpm build        # Compile TypeScript
 pnpm dev          # Watch mode (auto-rebuild)
+pnpm dev:http     # Build + start HTTP server for email-watch testing
 pnpm typecheck    # TypeScript type checking
 pnpm test         # Run vitest tests
 pnpm start        # Run dist/cli.js directly

@@ -29,11 +29,17 @@ const providersConfigSchema = z.object({
   gmail: gmailProviderSchema.optional(),
 });
 
+const watchConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  pollIntervalSeconds: z.number().int().min(10).max(3600).default(60),
+});
+
 const rawConfigSchema = z.object({
   dataDir: z.string().optional(),
   http: httpConfigSchema.optional(),
   tools: toolsConfigSchema.optional(),
   providers: providersConfigSchema.optional(),
+  watch: watchConfigSchema.optional(),
 });
 
 // ── Types ──
@@ -64,12 +70,18 @@ export interface ProvidersConfig {
   gmail?: GmailProviderConfig;
 }
 
+export interface WatchConfig {
+  enabled: boolean;
+  pollIntervalSeconds: number;
+}
+
 /** Fully resolved application configuration (after ${VAR} expansion and CLI merge). */
 export interface AppConfig {
   dataDir?: string;
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
+  watch?: WatchConfig;
 }
 
 /** CLI flags that can override config file values. */
@@ -111,6 +123,7 @@ export const KNOWN_TOOLS = [
   "edit_draft",
   "send_draft",
   "add_attachment_to_draft",
+  "check_notifications",
 ] as const;
 
 // ── ${VAR} resolution ──
@@ -223,6 +236,7 @@ export function loadConfig(
       ? { disabled: parsed.tools.disabled, enabled: parsed.tools.enabled }
       : undefined,
     providers: parsed.providers as ProvidersConfig | undefined,
+    watch: parsed.watch as WatchConfig | undefined,
   };
 }
 
