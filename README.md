@@ -91,16 +91,112 @@ The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
 The dev config (`hypermail-config.http.json`) uses a separate data dir
 (`~/.hypermail-mcp-dev`) and a 10-second poll interval for fast feedback.
 
+## Modes: stdio vs HTTP
+
+The server runs in one of two modes — the choice affects session management,
+security, and which features are available.
+
+| | stdio (default) | HTTP (`--http`) |
+| --- | --- | --- |
+| **Transport** | stdin/stdout | HTTP (Streamable HTTP MCP) |
+| **Lifecycle** | Per-invocation (lazy) — spawned on demand by the MCP host | Long-lived server process |
+| **Session model** | One `McpServer` instance for all invocations | One `McpServer` per MCP session (multi-tenant) |
+| **Key management** | Auto-generated, stored in OS keychain or `master.key` file | Requires `HYPERMAIL_MCP_KEY` env var (32-byte key for AES-256-GCM) |
+| **Email watch** | ❌ Not available | ✅ Polls inbox every N seconds for new mail |
+| **`check_notifications`** | ❌ Not registered | ✅ Drains pending new-mail alerts |
+| **Agent multi-tenancy** | ❌ Unrestricted access | ✅ Per-agent API keys, account allowlists, provisioning control (via `agents.yaml`) |
+| **Pi tool naming** | `hyper_*` | `hypermail_http_*` |
+
+**When to use HTTP mode:**
+- You need email watch / push notifications
+- You want to expose the server to multiple agents with different permissions
+- You're hosting the server as a service (Docker, cloud)
+
+**When to use stdio mode:**
+- Single-user local development with a desktop MCP client (Claude, Pi)
+- You don't need email watch or multi-agent access control
+
+## Agent multi-tenancy
+
+In HTTP mode, the server can be shared across multiple agents with
+different permissions. Agent identity and authorization are defined in an
+`agents.yaml` file.
+
+### agents.yaml
+
+```yaml
+agents:
+  - id: my-assistant
+    api_key: hm_sk_<64-hex-chars>
+    name: My Email Assistant
+    accounts:                          # which email addresses this agent can access
+      - alice@example.com
+      - bob@example.com
+    provisioning: false                # can this agent add/remove accounts?
+
+  - id: admin-agent
+    api_key: hm_sk_<64-hex-chars>
+    name: Admin Agent
+    accounts: []                       # empty = all accounts
+    provisioning: true
+
+# Optional: pre-declare email accounts with provider hints
+email_accounts:
+  alice@example.com:
+    provider: outlook
+```
+
+**Agent ID:** lowercase letters, digits, hyphens, underscores. No spaces.
+
+**API key format:** `hm_sk_` prefix + 64 hex characters. Generate with:
+
+```bash
+hypermail-mcp generate-key
+# => hm_sk_a1b2c3d4...
+```
+
+The API key is hashed (SHA-256) before storage — the plaintext is never
+written to disk. Agents authenticate by passing the key in the
+`Authorization: Bearer hm_sk_...` header.
+
+**accounts:** An allowlist of email addresses the agent can operate on.
+If empty or omitted, the agent can access all configured accounts.
+
+**provisioning:** When `true`, the agent can call `add_account` and
+`remove_account`. Defaults to `false`.
+
+### Configuration
+
+Point the server at your agents.yaml:
+
+```bash
+# Via CLI flag
+hypermail-mcp --http --agents-config ./agents.yaml
+
+# Via env var
+export HYPERMAIL_AGENTS_CONFIG=/etc/hypermail/agents.yaml
+```
+
+The server watches `agents.yaml` for changes and reloads automatically
+(live reload — no restart needed). Agents removed from the file lose
+access on their next request.
+
+In **stdio mode**, agent multi-tenancy is not available — the server runs
+with unrestricted access (the local user _is_ the agent).
+
 ## Configuration
 
 | Env var | Purpose | Default |
 | --- | --- | --- |
 | `HYPERMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hypermail-mcp` |
 | `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
+| `HYPERMAIL_AGENTS_CONFIG` | Path to `agents.yaml` for HTTP multi-tenant mode (see Agent multi-tenancy above). | — (multi-tenancy disabled) |
 | `MS_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
 | `MS_TENANT_ID` | Tenant for the authority URL | `common` |
 
-CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--read-only`, `--help`.
+CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--agents-config`, `--read-only`, `--help`.
+
+Subcommands: `hypermail-mcp generate-key` — generate an `hm_sk_` API key for agents.yaml.
 
 ### Config file (`hypermail-config.json`)
 
@@ -229,9 +325,15 @@ process. In stdio mode the `check_notifications` tool is not registered.
 ```
 src/
   cli.ts                       # arg parsing + entry
-  server.ts                    # MCP server, stdio + HTTP transports
-  version.ts
-  store/account-store.ts       # encrypted multi-account store (AES-256-GCM)
+  server.ts                    # MCP server, stdio + HTTP transports, session management
+  version.ts                   # version constant
+  config.ts                    # hypermail-config.json schema + resolution
+  config/
+    agents-config.ts           # agents.yaml schema, validation, live-reload watcher
+  store/
+    account-store.ts           # encrypted multi-account store (AES-256-GCM)
+    agent-store.ts             # agent identity + credentials store (HTTP multi-tenant)
+    crypto.ts                  # AES-256-GCM encrypt/decrypt, key resolution, atomic writes
   providers/
     types.ts                   # EmailProvider interface + shared DTOs
     registry.ts                # routes account email → provider
@@ -244,9 +346,20 @@ src/
       auth.ts                  # Google OAuth device-code flow
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
-    shared/                    # Shared utilities across providers
-  watcher/manager.ts           # Inbox poller + notification buffer
-  tools/index.ts               # MCP tool registrations
+    shared/                    # shared utilities across providers
+  watcher/
+    manager.ts                 # inbox poller + notification buffer
+    index.ts                   # watcher public API
+  tools/
+    index.ts                   # MCP tool registrations
+    agent-context.ts           # agent authorization guards (checkAccountAccess, checkProvisioning)
+    accounts.ts                # list/add/remove/complete-add account tools
+    browse.ts                  # list/search/read email tools
+    compose.ts                 # send/draft/edit/send-draft/add-attachment tools
+    folders.ts                 # list/create/delete/rename folder tools
+    notifications.ts           # check_notifications tool (HTTP only)
+    organize.ts                # archive/trash/move/mark-read/mark-unread tools
+    shared.ts                  # shared tool helpers
 ```
 
 ## License

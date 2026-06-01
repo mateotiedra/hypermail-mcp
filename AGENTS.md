@@ -4,32 +4,47 @@ Unified email MCP server — operate any inbox (Outlook now, IMAP/Gmail later) b
 
 ## Purpose
 
-Provides 8 tools to pi for email operations via the Model Context Protocol:
-- `list_accounts` — list configured email accounts
-- `add_account` / `complete_add_account` — OAuth device-code flow for adding accounts
-- `remove_account` — forget an account and delete stored tokens
-- `list_emails` — browse emails by folder (inbox, archive, sent, drafts, etc.)
-- `search_emails` — full-text search via Outlook KQL
-- `read_email` — fetch full email body (HTML), headers, and attachments metadata
-- `send_email` — compose and send from a configured account
+Provides 26 tools to pi for email operations via the Model Context Protocol:
+- `list_accounts` / `add_account` / `complete_add_account` / `remove_account` — account management
+- `list_emails` / `search_emails` / `read_email` / `read_attachment` — browse and read
+- `send_email` / `draft_email` / `edit_draft` / `send_draft` / `add_attachment_to_draft` — compose
+- `archive_email` / `trash_email` / `move_email` / `mark_read` / `mark_unread` — organize
+- `list_folders` / `create_folder` / `delete_folder` / `rename_folder` — folders
+- `check_notifications` — email watch alerts (HTTP mode only)
 
 ## Structure
 
 ```
 src/
 ├── cli.ts              # Entry point → dist/cli.js (bin: hypermail-mcp)
-├── server.ts           # MCP server setup, tool registration via @modelcontextprotocol/sdk
+├── server.ts           # MCP server setup (stdio + HTTP), session management
 ├── version.ts          # Version constant
+├── config.ts           # hypermail-config.json schema + resolution
+├── config/
+│   └── agents-config.ts  # agents.yaml schema, validation, live-reload watcher
 ├── providers/          # Email provider backends
 │   ├── outlook/        # Microsoft Graph API (auth.ts, client.ts, index.ts)
-│   ├── imap/           # IMAP/Gmail (future)
+│   ├── imap/           # IMAP provider (index.ts)
+│   ├── gmail/          # Gmail API provider (auth.ts, client.ts, index.ts)
 │   ├── registry.ts     # Provider registry/selection
 │   └── types.ts        # Shared provider interfaces
-├── store/              # Token and account persistence
-│   └── account-store.ts  # AES-256-GCM encrypted — key from OS keychain in local mode,
-│                           # HYPERMAIL_MCP_KEY env var required in hosted/HTTP mode
+├── store/              # Persistence
+│   ├── account-store.ts  # AES-256-GCM encrypted multi-account store
+│   ├── agent-store.ts    # Agent identity + credentials (HTTP multi-tenant)
+│   └── crypto.ts         # encrypt/decrypt, key resolution, atomic writes
+├── watcher/            # Email watch (HTTP mode only)
+│   ├── manager.ts      # Inbox poller + notification buffer
+│   └── index.ts        # Public API
 └── tools/              # Per-tool handler implementations
-    └── index.ts
+    ├── index.ts        # Tool registration
+    ├── agent-context.ts  # Agent authorization guards
+    ├── accounts.ts     # Account management tools
+    ├── browse.ts       # List/search/read tools
+    ├── compose.ts      # Send/draft/attachment tools
+    ├── folders.ts      # Folder management tools
+    ├── notifications.ts  # check_notifications (HTTP only)
+    ├── organize.ts     # Archive/trash/move/mark tools
+    └── shared.ts       # Shared helpers
 ```
 
 ## Dev Workflow
