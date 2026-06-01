@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.6.0** — Email watch notifications (polling-based), `signaturePath`
+> support in `set_account_settings` for loading signatures from files,
+> and a `check_notifications` tool for draining pending alerts.
+>
 > **v0.5.0** — Replaced optional `isHtml` boolean with required `format`
 > parameter (`"html"` | `"markdown"`) on `send_email`, `draft_email`, and
 > `edit_draft`. Markdown bodies are converted to HTML via `marked` so
@@ -136,7 +140,7 @@ account store.
 | `add_account` | `provider`, `email?`, `config?` | Starts device-code (Outlook). Returns `{handle, verification:{userCode, verificationUri, expiresAt}}`. |
 | `complete_add_account` | `provider`, `handle` | Returns `pending` / `ready` / `expired` / `error`. |
 | `get_account_settings` | `account` | Get signature (HTML) and style preferences for an account. |
-| `set_account_settings` | `account`, `signature?`, `style?` | Set signature HTML and font preferences. Disabled under `--read-only`. |
+| `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. Disabled under `--read-only`. |
 | `remove_account` | `email` | Deletes tokens for the account. |
 | `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. |
 | `search_emails` | `account`, `query`, `limit?` | KQL on Outlook. |
@@ -149,7 +153,7 @@ account store.
 | `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature?`, `inReplyTo?`, `replyAll?`, `forwardMessageId?` | Save as draft instead of sending. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Returns the draft message ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
 | `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?` | Edit an existing draft by ID. Only provided fields are updated. `format` only meaningful when `body` is provided. Returns the updated draft ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
 | `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. Disabled under `--read-only`. |
-| `add_attachment_to_draft` | `account`, `id`, `path` | Attach a local file to an existing draft email. Disabled under `--read-only`. |
+| `add_attachment_to_draft` | `account`, `id`, `name`, `contentBytes`, `contentType?` | Attach a base64-encoded file to an existing draft email by ID. Disabled under `--read-only`. |
 | `list_folders` | `account`, `parentFolderId?` | List available mail folders. Returns top-level folders by default, or children of `parentFolderId`. |
 | `create_folder` | `account`, `displayName`, `parentFolderId?` | Create a new mail folder under root (default) or the given parent. Disabled under `--read-only`. |
 | `delete_folder` | `account`, `folderId` | Delete a mail folder by ID. Disabled under `--read-only`. |
@@ -219,7 +223,6 @@ process. In stdio mode the `check_notifications` tool is not registered.
 
 - Threading / conversations.
 - Calendar integration.
-- ~~Webhook / push notifications for new mail.~~ => Included in v0.5.x (polling-based email watch).
 
 ## Project layout
 
