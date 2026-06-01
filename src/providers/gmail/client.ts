@@ -27,6 +27,8 @@ interface GmailClientEntry {
  */
 export class GmailClientFactory {
   private readonly cache = new Map<string, GmailClientEntry>();
+  /** Serialize token-persist per email to prevent concurrent upsert races. */
+  private readonly persistLocks = new Map<string, Promise<void>>();
 
   constructor(
     private readonly store: AccountStore,
@@ -56,35 +58,45 @@ export class GmailClientFactory {
       clientSecret: resolvedSecret,
     });
 
-    // Listen for token refresh events and persist the new tokens.
     const store = this.store;
+    const persistLocks = this.persistLocks;
     auth.on("tokens", (updated) => {
       if (!updated.refresh_token && !updated.access_token) return;
-      const fresh = store.getAccount(account.email) ?? account;
-      const currentTokens = isSerializedGmailTokens(fresh.tokens)
-        ? (fresh.tokens as unknown as SerializedGmailTokens)
-        : tokens;
 
-      const nextTokens: SerializedGmailTokens = {
-        ...currentTokens,
-        accessToken: updated.access_token ?? currentTokens.accessToken,
-        refreshToken:
-          updated.refresh_token ?? currentTokens.refreshToken,
-        expiryDate:
-          updated.expiry_date ?? currentTokens.expiryDate,
-        scopes: updated.scope
-          ? updated.scope.split(" ")
-          : currentTokens.scopes,
-      };
+      // Serialize persistence per email — two rapid token events can race
+      // on the store read-modify-write cycle.
+      const existing = persistLocks.get(key);
+      const chain = (existing ?? Promise.resolve()).then(async () => {
+        const fresh = store.getAccount(account.email) ?? account;
+        const currentTokens = isSerializedGmailTokens(fresh.tokens)
+          ? (fresh.tokens as unknown as SerializedGmailTokens)
+          : tokens;
 
-      store
-        .upsertAccount({
-          ...fresh,
-          tokens: nextTokens as unknown as Record<string, unknown>,
-        })
-        .catch(() => {
-          /* swallow — next call will refresh again */
-        });
+        const nextTokens: SerializedGmailTokens = {
+          ...currentTokens,
+          accessToken: updated.access_token ?? currentTokens.accessToken,
+          refreshToken:
+            updated.refresh_token ?? currentTokens.refreshToken,
+          expiryDate:
+            updated.expiry_date ?? currentTokens.expiryDate,
+          scopes: updated.scope
+            ? updated.scope.split(" ")
+            : currentTokens.scopes,
+        };
+
+        await store
+          .upsertAccount({
+            ...fresh,
+            tokens: nextTokens as unknown as Record<string, unknown>,
+          })
+          .catch(() => {
+            /* swallow — next call will refresh again */
+          });
+      });
+      persistLocks.set(key, chain);
+      chain.finally(() => {
+        if (persistLocks.get(key) === chain) persistLocks.delete(key);
+      });
     });
 
     const gmail = google.gmail({ version: "v1", auth });

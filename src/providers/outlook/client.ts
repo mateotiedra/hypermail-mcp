@@ -16,6 +16,8 @@ import { acquireAccessToken, isSerializedTokens, type SerializedTokens } from ".
  */
 export class OutlookClientFactory {
   private readonly cache = new Map<string, Client>();
+  /** Serialize token refreshes per email to prevent concurrent-refresh races. */
+  private readonly refreshLocks = new Map<string, Promise<string>>();
 
   constructor(
     private readonly store: AccountStore,
@@ -29,34 +31,49 @@ export class OutlookClientFactory {
     if (existing) return existing;
 
     const store = this.store;
+    const refreshLocks = this.refreshLocks;
     const provider: AuthenticationProvider = {
       getAccessToken: async () => {
-        const fresh = store.getAccount(account.email) ?? account;
-        if (!isSerializedTokens(fresh.tokens)) {
-          throw new Error(
-            "Outlook account tokens are missing or corrupted — re-run add_account",
+        const existing = refreshLocks.get(key);
+        if (existing) {
+          try {
+            return await existing;
+          } catch {
+            // previous refresh failed — fall through to retry
+          }
+        }
+        const promise = (async (): Promise<string> => {
+          const fresh = store.getAccount(account.email) ?? account;
+          if (!isSerializedTokens(fresh.tokens)) {
+            throw new Error(
+              "Outlook account tokens are missing or corrupted — re-run add_account",
+            );
+          }
+          const tokens: SerializedTokens = fresh.tokens;
+          const { accessToken, tokens: nextTokens } = await acquireAccessToken(
+            tokens,
+            undefined,
+            this.clientId,
+            this.tenantId,
           );
+          if (nextTokens.msalCache !== tokens.msalCache) {
+            store
+              .upsertAccount({
+                ...fresh,
+                tokens: nextTokens as unknown as Record<string, unknown>,
+              })
+              .catch(() => {
+                /* swallow — next call will refresh again */
+              });
+          }
+          return accessToken;
+        })();
+        refreshLocks.set(key, promise);
+        try {
+          return await promise;
+        } finally {
+          refreshLocks.delete(key);
         }
-        const tokens: SerializedTokens = fresh.tokens;
-        const { accessToken, tokens: nextTokens } = await acquireAccessToken(
-          tokens,
-          undefined,
-          this.clientId,
-          this.tenantId,
-        );
-        // Persist refreshed cache opportunistically; failures here shouldn't
-        // break the in-flight Graph call.
-        if (nextTokens.msalCache !== tokens.msalCache) {
-          store
-            .upsertAccount({
-              ...fresh,
-              tokens: nextTokens as unknown as Record<string, unknown>,
-            })
-            .catch(() => {
-              /* swallow — next call will refresh again */
-            });
-        }
-        return accessToken;
       },
     };
 

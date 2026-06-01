@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  hypermail-mcp:
+    build: .
+    container_name: hypermail-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"  # localhost only
+    environment:
+      - HYPERMAIL_MCP_KEY=${HYPERMAIL_MCP_KEY:?HYPERMAIL_MCP_KEY must be set}
+      - HYPERMAIL_MCP_DATA_DIR=/data
+      - HYPERMAIL_AGENTS_CONFIG=/data/agents.yaml
+      # Provider credentials (optional — only needed for add_account in stdio bootstrapping)
+      - MS_CLIENT_ID=${MS_CLIENT_ID:-}
+      - MS_TENANT_ID=${MS_TENANT_ID:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - hypermail-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/mcp"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  hypermail-data:

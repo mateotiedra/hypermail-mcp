@@ -3,9 +3,15 @@ import { promises as fs } from "node:fs";
 import { z } from "zod";
 
 import type { AccountStore } from "../store/account-store.js";
+import type { AgentStore } from "../store/agent-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { ProviderId } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
+import type { AgentContext } from "./agent-context.js";
+import {
+  checkAccountAccess,
+  checkProvisioning,
+} from "./agent-context.js";
 import {
   ok,
   fail,
@@ -21,11 +27,13 @@ export function registerAccountTools(
   server: McpServer,
   ctx: {
     store: AccountStore;
+    agentStore?: AgentStore;
     registry: Registry;
     tools: ResolvedTools;
+    agentContext?: AgentContext | null;
   },
 ): void {
-  const { store, registry, tools } = ctx;
+  const { store, registry, tools, agentContext, agentStore } = ctx;
 
   // ---------- list_accounts ----------
 
@@ -104,6 +112,8 @@ export function registerAccountTools(
         outputSchema: addAccountOutputSchema,
       },
       async (args) => {
+        const permErr = checkProvisioning(agentContext ?? null);
+        if (permErr) return fail(permErr);
         const provider = registry.get(args.provider as ProviderId);
         try {
           const res = await provider.addAccount({
@@ -140,6 +150,8 @@ export function registerAccountTools(
         outputSchema: completeAddAccountOutputSchema,
       },
       async (args) => {
+        const permErr = checkProvisioning(agentContext ?? null);
+        if (permErr) return fail(permErr);
         const provider = registry.get(args.provider as ProviderId);
         if (!provider.completeAddAccount) {
           return fail(
@@ -148,6 +160,14 @@ export function registerAccountTools(
         }
         try {
           const res = await provider.completeAddAccount(args.handle);
+          // Auto-assign the newly provisioned account to the calling agent.
+          if (res.status === "ready" && res.account && agentContext && agentStore) {
+            agentStore
+              .assignAccount(agentContext.agentId, res.account.email)
+              .catch(() => {
+                /* best-effort — account is provisioned either way */
+              });
+          }
           return ok(res, res as unknown as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));
@@ -174,6 +194,8 @@ export function registerAccountTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const acct = store.getAccount(args.account);
           if (!acct)
             return fail(`no account registered for "${args.account}"`);
@@ -240,6 +262,8 @@ export function registerAccountTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const acct = store.getAccount(args.account);
           if (!acct)
             return fail(`no account registered for "${args.account}"`);
@@ -283,6 +307,8 @@ export function registerAccountTools(
         outputSchema: removeAccountOutputSchema,
       },
       async (args) => {
+        const permErr = checkProvisioning(agentContext ?? null);
+        if (permErr) return fail(permErr);
         const removed = await store.removeAccount(args.email);
         const data = { removed, email: args.email };
         return ok(data, data);

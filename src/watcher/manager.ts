@@ -31,6 +31,12 @@ export interface WatcherManagerOptions {
    * new entries; the check_notifications tool drains them via splice(0).
    */
   buffer: WatchNotification[];
+  /**
+   * Optional list of email addresses to watch. When provided, only these
+   * accounts are polled. When omitted, all stored accounts are polled
+   * (stdio mode / legacy behavior).
+   */
+  accountFilter?: string[];
 }
 
 // ── manager ──
@@ -50,7 +56,11 @@ export class WatcherManager {
     if (this.running) return;
     this.running = true;
 
-    const accounts = this.opts.store.listAccounts();
+    let accounts = this.opts.store.listAccounts();
+    if (this.opts.accountFilter) {
+      const filter = new Set(this.opts.accountFilter.map((e) => e.toLowerCase()));
+      accounts = accounts.filter((a) => filter.has(a.email.toLowerCase()));
+    }
     for (const account of accounts) {
       this.schedulePoll(account);
     }

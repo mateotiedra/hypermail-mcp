@@ -1,12 +1,13 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  createHash,
-} from "node:crypto";
 import { promises as fs } from "node:fs";
-import { homedir } from "node:os";
 import path from "node:path";
+
+import {
+  encrypt,
+  decrypt,
+  resolveDataDir,
+  resolveKey,
+  writeAtomic,
+} from "./crypto.js";
 
 /**
  * One stored account. `tokens` is provider-specific (e.g. serialized MSAL cache
@@ -40,8 +41,6 @@ export interface OpenOptions {
 }
 
 const FILE_NAME = "accounts.json.enc";
-const ALGO = "aes-256-gcm";
-const KEY_LEN = 32;
 
 export class AccountStore {
   private constructor(
@@ -103,112 +102,6 @@ export class AccountStore {
 
   private async flush(): Promise<void> {
     const buf = encrypt(this.data, this.key);
-    const tmp = `${this.filePath}.${process.pid}.${Date.now()}.tmp`;
-    await fs.writeFile(tmp, buf, { mode: 0o600 });
-    await fs.rename(tmp, this.filePath);
-  }
-}
-
-// ---------- encryption helpers ----------
-
-function encrypt(data: StoreFile, key: Buffer): Buffer {
-  const iv = randomBytes(12);
-  const cipher = createCipheriv(ALGO, key, iv);
-  const plaintext = Buffer.from(JSON.stringify(data), "utf8");
-  const ct = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  // layout: [1-byte version=1][12 iv][16 tag][ct...]
-  return Buffer.concat([Buffer.from([1]), iv, tag, ct]);
-}
-
-function decrypt(buf: Buffer, key: Buffer): StoreFile {
-  if (buf.length < 1 + 12 + 16 + 1) throw new Error("accounts file truncated");
-  const v = buf[0];
-  if (v !== 1) throw new Error(`unsupported accounts file version: ${v}`);
-  const iv = buf.subarray(1, 13);
-  const tag = buf.subarray(13, 29);
-  const ct = buf.subarray(29);
-  const decipher = createDecipheriv(ALGO, key, iv);
-  decipher.setAuthTag(tag);
-  const pt = Buffer.concat([decipher.update(ct), decipher.final()]);
-  const parsed = JSON.parse(pt.toString("utf8")) as StoreFile;
-  if (parsed.version !== 1 || !Array.isArray(parsed.accounts)) {
-    throw new Error("accounts file is malformed");
-  }
-  return parsed;
-}
-
-// ---------- key + path resolution ----------
-
-function resolveDataDir(explicit?: string): string {
-  if (explicit && explicit.length > 0) return path.resolve(explicit);
-  const env = process.env.HYPERMAIL_MCP_DATA_DIR;
-  if (env && env.length > 0) return path.resolve(env);
-  return path.join(homedir(), ".hypermail-mcp");
-}
-
-function parseEnvKey(raw: string): Buffer | undefined {
-  const s = raw.trim();
-  // hex (64 chars)
-  if (/^[0-9a-fA-F]{64}$/.test(s)) return Buffer.from(s, "hex");
-  // base64 — accept any length, then check
-  try {
-    const buf = Buffer.from(s, "base64");
-    if (buf.length === KEY_LEN) return buf;
-  } catch {
-    /* ignore */
-  }
-  // last-resort: derive 32 bytes via SHA-256 over the raw string. This lets
-  // users pass any passphrase; not ideal but predictable.
-  return createHash("sha256").update(s, "utf8").digest();
-}
-
-async function resolveKey(dataDir: string): Promise<Buffer> {
-  const env = process.env.HYPERMAIL_MCP_KEY;
-  if (env && env.length > 0) {
-    const k = parseEnvKey(env);
-    if (k) return k;
-  }
-
-  // Try OS keychain via keytar (optional dep).
-  const fromKeytar = await tryKeytarGet();
-  if (fromKeytar) return fromKeytar;
-
-  // Local-dev fallback: persist a generated key to a 0600 file next to the
-  // accounts blob so subsequent runs can decrypt. Hosted deployments should
-  // always set HYPERMAIL_MCP_KEY explicitly.
-  const keyFile = path.join(dataDir, "master.key");
-  try {
-    const existing = await fs.readFile(keyFile);
-    if (existing.length === KEY_LEN) return existing;
-  } catch {
-    /* fall through to generate */
-  }
-  const gen = randomBytes(KEY_LEN);
-  await fs.writeFile(keyFile, gen, { mode: 0o600 });
-  await tryKeytarSet(gen);
-  return gen;
-}
-
-async function tryKeytarGet(): Promise<Buffer | undefined> {
-  try {
-    const mod = (await import("keytar")) as typeof import("keytar");
-    const val = await mod.getPassword("hypermail-mcp", "master");
-    if (val) {
-      const buf = Buffer.from(val, "base64");
-      if (buf.length === KEY_LEN) return buf;
-    }
-  } catch {
-    /* keytar not installed or unsupported platform */
-  }
-  return undefined;
-}
-
-async function tryKeytarSet(key: Buffer): Promise<void> {
-  try {
-    const mod = (await import("keytar")) as typeof import("keytar");
-    await mod.setPassword("hypermail-mcp", "master", key.toString("base64"));
-  } catch {
-    /* ignore */
+    await writeAtomic(this.filePath, buf);
   }
 }

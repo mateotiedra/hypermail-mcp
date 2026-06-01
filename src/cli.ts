@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { startServer } from "./server.js";
 import { loadConfig } from "./config.js";
 
@@ -7,6 +9,7 @@ type ParsedArgs = {
   host: string;
   dataDir?: string;
   config?: string;
+  agentsConfig?: string;
   help: boolean;
 };
 
@@ -34,6 +37,9 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--config":
         out.config = String(argv[++i] ?? "");
+        break;
+      case "--agents-config":
+        out.agentsConfig = String(argv[++i] ?? "");
         break;
       case "-h":
       case "--help":
@@ -83,7 +89,16 @@ Example hypermail-config.json:
 }
 
 async function main(): Promise<void> {
-  const opts = parseArgs(process.argv.slice(2));
+  const rawArgs = process.argv.slice(2);
+
+  // Subcommand: generate-key
+  if (rawArgs[0] === "generate-key") {
+    const key = `hm_sk_${randomBytes(32).toString("hex")}`;
+    process.stdout.write(key + "\n");
+    return;
+  }
+
+  const opts = parseArgs(rawArgs);
   if (opts.help) {
     printHelp();
     return;
@@ -94,6 +109,7 @@ async function main(): Promise<void> {
     port: opts.port,
     host: opts.host,
     dataDir: opts.dataDir,
+    agentsConfig: opts.agentsConfig,
   });
 
   await startServer({ config });

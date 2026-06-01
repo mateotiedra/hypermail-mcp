@@ -82,6 +82,8 @@ export interface AppConfig {
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
   watch?: WatchConfig;
+  /** Path to agents.yaml for HTTP multi-tenant mode. Only used when http.enabled is true. */
+  agentsConfigPath?: string;
 }
 
 /** CLI flags that can override config file values. */
@@ -90,6 +92,7 @@ export interface CliOverrides {
   port?: number;
   host?: string;
   dataDir?: string;
+  agentsConfig?: string;
 }
 
 // ── Known tool names ──
@@ -237,6 +240,9 @@ export function loadConfig(
       : undefined,
     providers: parsed.providers as ProvidersConfig | undefined,
     watch: parsed.watch as WatchConfig | undefined,
+    agentsConfigPath:
+      cliOverrides.agentsConfig ??
+      process.env.HYPERMAIL_AGENTS_CONFIG,
   };
 }
 

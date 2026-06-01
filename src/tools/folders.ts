@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
+import type { AgentContext } from "./agent-context.js";
+import { checkAccountAccess } from "./agent-context.js";
 import {
   ok,
   fail,
@@ -16,9 +18,10 @@ export function registerFolderTools(
   ctx: {
     registry: Registry;
     tools: ResolvedTools;
+    agentContext?: AgentContext | null;
   },
 ): void {
-  const { registry, tools } = ctx;
+  const { registry, tools, agentContext } = ctx;
 
   // ---------- list_folders ----------
 
@@ -49,6 +52,8 @@ export function registerFolderTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const items = await provider.listFolders(account, {
             parentFolderId: args.parentFolderId,
@@ -99,6 +104,8 @@ export function registerFolderTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const folder = await provider.createFolder(account, {
             displayName: args.displayName,
@@ -137,6 +144,8 @@ export function registerFolderTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           await provider.deleteFolder(account, args.folderId);
           const data = { deleted: true as const, id: args.folderId };
@@ -176,6 +185,8 @@ export function registerFolderTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const folder = await provider.renameFolder(
             account,

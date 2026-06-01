@@ -3,19 +3,21 @@ import { z } from "zod";
 
 import type { ResolvedTools } from "../config.js";
 import type { WatchNotification } from "../watcher/index.js";
+import type { AgentContext } from "./agent-context.js";
 import { ok, fail, errMsg, shouldRegister } from "./shared.js";
 
 export interface NotificationToolContext {
   tools: ResolvedTools;
   /** Shared buffer the watcher writes to. Draining is the tool's job. */
   notificationBuffer: WatchNotification[];
+  agentContext?: AgentContext | null;
 }
 
 export function registerNotificationTools(
   server: McpServer,
   ctx: NotificationToolContext,
 ): void {
-  const { tools, notificationBuffer } = ctx;
+  const { tools, notificationBuffer, agentContext } = ctx;
 
   const notifyOutputSchema = z.object({
     count: z.number(),
@@ -46,7 +48,15 @@ export function registerNotificationTools(
           // Drain atomically — splice returns removed items and clears them
           // from the array in one operation.
           const pending = notificationBuffer.splice(0);
-          const data = { count: pending.length, items: pending };
+          // Scope to agent's accounts in HTTP mode; unrestricted in stdio.
+          const filtered = agentContext
+            ? pending.filter((n) =>
+                agentContext.accounts.some(
+                  (a) => a.toLowerCase() === n.account.toLowerCase(),
+                ),
+              )
+            : pending;
+          const data = { count: filtered.length, items: filtered };
           return ok(data, data as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));

@@ -5,6 +5,8 @@ import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { EmailProvider, SendInput } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
+import type { AgentContext } from "./agent-context.js";
+import { checkAccountAccess } from "./agent-context.js";
 import {
   ok,
   fail,
@@ -20,9 +22,10 @@ export function registerComposeTools(
     store: AccountStore;
     registry: Registry;
     tools: ResolvedTools;
+    agentContext?: AgentContext | null;
   },
 ): void {
-  const { store, registry, tools } = ctx;
+  const { store, registry, tools, agentContext } = ctx;
 
   const sendEmailSchema = z.object({
     account: z.string().email(),
@@ -82,6 +85,8 @@ export function registerComposeTools(
     toolName: string,
   ) {
     try {
+      const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+      if (accessErr) return fail(accessErr);
       const { provider, account } = registry.resolveByEmail(args.account);
       if (args.include_signature && !account.signature) {
         return fail(
@@ -251,6 +256,8 @@ export function registerComposeTools(
       async (args) => {
         const a = args as EditDraftArgs;
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, a.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(a.account);
           if (a.include_signature && !account.signature) {
             return fail(
@@ -316,6 +323,8 @@ export function registerComposeTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const res = await provider.sendDraft(account, args.id);
           const data = { sent: true as const, id: res.id };
@@ -369,6 +378,8 @@ export function registerComposeTools(
       },
       async (args) => {
         try {
+          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
+          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const res = await provider.addAttachmentToDraft(
             account,
