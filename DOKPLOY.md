@@ -1,72 +1,50 @@
 # Deploy hypermail-mcp to Dokploy
 
-Minimal compose file, provider-agnostic. Everything provider-specific is configured in the Dokploy UI, not baked into the compose file.
+Dockerfile-only deployment — no compose file, no port bindings, no manual labels. Everything is configured in the Dokploy UI.
 
-## docker-compose.yml — what's in it
+## Prerequisites
 
-```yaml
-services:
-  hypermail-mcp:
-    build: .
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:${HYPERMAIL_PORT:-3090}:3000"
-    environment:
-      - HYPERMAIL_MCP_KEY=${HYPERMAIL_MCP_KEY}
-    volumes:
-      - hypermail-data:/data
-```
+- A domain pointed at your VPS (e.g. `mail-api.example.com`)
+- Dokploy installed and connected to your Git provider
 
-That's it. No provider references, no network config, no auth boilerplate.
+## Step-by-step
 
-| Element | Purpose |
-|---------|---------|
-| `HYPERMAIL_MCP_KEY` | AES-256-GCM key for encrypting stored OAuth tokens. **Required.** |
-| `HYPERMAIL_PORT` | Host port to bind. Defaults to `3090`. Set in Environment tab to override. |
-| `hypermail-data:/data` | Persistent volume for `accounts.json.enc` (tokens) and `agents.json.enc` (hashed API keys). |
+### 1. Create the Application
 
-## Step-by-step deployment
-
-### 1. Push to a Git repository
-
-```bash
-git remote add origin git@github.com:you/hypermail-mcp.git
-git push -u origin main
-```
-
-### 2. Connect Git provider in Dokploy
-
-Dokploy dashboard → **Settings** → **Git Sources** → connect provider.
-
-### 3. Create a Compose service
-
-1. **Create Service** → **Compose** → **Docker Compose**
-2. Select your repo + branch
-3. **Compose Path**: `./docker-compose.yml`
+1. **Create Service** → **Application**
+2. Select your Git provider, repository, and branch
+3. **Build Path**: `/` (root of repo — that's where the Dockerfile lives)
 4. **Save**
 
-### 4. Set required env var
+### 2. Set the encryption key
 
-Go to the **Environment** tab:
+Go to the **Environment** tab and add:
 
 | Variable | Value |
 |----------|-------|
-| `HYPERMAIL_MCP_KEY` | `openssl rand -hex 32` — back this up, if lost all stored tokens become unreadable |
+| `HYPERMAIL_MCP_KEY` | Run `openssl rand -hex 32` and paste the output |
 
-### 5. Add provider credentials (optional)
+This key encrypts your OAuth tokens at rest. Back it up — if lost, you'll need to re-authenticate every email account.
 
-Set these in the **Environment** tab — only for providers you use. The compose file doesn't need to know about them; the auth modules read them from `process.env` directly.
+### 3. Configure persistent storage
 
-| Variable | Provider | How to get it |
-|----------|----------|---------------|
-| `MS_CLIENT_ID` | Outlook | Azure Entra ID → app registration → Application (client) ID |
-| `MS_TENANT_ID` | Outlook | Azure Entra ID → Directory (tenant) ID |
-| `GOOGLE_CLIENT_ID` | Gmail | Google Cloud Console → APIs & Services → Credentials |
-| `GOOGLE_CLIENT_SECRET` | Gmail | Same as client ID |
+Go to **Advanced** → **Mounts** → add a bind mount:
 
-If you skip Outlook credentials, the server falls back to a shared public client ID — fine for personal use, but register your own app for production.
+| Host path | Container path |
+|-----------|---------------|
+| `../files/data` | `/data` |
 
-### 6. Deploy
+This persists your encrypted tokens across redeploys. Dokploy creates the host path automatically on first deploy.
+
+> `../files/` is Dokploy's persistent directory for this application. Anything there survives redeploys.
+
+### 4. Add a domain
+
+Go to the **Domains** tab → **Add Domain** → enter your domain (e.g. `mail-api.example.com`).
+
+Dokploy auto-generates Traefik routing and provisions a Let's Encrypt TLS certificate on deploy. No manual config needed.
+
+### 5. Deploy
 
 Click **Deploy**. Check **Logs** — you should see:
 
@@ -74,42 +52,13 @@ Click **Deploy**. Check **Logs** — you should see:
 [hypermail-mcp] listening on http://0.0.0.0:3000/mcp
 ```
 
-### 7. Verify
+### 6. Verify
 
 ```bash
-curl http://localhost:${HYPERMAIL_PORT:-3090}/mcp
+curl https://your-domain.com/mcp
 ```
 
-Should return an HTTP response (not connection refused).
-
-## How agents connect
-
-### Default: direct localhost
-
-The server binds to `127.0.0.1` on the VPS. Only processes on the VPS can reach it.
-
-```json
-{
-  "mcpServers": {
-    "hypermail-http": {
-      "type": "streamableHttp",
-      "url": "http://localhost:3090/mcp"
-    }
-  }
-}
-```
-
-Change the port if you set `HYPERMAIL_PORT` to something else.
-
-### Optional: public domain via Dokploy Domains UI
-
-1. In your Compose service → **Domains** tab → **Add Domain**
-2. Configure your domain (e.g. `mail-api.example.com`)
-3. Set up a DNS A record pointing to your VPS
-
-Dokploy auto-generates the Traefik labels and TLS certificate at deploy time. No changes needed in `docker-compose.yml`.
-
-Then connect via:
+## Connecting agents
 
 ```json
 {
@@ -122,68 +71,28 @@ Then connect via:
 }
 ```
 
+## Provider credentials (optional)
+
+Set these in the **Environment** tab — only for providers you use:
+
+| Variable | Provider |
+|----------|----------|
+| `MS_CLIENT_ID` | Outlook |
+| `MS_TENANT_ID` | Outlook |
+| `GOOGLE_CLIENT_ID` | Gmail |
+| `GOOGLE_CLIENT_SECRET` | Gmail |
+
 ## Authentication (optional)
 
-By default the server runs **without** API key auth — anyone who can reach the port can use it. This is correct when only you use it on an internal VPS.
+By default the server runs without auth — anyone who can reach it can use it.
 
-To enable auth:
+To enable API key auth, see the project README for `agents.yaml` setup, then set `HYPERMAIL_AGENTS_CONFIG=/data/agents.yaml` in the Environment tab and mount the file via Dokploy File Mounts.
 
-1. Create an `agents.yaml` file:
+## What's in the Dockerfile
 
-```yaml
-agents:
-  - id: pi
-    api_key: hm_sk_<64-hex-chars>    # generate with: openssl rand -hex 32 | sed 's/^/hm_sk_/'
-    name: "Pi Coding Agent"
-    accounts: []                       # auto-assigned when you run add_account
-    provisioning: true                 # allow adding/removing accounts
-```
-
-2. Upload it to your VPS, e.g. `/etc/hypermail/agents.yaml`
-
-3. In Dokploy: your service → **Advanced** → **Mounts** → add a File Mount:
-   - **Host path**: `/etc/hypermail/agents.yaml`
-   - **Container path**: `/data/agents.yaml`
-
-4. Uncomment `ENV HYPERMAIL_AGENTS_CONFIG="/data/agents.yaml"` in the **Dockerfile**
-
-5. Set `HYPERMAIL_AGENTS_CONFIG=/data/agents.yaml` in the **Environment** tab
-
-6. Redeploy
-
-Now every connection needs an `x-api-key` header matching an agent in `agents.yaml`. Each agent only sees the accounts assigned to them.
-
-> `agents.yaml` is **live-reloaded** — add or remove agents without restarting.
-
-## Customizing the port
-
-Set `HYPERMAIL_PORT` in the Environment tab. The default is `3090`.
-
-```yaml
-# In docker-compose.yml:
-ports:
-  - "127.0.0.1:${HYPERMAIL_PORT:-3090}:3000"
-```
-
-The container port (`3000`) never changes — that's the server's internal listener.
-
-## Volumes & data persistence
-
-The `hypermail-data` named volume at `/data` persists:
-
-| File | Contents |
-|------|----------|
-| `accounts.json.enc` | AES-256-GCM encrypted OAuth tokens for all connected email accounts |
-| `agents.json.enc` | scrypt-hashed API keys (only when `agents.yaml` is loaded) |
-
-**No additional volumes are needed.**
-
-## Troubleshooting
-
-| Problem | Fix |
-|---------|-----|
-| Build fails on `pnpm install` | Ensure `pnpm-lock.yaml` is committed and up to date |
-| Container starts then exits | Check logs — likely missing `HYPERMAIL_MCP_KEY` |
-| `curl: connection refused` on the port | Verify `HYPERMAIL_PORT` matches. Check logs for bind errors. |
-| `[hypermail-mcp] agents.yaml reload error` | Ignore if not using auth. To suppress, ensure `HYPERMAIL_AGENTS_CONFIG` is not set. |
-| Healthcheck failing | The server isn't starting — check logs for errors |
+| Instruction | Purpose |
+|-------------|---------|
+| `EXPOSE 3000` | Internal port (Dokploy uses this for routing) |
+| `HEALTHCHECK` | Docker checks `localhost:3000/mcp` every 30s |
+| `ENV NODE_ENV=production` | Production mode |
+| `CMD node dist/cli.js --http ...` | Starts MCP server on `0.0.0.0:3000` |

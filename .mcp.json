@@ -13,7 +13,7 @@
         "MS_CLIENT_ID": "${MS_CLIENT_ID}",
         "MS_TENANT_ID": "${MS_TENANT_ID}"
       },
-      "directTools": true
+      "directTools": false
     }
   }
 }

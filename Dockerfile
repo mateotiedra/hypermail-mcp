@@ -24,7 +24,10 @@ RUN pnpm prune --prod
 ENV NODE_ENV=production
 EXPOSE 3000
 
-# Create data directory and set up volumes
+# Create data directory
 RUN mkdir -p /data
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/mcp',()=>process.exit(0)).on('error',()=>process.exit(1))"
 
 CMD ["node", "dist/cli.js", "--http", "--port", "3000", "--host", "0.0.0.0", "--data-dir", "/data"]

@@ -999,24 +999,6 @@
       "norm_label": "vitest"
     },
     {
-      "label": "pnpm",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L70",
-      "id": "hyper_email_mcp_0_package_pnpm",
-      "community": 22,
-      "norm_label": "pnpm"
-    },
-    {
-      "label": "onlyBuiltDependencies",
-      "file_type": "code",
-      "source_file": "package.json",
-      "source_location": "L71",
-      "id": "hyper_email_mcp_0_package_pnpm_onlybuiltdependencies",
-      "community": 22,
-      "norm_label": "onlybuiltdependencies"
-    },
-    {
       "label": "vitest.config.ts",
       "file_type": "code",
       "source_file": "vitest.config.ts",
@@ -1031,7 +1013,7 @@
       "source_file": "src/server.ts",
       "source_location": "L1",
       "id": "src_server_ts",
-      "community": 20,
+      "community": 0,
       "norm_label": "server.ts"
     },
     {
@@ -1040,7 +1022,7 @@
       "source_file": "src/server.ts",
       "source_location": "L23",
       "id": "src_server_serveroptions",
-      "community": 20,
+      "community": 0,
       "norm_label": "serveroptions"
     },
     {
@@ -1049,25 +1031,25 @@
       "source_file": "src/server.ts",
       "source_location": "L28",
       "id": "src_server_startserver",
-      "community": 20,
+      "community": 0,
       "norm_label": "startserver()"
     },
     {
       "label": "HttpSession",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L109",
+      "source_location": "L126",
       "id": "src_server_httpsession",
-      "community": 20,
+      "community": 0,
       "norm_label": "httpsession"
     },
     {
       "label": "startHttp()",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L115",
+      "source_location": "L132",
       "id": "src_server_starthttp",
-      "community": 20,
+      "community": 0,
       "norm_label": "starthttp()"
     },
     {
@@ -1094,7 +1076,7 @@
       "source_file": "src/version.ts",
       "source_location": "L1",
       "id": "src_version_ts",
-      "community": 20,
+      "community": 0,
       "norm_label": "version.ts"
     },
     {
@@ -1103,7 +1085,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L1",
       "id": "src_cli_ts",
-      "community": 20,
+      "community": 0,
       "norm_label": "cli.ts"
     },
     {
@@ -1112,7 +1094,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L6",
       "id": "src_cli_parsedargs",
-      "community": 20,
+      "community": 0,
       "norm_label": "parsedargs"
     },
     {
@@ -1121,7 +1103,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L16",
       "id": "src_cli_parseargs",
-      "community": 20,
+      "community": 0,
       "norm_label": "parseargs()"
     },
     {
@@ -1130,7 +1112,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L58",
       "id": "src_cli_printhelp",
-      "community": 20,
+      "community": 0,
       "norm_label": "printhelp()"
     },
     {
@@ -1139,7 +1121,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L91",
       "id": "src_cli_main",
-      "community": 20,
+      "community": 0,
       "norm_label": "main()"
     },
     {
@@ -1148,7 +1130,7 @@
       "source_file": "src/config.ts",
       "source_location": "L1",
       "id": "src_config_ts",
-      "community": 20,
+      "community": 0,
       "norm_label": "config.ts"
     },
     {
@@ -1157,7 +1139,7 @@
       "source_file": "src/config.ts",
       "source_location": "L6",
       "id": "src_config_httpconfigschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "httpconfigschema"
     },
     {
@@ -1166,7 +1148,7 @@
       "source_file": "src/config.ts",
       "source_location": "L12",
       "id": "src_config_toolsconfigschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "toolsconfigschema"
     },
     {
@@ -1175,7 +1157,7 @@
       "source_file": "src/config.ts",
       "source_location": "L17",
       "id": "src_config_outlookproviderschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "outlookproviderschema"
     },
     {
@@ -1184,7 +1166,7 @@
       "source_file": "src/config.ts",
       "source_location": "L22",
       "id": "src_config_gmailproviderschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "gmailproviderschema"
     },
     {
@@ -1193,7 +1175,7 @@
       "source_file": "src/config.ts",
       "source_location": "L27",
       "id": "src_config_providersconfigschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "providersconfigschema"
     },
     {
@@ -1202,7 +1184,7 @@
       "source_file": "src/config.ts",
       "source_location": "L32",
       "id": "src_config_watchconfigschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "watchconfigschema"
     },
     {
@@ -1211,7 +1193,7 @@
       "source_file": "src/config.ts",
       "source_location": "L37",
       "id": "src_config_rawconfigschema",
-      "community": 20,
+      "community": 0,
       "norm_label": "rawconfigschema"
     },
     {
@@ -1220,7 +1202,7 @@
       "source_file": "src/config.ts",
       "source_location": "L47",
       "id": "src_config_httpconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "httpconfig"
     },
     {
@@ -1229,7 +1211,7 @@
       "source_file": "src/config.ts",
       "source_location": "L53",
       "id": "src_config_toolsconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "toolsconfig"
     },
     {
@@ -1238,7 +1220,7 @@
       "source_file": "src/config.ts",
       "source_location": "L58",
       "id": "src_config_outlookproviderconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "outlookproviderconfig"
     },
     {
@@ -1247,7 +1229,7 @@
       "source_file": "src/config.ts",
       "source_location": "L63",
       "id": "src_config_gmailproviderconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "gmailproviderconfig"
     },
     {
@@ -1256,7 +1238,7 @@
       "source_file": "src/config.ts",
       "source_location": "L68",
       "id": "src_config_providersconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "providersconfig"
     },
     {
@@ -1265,7 +1247,7 @@
       "source_file": "src/config.ts",
       "source_location": "L73",
       "id": "src_config_watchconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "watchconfig"
     },
     {
@@ -1274,7 +1256,7 @@
       "source_file": "src/config.ts",
       "source_location": "L79",
       "id": "src_config_appconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "appconfig"
     },
     {
@@ -1283,7 +1265,7 @@
       "source_file": "src/config.ts",
       "source_location": "L90",
       "id": "src_config_clioverrides",
-      "community": 20,
+      "community": 0,
       "norm_label": "clioverrides"
     },
     {
@@ -1292,7 +1274,7 @@
       "source_file": "src/config.ts",
       "source_location": "L104",
       "id": "src_config_known_tools",
-      "community": 20,
+      "community": 0,
       "norm_label": "known_tools"
     },
     {
@@ -1301,7 +1283,7 @@
       "source_file": "src/config.ts",
       "source_location": "L136",
       "id": "src_config_resolveenvvars",
-      "community": 20,
+      "community": 0,
       "norm_label": "resolveenvvars()"
     },
     {
@@ -1310,7 +1292,7 @@
       "source_file": "src/config.ts",
       "source_location": "L143",
       "id": "src_config_deepresolve",
-      "community": 20,
+      "community": 0,
       "norm_label": "deepresolve()"
     },
     {
@@ -1319,7 +1301,7 @@
       "source_file": "src/config.ts",
       "source_location": "L158",
       "id": "src_config_validatetoolnames",
-      "community": 20,
+      "community": 0,
       "norm_label": "validatetoolnames()"
     },
     {
@@ -1328,7 +1310,7 @@
       "source_file": "src/config.ts",
       "source_location": "L182",
       "id": "src_config_loadconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "loadconfig()"
     },
     {
@@ -1346,7 +1328,7 @@
       "source_file": "src/config.ts",
       "source_location": "L260",
       "id": "src_config_resolvetools",
-      "community": 20,
+      "community": 0,
       "norm_label": "resolvetools()"
     },
     {
@@ -1355,7 +1337,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L1",
       "id": "src_html_to_markdown_ts",
-      "community": 0,
+      "community": 35,
       "norm_label": "html-to-markdown.ts"
     },
     {
@@ -1364,7 +1346,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L3",
       "id": "src_html_to_markdown_turndown",
-      "community": 0,
+      "community": 35,
       "norm_label": "turndown"
     },
     {
@@ -1373,7 +1355,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L6",
       "id": "src_html_to_markdown_htmltomarkdown",
-      "community": 0,
+      "community": 35,
       "norm_label": "htmltomarkdown()"
     },
     {
@@ -1382,7 +1364,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L11",
       "id": "src_html_to_markdown_selectbody",
-      "community": 0,
+      "community": 35,
       "norm_label": "selectbody()"
     },
     {
@@ -1391,7 +1373,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L1",
       "id": "src_config_agents_config_ts",
-      "community": 20,
+      "community": 24,
       "norm_label": "agents-config.ts"
     },
     {
@@ -1400,7 +1382,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L9",
       "id": "config_agents_config_agentdefschema",
-      "community": 20,
+      "community": 24,
       "norm_label": "agentdefschema"
     },
     {
@@ -1409,7 +1391,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L29",
       "id": "config_agents_config_emailaccountdefschema",
-      "community": 20,
+      "community": 24,
       "norm_label": "emailaccountdefschema"
     },
     {
@@ -1418,7 +1400,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L34",
       "id": "config_agents_config_agentsconfigschema",
-      "community": 20,
+      "community": 24,
       "norm_label": "agentsconfigschema"
     },
     {
@@ -1427,7 +1409,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L44",
       "id": "config_agents_config_agentdef",
-      "community": 20,
+      "community": 24,
       "norm_label": "agentdef"
     },
     {
@@ -1436,7 +1418,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L52",
       "id": "config_agents_config_emailaccountdef",
-      "community": 20,
+      "community": 24,
       "norm_label": "emailaccountdef"
     },
     {
@@ -1445,7 +1427,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L57",
       "id": "config_agents_config_agentsconfig",
-      "community": 20,
+      "community": 24,
       "norm_label": "agentsconfig"
     },
     {
@@ -1454,7 +1436,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L70",
       "id": "config_agents_config_loadagentsconfig",
-      "community": 20,
+      "community": 24,
       "norm_label": "loadagentsconfig()"
     },
     {
@@ -1463,7 +1445,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L122",
       "id": "config_agents_config_syncagentstostore",
-      "community": 20,
+      "community": 24,
       "norm_label": "syncagentstostore()"
     },
     {
@@ -1472,7 +1454,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L154",
       "id": "config_agents_config_livereloadhandle",
-      "community": 20,
+      "community": 24,
       "norm_label": "livereloadhandle"
     },
     {
@@ -1481,7 +1463,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L168",
       "id": "config_agents_config_watchagentsconfig",
-      "community": 20,
+      "community": 0,
       "norm_label": "watchagentsconfig()"
     },
     {
@@ -1740,7 +1722,7 @@
       "label": "StoreFile",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L31",
+      "source_location": "L36",
       "id": "store_account_store_storefile",
       "community": 24,
       "norm_label": "storefile"
@@ -1749,7 +1731,7 @@
       "label": "OpenOptions",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L36",
+      "source_location": "L41",
       "id": "store_account_store_openoptions",
       "community": 24,
       "norm_label": "openoptions"
@@ -1758,25 +1740,25 @@
       "label": "AccountStore",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L45",
+      "source_location": "L50",
       "id": "store_account_store_accountstore",
-      "community": 24,
+      "community": 25,
       "norm_label": "accountstore"
     },
     {
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L46",
+      "source_location": "L51",
       "id": "store_account_store_accountstore_constructor",
-      "community": 24,
+      "community": 25,
       "norm_label": ".constructor()"
     },
     {
       "label": ".open()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L52",
+      "source_location": "L57",
       "id": "store_account_store_accountstore_open",
       "community": 24,
       "norm_label": ".open()"
@@ -1785,25 +1767,25 @@
       "label": ".listAccounts()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L72",
+      "source_location": "L77",
       "id": "store_account_store_accountstore_listaccounts",
-      "community": 24,
+      "community": 25,
       "norm_label": ".listaccounts()"
     },
     {
       "label": ".getAccount()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L78",
+      "source_location": "L83",
       "id": "store_account_store_accountstore_getaccount",
-      "community": 24,
+      "community": 25,
       "norm_label": ".getaccount()"
     },
     {
       "label": ".upsertAccount()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L84",
+      "source_location": "L89",
       "id": "store_account_store_accountstore_upsertaccount",
       "community": 24,
       "norm_label": ".upsertaccount()"
@@ -1812,7 +1794,7 @@
       "label": ".removeAccount()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L94",
+      "source_location": "L99",
       "id": "store_account_store_accountstore_removeaccount",
       "community": 24,
       "norm_label": ".removeaccount()"
@@ -1821,7 +1803,7 @@
       "label": ".flush()",
       "file_type": "code",
       "source_file": "src/store/account-store.ts",
-      "source_location": "L103",
+      "source_location": "L108",
       "id": "store_account_store_accountstore_flush",
       "community": 24,
       "norm_label": ".flush()"
@@ -2196,6 +2178,168 @@
       "norm_label": "index.ts"
     },
     {
+      "label": "manager.test.ts",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L1",
+      "id": "src_watcher_manager_test_ts",
+      "community": 4,
+      "norm_label": "manager.test.ts"
+    },
+    {
+      "label": "mockAccount()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L14",
+      "id": "watcher_manager_test_mockaccount",
+      "community": 4,
+      "norm_label": "mockaccount()"
+    },
+    {
+      "label": "mockListResult()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L24",
+      "id": "watcher_manager_test_mocklistresult",
+      "community": 4,
+      "norm_label": "mocklistresult()"
+    },
+    {
+      "label": "mockEmail()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L31",
+      "id": "watcher_manager_test_mockemail",
+      "community": 4,
+      "norm_label": "mockemail()"
+    },
+    {
+      "label": "mockProvider()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L40",
+      "id": "watcher_manager_test_mockprovider",
+      "community": 4,
+      "norm_label": "mockprovider()"
+    },
+    {
+      "label": "upsertSync()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L66",
+      "id": "watcher_manager_test_upsertsync",
+      "community": 4,
+      "norm_label": "upsertsync()"
+    },
+    {
+      "label": "createWatcher()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L108",
+      "id": "watcher_manager_test_createwatcher",
+      "community": 4,
+      "norm_label": "createwatcher()"
+    },
+    {
+      "label": "startAndWaitForUpsert()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L118",
+      "id": "watcher_manager_test_startandwaitforupsert",
+      "community": 4,
+      "norm_label": "startandwaitforupsert()"
+    },
+    {
+      "label": "upsertCall",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L144",
+      "id": "watcher_manager_test_upsertcall",
+      "community": 4,
+      "norm_label": "upsertcall"
+    },
+    {
+      "label": "consoleError",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L233",
+      "id": "watcher_manager_test_consoleerror",
+      "community": 4,
+      "norm_label": "consoleerror"
+    },
+    {
+      "label": "w",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L237",
+      "id": "watcher_manager_test_w",
+      "community": 4,
+      "norm_label": "w"
+    },
+    {
+      "label": "authFailures",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L246",
+      "id": "watcher_manager_test_authfailures",
+      "community": 4,
+      "norm_label": "authfailures"
+    },
+    {
+      "label": "enqueued",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L267",
+      "id": "watcher_manager_test_enqueued",
+      "community": 4,
+      "norm_label": "enqueued"
+    },
+    {
+      "label": "origPush",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L271",
+      "id": "watcher_manager_test_origpush",
+      "community": 4,
+      "norm_label": "origpush"
+    },
+    {
+      "label": "result",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L273",
+      "id": "watcher_manager_test_result",
+      "community": 4,
+      "norm_label": "result"
+    },
+    {
+      "label": "neverResolve()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L291",
+      "id": "watcher_manager_test_neverresolve",
+      "community": 4,
+      "norm_label": "neverresolve()"
+    },
+    {
+      "label": "slowPromise",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L292",
+      "id": "watcher_manager_test_slowpromise",
+      "community": 4,
+      "norm_label": "slowpromise"
+    },
+    {
+      "label": "skips",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L328",
+      "id": "watcher_manager_test_skips",
+      "community": 4,
+      "norm_label": "skips"
+    },
+    {
       "label": "manager.ts",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
@@ -2235,7 +2379,7 @@
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L51",
+      "source_location": "L53",
       "id": "watcher_manager_watchermanager_constructor",
       "community": 4,
       "norm_label": ".constructor()"
@@ -2244,7 +2388,7 @@
       "label": ".start()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L55",
+      "source_location": "L57",
       "id": "watcher_manager_watchermanager_start",
       "community": 4,
       "norm_label": ".start()"
@@ -2253,16 +2397,25 @@
       "label": ".stop()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L69",
+      "source_location": "L72",
       "id": "watcher_manager_watchermanager_stop",
       "community": 4,
       "norm_label": ".stop()"
     },
     {
+      "label": ".scanAccounts()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L81",
+      "id": "watcher_manager_watchermanager_scanaccounts",
+      "community": 4,
+      "norm_label": ".scanaccounts()"
+    },
+    {
       "label": ".schedulePoll()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L77",
+      "source_location": "L92",
       "id": "watcher_manager_watchermanager_schedulepoll",
       "community": 4,
       "norm_label": ".schedulepoll()"
@@ -2271,7 +2424,7 @@
       "label": ".pollAccount()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L93",
+      "source_location": "L112",
       "id": "watcher_manager_watchermanager_pollaccount",
       "community": 4,
       "norm_label": ".pollaccount()"
@@ -2280,7 +2433,7 @@
       "label": ".enqueue()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
-      "source_location": "L165",
+      "source_location": "L204",
       "id": "watcher_manager_watchermanager_enqueue",
       "community": 4,
       "norm_label": ".enqueue()"
@@ -2309,7 +2462,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L14",
       "id": "providers_registry_buildregistryoptions",
-      "community": 20,
+      "community": 0,
       "norm_label": "buildregistryoptions"
     },
     {
@@ -2318,7 +2471,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L19",
       "id": "providers_registry_buildregistry",
-      "community": 20,
+      "community": 0,
       "norm_label": "buildregistry()"
     },
     {
@@ -2327,7 +2480,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L1",
       "id": "src_providers_types_ts",
-      "community": 2,
+      "community": 1,
       "norm_label": "types.ts"
     },
     {
@@ -2354,7 +2507,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L10",
       "id": "providers_types_emailsummary",
-      "community": 2,
+      "community": 1,
       "norm_label": "emailsummary"
     },
     {
@@ -2363,7 +2516,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L22",
       "id": "providers_types_emailfull",
-      "community": 6,
+      "community": 1,
       "norm_label": "emailfull"
     },
     {
@@ -2372,7 +2525,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L35",
       "id": "providers_types_listemailsoptions",
-      "community": 2,
+      "community": 1,
       "norm_label": "listemailsoptions"
     },
     {
@@ -2381,7 +2534,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L44",
       "id": "providers_types_listemailsresult",
-      "community": 2,
+      "community": 1,
       "norm_label": "listemailsresult"
     },
     {
@@ -2390,7 +2543,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L49",
       "id": "providers_types_searchemailsoptions",
-      "community": 2,
+      "community": 1,
       "norm_label": "searchemailsoptions"
     },
     {
@@ -2408,7 +2561,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L78",
       "id": "providers_types_draftupdateinput",
-      "community": 2,
+      "community": 1,
       "norm_label": "draftupdateinput"
     },
     {
@@ -2417,7 +2570,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L94",
       "id": "providers_types_addaccountresult",
-      "community": 2,
+      "community": 1,
       "norm_label": "addaccountresult"
     },
     {
@@ -2426,7 +2579,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L107",
       "id": "providers_types_addaccountinput",
-      "community": 2,
+      "community": 1,
       "norm_label": "addaccountinput"
     },
     {
@@ -2444,7 +2597,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L120",
       "id": "providers_types_attachmentcontent",
-      "community": 6,
+      "community": 1,
       "norm_label": "attachmentcontent"
     },
     {
@@ -2471,7 +2624,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L141",
       "id": "providers_types_createfolderinput",
-      "community": 2,
+      "community": 1,
       "norm_label": "createfolderinput"
     },
     {
@@ -2597,7 +2750,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L85",
       "id": "outlook_index_outlookprovideroptions",
-      "community": 24,
+      "community": 25,
       "norm_label": "outlookprovideroptions"
     },
     {
@@ -2624,7 +2777,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L106",
       "id": "outlook_index_outlookprovider_addaccount",
-      "community": 2,
+      "community": 1,
       "norm_label": ".addaccount()"
     },
     {
@@ -2642,7 +2795,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L181",
       "id": "outlook_index_outlookprovider_listemails",
-      "community": 2,
+      "community": 1,
       "norm_label": ".listemails()"
     },
     {
@@ -2651,7 +2804,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L216",
       "id": "outlook_index_outlookprovider_searchemails",
-      "community": 2,
+      "community": 1,
       "norm_label": ".searchemails()"
     },
     {
@@ -2660,7 +2813,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L245",
       "id": "outlook_index_outlookprovider_reademail",
-      "community": 25,
+      "community": 1,
       "norm_label": ".reademail()"
     },
     {
@@ -2867,7 +3020,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L666",
       "id": "outlook_index_clamplimit",
-      "community": 2,
+      "community": 1,
       "norm_label": "clamplimit()"
     },
     {
@@ -3020,7 +3173,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L33",
       "id": "gmail_client_gmailclientfactory_constructor",
-      "community": 24,
+      "community": 6,
       "norm_label": ".constructor()"
     },
     {
@@ -3236,7 +3389,7 @@
       "source_file": "src/providers/gmail/helpers.ts",
       "source_location": "L89",
       "id": "gmail_helpers_parsedpayload",
-      "community": 6,
+      "community": 1,
       "norm_label": "parsedpayload"
     },
     {
@@ -3380,7 +3533,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L60",
       "id": "gmail_index_gmailprovideroptions",
-      "community": 24,
+      "community": 25,
       "norm_label": "gmailprovideroptions"
     },
     {
@@ -3407,7 +3560,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L85",
       "id": "gmail_index_gmailprovider_addaccount",
-      "community": 2,
+      "community": 1,
       "norm_label": ".addaccount()"
     },
     {
@@ -3425,7 +3578,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L167",
       "id": "gmail_index_gmailprovider_listemails",
-      "community": 2,
+      "community": 1,
       "norm_label": ".listemails()"
     },
     {
@@ -3434,7 +3587,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L174",
       "id": "gmail_index_gmailprovider_searchemails",
-      "community": 2,
+      "community": 1,
       "norm_label": ".searchemails()"
     },
     {
@@ -3695,7 +3848,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L52",
       "id": "imap_client_imapclient",
-      "community": 5,
+      "community": 2,
       "norm_label": "imapclient"
     },
     {
@@ -3704,7 +3857,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L57",
       "id": "imap_client_imapclient_constructor",
-      "community": 5,
+      "community": 2,
       "norm_label": ".constructor()"
     },
     {
@@ -3713,7 +3866,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L60",
       "id": "imap_client_imapclient_getimap",
-      "community": 5,
+      "community": 2,
       "norm_label": ".getimap()"
     },
     {
@@ -3722,7 +3875,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L90",
       "id": "imap_client_imapclient_gettransporter",
-      "community": 5,
+      "community": 2,
       "norm_label": ".gettransporter()"
     },
     {
@@ -3731,7 +3884,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L108",
       "id": "imap_client_imapclient_withmailbox",
-      "community": 5,
+      "community": 2,
       "norm_label": ".withmailbox()"
     },
     {
@@ -3740,7 +3893,7 @@
       "source_file": "src/providers/imap/client.ts",
       "source_location": "L119",
       "id": "imap_client_imapclient_disconnect",
-      "community": 5,
+      "community": 2,
       "norm_label": ".disconnect()"
     },
     {
@@ -4118,7 +4271,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L46",
       "id": "imap_index_imapprovider_constructor",
-      "community": 24,
+      "community": 1,
       "norm_label": ".constructor()"
     },
     {
@@ -4127,7 +4280,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L50",
       "id": "imap_index_imapprovider_addaccount",
-      "community": 2,
+      "community": 1,
       "norm_label": ".addaccount()"
     },
     {
@@ -4781,7 +4934,7 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L1",
       "id": "dokploy_md",
-      "community": 27,
+      "community": 31,
       "norm_label": "dokploy.md"
     },
     {
@@ -4790,224 +4943,143 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L1",
       "id": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "community": 27,
+      "community": 5,
       "norm_label": "deploy hypermail-mcp to dokploy"
     },
     {
-      "label": "docker-compose.yml \u2014 what's in it",
+      "label": "Prerequisites",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L5",
-      "id": "hyper_email_mcp_0_dokploy_docker_compose_yml_what_s_in_it",
-      "community": 27,
-      "norm_label": "docker-compose.yml \u2014 what's in it"
+      "id": "hyper_email_mcp_0_dokploy_prerequisites",
+      "community": 31,
+      "norm_label": "prerequisites"
     },
     {
-      "label": "code:yaml (services:)",
+      "label": "Step-by-step",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L7",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_1",
-      "community": 27,
-      "norm_label": "code:yaml (services:)"
+      "source_location": "L10",
+      "id": "hyper_email_mcp_0_dokploy_step_by_step",
+      "community": 20,
+      "norm_label": "step-by-step"
     },
     {
-      "label": "Step-by-step deployment",
+      "label": "1. Create the Application",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L28",
-      "id": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "community": 27,
-      "norm_label": "step-by-step deployment"
+      "source_location": "L12",
+      "id": "hyper_email_mcp_0_dokploy_1_create_the_application",
+      "community": 20,
+      "norm_label": "1. create the application"
     },
     {
-      "label": "1. Push to a Git repository",
+      "label": "2. Set the encryption key",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L30",
-      "id": "hyper_email_mcp_0_dokploy_1_push_to_a_git_repository",
-      "community": 27,
-      "norm_label": "1. push to a git repository"
+      "source_location": "L19",
+      "id": "hyper_email_mcp_0_dokploy_2_set_the_encryption_key",
+      "community": 20,
+      "norm_label": "2. set the encryption key"
     },
     {
-      "label": "code:bash (git remote add origin git@github.com:you/hypermail-mcp.git)",
+      "label": "3. Configure persistent storage",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L32",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_2",
-      "community": 27,
-      "norm_label": "code:bash (git remote add origin git@github.com:you/hypermail-mcp.git)"
+      "source_location": "L29",
+      "id": "hyper_email_mcp_0_dokploy_3_configure_persistent_storage",
+      "community": 20,
+      "norm_label": "3. configure persistent storage"
     },
     {
-      "label": "2. Connect Git provider in Dokploy",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L37",
-      "id": "hyper_email_mcp_0_dokploy_2_connect_git_provider_in_dokploy",
-      "community": 27,
-      "norm_label": "2. connect git provider in dokploy"
-    },
-    {
-      "label": "3. Create a Compose service",
+      "label": "4. Add a domain",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L41",
-      "id": "hyper_email_mcp_0_dokploy_3_create_a_compose_service",
-      "community": 27,
-      "norm_label": "3. create a compose service"
+      "id": "hyper_email_mcp_0_dokploy_4_add_a_domain",
+      "community": 20,
+      "norm_label": "4. add a domain"
     },
     {
-      "label": "4. Set required env var",
+      "label": "5. Deploy",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L48",
-      "id": "hyper_email_mcp_0_dokploy_4_set_required_env_var",
+      "source_location": "L47",
+      "id": "hyper_email_mcp_0_dokploy_5_deploy",
       "community": 27,
-      "norm_label": "4. set required env var"
+      "norm_label": "5. deploy"
     },
     {
-      "label": "5. Add provider credentials (optional)",
+      "label": "code:block1 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp)",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L56",
-      "id": "hyper_email_mcp_0_dokploy_5_add_provider_credentials_optional",
-      "community": 27,
-      "norm_label": "5. add provider credentials (optional)"
+      "source_location": "L51",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_1",
+      "community": 34,
+      "norm_label": "code:block1 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp)"
     },
     {
-      "label": "6. Deploy",
+      "label": "6. Verify",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L69",
-      "id": "hyper_email_mcp_0_dokploy_6_deploy",
-      "community": 27,
-      "norm_label": "6. deploy"
+      "source_location": "L55",
+      "id": "hyper_email_mcp_0_dokploy_6_verify",
+      "community": 20,
+      "norm_label": "6. verify"
     },
     {
-      "label": "code:block3 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp)",
+      "label": "code:bash (curl https://your-domain.com/mcp)",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L73",
+      "source_location": "L57",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_2",
+      "community": 20,
+      "norm_label": "code:bash (curl https://your-domain.com/mcp)"
+    },
+    {
+      "label": "Connecting agents",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L61",
+      "id": "hyper_email_mcp_0_dokploy_connecting_agents",
+      "community": 27,
+      "norm_label": "connecting agents"
+    },
+    {
+      "label": "code:json ({)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L63",
       "id": "hyper_email_mcp_0_dokploy_codeblock_3",
       "community": 27,
-      "norm_label": "code:block3 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp)"
-    },
-    {
-      "label": "7. Verify",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L77",
-      "id": "hyper_email_mcp_0_dokploy_7_verify",
-      "community": 27,
-      "norm_label": "7. verify"
-    },
-    {
-      "label": "code:bash (curl http://localhost:${HYPERMAIL_PORT:-3090}/mcp)",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L79",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_4",
-      "community": 27,
-      "norm_label": "code:bash (curl http://localhost:${hypermail_port:-3090}/mcp)"
-    },
-    {
-      "label": "How agents connect",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L85",
-      "id": "hyper_email_mcp_0_dokploy_how_agents_connect",
-      "community": 27,
-      "norm_label": "how agents connect"
-    },
-    {
-      "label": "Default: direct localhost",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L87",
-      "id": "hyper_email_mcp_0_dokploy_default_direct_localhost",
-      "community": 27,
-      "norm_label": "default: direct localhost"
-    },
-    {
-      "label": "code:json ({)",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L91",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_5",
-      "community": 27,
       "norm_label": "code:json ({)"
     },
     {
-      "label": "Optional: public domain via Dokploy Domains UI",
+      "label": "Provider credentials (optional)",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L104",
-      "id": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui",
-      "community": 27,
-      "norm_label": "optional: public domain via dokploy domains ui"
-    },
-    {
-      "label": "code:json ({)",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L114",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_6",
-      "community": 27,
-      "norm_label": "code:json ({)"
+      "source_location": "L74",
+      "id": "hyper_email_mcp_0_dokploy_provider_credentials_optional",
+      "community": 5,
+      "norm_label": "provider credentials (optional)"
     },
     {
       "label": "Authentication (optional)",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L125",
+      "source_location": "L85",
       "id": "hyper_email_mcp_0_dokploy_authentication_optional",
-      "community": 27,
+      "community": 5,
       "norm_label": "authentication (optional)"
     },
     {
-      "label": "code:yaml (agents:)",
+      "label": "What's in the Dockerfile",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
-      "source_location": "L133",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_7",
-      "community": 27,
-      "norm_label": "code:yaml (agents:)"
-    },
-    {
-      "label": "Customizing the port",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L158",
-      "id": "hyper_email_mcp_0_dokploy_customizing_the_port",
-      "community": 27,
-      "norm_label": "customizing the port"
-    },
-    {
-      "label": "code:yaml (# In docker-compose.yml:)",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L162",
-      "id": "hyper_email_mcp_0_dokploy_codeblock_8",
-      "community": 27,
-      "norm_label": "code:yaml (# in docker-compose.yml:)"
-    },
-    {
-      "label": "Volumes & data persistence",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L170",
-      "id": "hyper_email_mcp_0_dokploy_volumes_data_persistence",
-      "community": 27,
-      "norm_label": "volumes & data persistence"
-    },
-    {
-      "label": "Troubleshooting",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L181",
-      "id": "hyper_email_mcp_0_dokploy_troubleshooting",
-      "community": 27,
-      "norm_label": "troubleshooting"
+      "source_location": "L91",
+      "id": "hyper_email_mcp_0_dokploy_what_s_in_the_dockerfile",
+      "community": 5,
+      "norm_label": "what's in the dockerfile"
     },
     {
       "label": "hosting.md",
@@ -5109,11 +5181,209 @@
       "norm_label": "updatenpm.md"
     },
     {
+      "label": "docker-compose.yml \u2014 what's in it",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L5",
+      "community": 34,
+      "norm_label": "docker-compose.yml \u2014 what's in it",
+      "id": "hyper_email_mcp_0_dokploy_docker_compose_yml_what_s_in_it"
+    },
+    {
+      "label": "Step-by-step deployment",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L28",
+      "community": 27,
+      "norm_label": "step-by-step deployment",
+      "id": "hyper_email_mcp_0_dokploy_step_by_step_deployment"
+    },
+    {
+      "label": "1. Push to a Git repository",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L30",
+      "community": 20,
+      "norm_label": "1. push to a git repository",
+      "id": "hyper_email_mcp_0_dokploy_1_push_to_a_git_repository"
+    },
+    {
+      "label": "2. Connect Git provider in Dokploy",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L37",
+      "community": 27,
+      "norm_label": "2. connect git provider in dokploy",
+      "id": "hyper_email_mcp_0_dokploy_2_connect_git_provider_in_dokploy"
+    },
+    {
+      "label": "3. Create a Compose service",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L41",
+      "community": 27,
+      "norm_label": "3. create a compose service",
+      "id": "hyper_email_mcp_0_dokploy_3_create_a_compose_service"
+    },
+    {
+      "label": "4. Set required env var",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L48",
+      "community": 27,
+      "norm_label": "4. set required env var",
+      "id": "hyper_email_mcp_0_dokploy_4_set_required_env_var"
+    },
+    {
+      "label": "5. Add provider credentials (optional)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L56",
+      "community": 27,
+      "norm_label": "5. add provider credentials (optional)",
+      "id": "hyper_email_mcp_0_dokploy_5_add_provider_credentials_optional"
+    },
+    {
+      "label": "6. Deploy",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L69",
+      "community": 27,
+      "norm_label": "6. deploy",
+      "id": "hyper_email_mcp_0_dokploy_6_deploy"
+    },
+    {
+      "label": "7. Verify",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L77",
+      "community": 27,
+      "norm_label": "7. verify",
+      "id": "hyper_email_mcp_0_dokploy_7_verify"
+    },
+    {
+      "label": "code:bash (curl http://localhost:${HYPERMAIL_PORT:-3090}/mcp)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L79",
+      "community": 27,
+      "norm_label": "code:bash (curl http://localhost:${hypermail_port:-3090}/mcp)",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_4"
+    },
+    {
+      "label": "How agents connect",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L85",
+      "community": 28,
+      "norm_label": "how agents connect",
+      "id": "hyper_email_mcp_0_dokploy_how_agents_connect"
+    },
+    {
+      "label": "Default: direct localhost",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L87",
+      "community": 28,
+      "norm_label": "default: direct localhost",
+      "id": "hyper_email_mcp_0_dokploy_default_direct_localhost"
+    },
+    {
+      "label": "code:json ({)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L91",
+      "community": 28,
+      "norm_label": "code:json ({)",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_5"
+    },
+    {
+      "label": "Optional: public domain via Dokploy Domains UI",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L104",
+      "community": 28,
+      "norm_label": "optional: public domain via dokploy domains ui",
+      "id": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui"
+    },
+    {
+      "label": "code:json ({)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L114",
+      "community": 28,
+      "norm_label": "code:json ({)",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_6"
+    },
+    {
+      "label": "code:yaml (agents:)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L133",
+      "community": 5,
+      "norm_label": "code:yaml (agents:)",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_7"
+    },
+    {
+      "label": "Customizing the port",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L158",
+      "community": 5,
+      "norm_label": "customizing the port",
+      "id": "hyper_email_mcp_0_dokploy_customizing_the_port"
+    },
+    {
+      "label": "code:yaml (# In docker-compose.yml:)",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L162",
+      "community": 5,
+      "norm_label": "code:yaml (# in docker-compose.yml:)",
+      "id": "hyper_email_mcp_0_dokploy_codeblock_8"
+    },
+    {
+      "label": "Volumes & data persistence",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L170",
+      "community": 5,
+      "norm_label": "volumes & data persistence",
+      "id": "hyper_email_mcp_0_dokploy_volumes_data_persistence"
+    },
+    {
+      "label": "Troubleshooting",
+      "file_type": "document",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L181",
+      "community": 5,
+      "norm_label": "troubleshooting",
+      "id": "hyper_email_mcp_0_dokploy_troubleshooting"
+    },
+    {
+      "label": "pnpm",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L70",
+      "community": 22,
+      "norm_label": "pnpm",
+      "id": "hyper_email_mcp_0_package_pnpm"
+    },
+    {
+      "label": "onlyBuiltDependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L71",
+      "community": 22,
+      "norm_label": "onlybuiltdependencies",
+      "id": "hyper_email_mcp_0_package_pnpm_onlybuiltdependencies"
+    },
+    {
       "label": "What was changed in docker-compose.yml",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L5",
-      "community": 27,
+      "community": 5,
       "norm_label": "what was changed in docker-compose.yml",
       "id": "hyper_email_mcp_0_dokploy_what_was_changed_in_docker_compose_yml"
     },
@@ -5122,7 +5392,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L27",
-      "community": 27,
+      "community": 34,
       "norm_label": "authentication",
       "id": "hyper_email_mcp_0_dokploy_authentication"
     },
@@ -5131,7 +5401,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L29",
-      "community": 27,
+      "community": 34,
       "norm_label": "default: no auth",
       "id": "hyper_email_mcp_0_dokploy_default_no_auth"
     },
@@ -5140,7 +5410,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L39",
-      "community": 27,
+      "community": 34,
       "norm_label": "optional: api key auth (multi-tenant)",
       "id": "hyper_email_mcp_0_dokploy_optional_api_key_auth_multi_tenant"
     },
@@ -5152,15 +5422,6 @@
       "community": 27,
       "norm_label": "4. set environment variables",
       "id": "hyper_email_mcp_0_dokploy_4_set_environment_variables"
-    },
-    {
-      "label": "5. Deploy",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L121",
-      "community": 27,
-      "norm_label": "5. deploy",
-      "id": "hyper_email_mcp_0_dokploy_5_deploy"
     },
     {
       "label": "6. Verify it's running",
@@ -5176,7 +5437,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L141",
-      "community": 27,
+      "community": 5,
       "norm_label": "optional: public domain with tls",
       "id": "hyper_email_mcp_0_dokploy_optional_public_domain_with_tls"
     },
@@ -5185,7 +5446,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L147",
-      "community": 27,
+      "community": 28,
       "norm_label": "connecting pi to the deployed server",
       "id": "hyper_email_mcp_0_dokploy_connecting_pi_to_the_deployed_server"
     },
@@ -5194,7 +5455,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L149",
-      "community": 27,
+      "community": 28,
       "norm_label": "no auth (default \u2014 internal vps)",
       "id": "hyper_email_mcp_0_dokploy_no_auth_default_internal_vps"
     },
@@ -5203,7 +5464,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L164",
-      "community": 27,
+      "community": 28,
       "norm_label": "with api key auth",
       "id": "hyper_email_mcp_0_dokploy_with_api_key_auth"
     },
@@ -5212,25 +5473,16 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L1",
-      "community": 27,
+      "community": 31,
       "norm_label": "deploying hypermail-mcp to dokploy",
       "id": "hyper_email_mcp_0_dokploy_deploying_hypermail_mcp_to_dokploy"
-    },
-    {
-      "label": "Prerequisites",
-      "file_type": "document",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L3",
-      "community": 27,
-      "norm_label": "prerequisites",
-      "id": "hyper_email_mcp_0_dokploy_prerequisites"
     },
     {
       "label": "Step 1: Push to Git",
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L9",
-      "community": 27,
+      "community": 34,
       "norm_label": "step 1: push to git",
       "id": "hyper_email_mcp_0_dokploy_step_1_push_to_git"
     },
@@ -5239,7 +5491,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L17",
-      "community": 27,
+      "community": 31,
       "norm_label": "step 2: create the compose app in dokploy",
       "id": "hyper_email_mcp_0_dokploy_step_2_create_the_compose_app_in_dokploy"
     },
@@ -5248,7 +5500,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L26",
-      "community": 27,
+      "community": 31,
       "norm_label": "step 3: configure environment variables",
       "id": "hyper_email_mcp_0_dokploy_step_3_configure_environment_variables"
     },
@@ -5257,7 +5509,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L40",
-      "community": 27,
+      "community": 31,
       "norm_label": "step 4: deploy",
       "id": "hyper_email_mcp_0_dokploy_step_4_deploy"
     },
@@ -5266,7 +5518,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L47",
-      "community": 27,
+      "community": 20,
       "norm_label": "step 5: verify",
       "id": "hyper_email_mcp_0_dokploy_step_5_verify"
     },
@@ -5275,7 +5527,7 @@
       "file_type": "document",
       "source_file": "DOKPLOY.md",
       "source_location": "L54",
-      "community": 27,
+      "community": 31,
       "norm_label": "optional: add a public domain",
       "id": "hyper_email_mcp_0_dokploy_optional_add_a_public_domain"
     },
@@ -6632,9 +6884,9 @@
       "source_file": "package.json",
       "source_location": "L70",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "package_json",
-      "target": "hyper_email_mcp_0_package_pnpm",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_package_pnpm"
     },
     {
       "relation": "contains",
@@ -6965,16 +7217,6 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_package_devdependencies",
       "target": "hyper_email_mcp_0_package_devdependencies_vitest"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "package.json",
-      "source_location": "L71",
-      "weight": 1.0,
-      "source": "hyper_email_mcp_0_package_pnpm",
-      "target": "hyper_email_mcp_0_package_pnpm_onlybuiltdependencies",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -8954,6 +9196,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "src_store_account_store_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/watcher/manager.ts",
       "source_location": "L1",
       "weight": 1.0,
@@ -9205,6 +9458,17 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_tools_compose_ts",
+      "target": "store_account_store_accountrecord"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
       "target": "store_account_store_accountrecord"
     },
     {
@@ -12120,6 +12384,286 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "src_watcher_manager_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_watchermanager"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "src_providers_registry_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "providers_registry_registry"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "src_providers_types_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "providers_types_emailprovider"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "providers_types_emailsummary"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "providers_types_listemailsresult"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_watchnotification"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_mockaccount"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_mocklistresult"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_mockemail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_mockprovider"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_upsertsync"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L108",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_createwatcher"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L118",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_startandwaitforupsert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L339",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_upsertcall"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L233",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_consoleerror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L289",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_w"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L275",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_authfailures"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L261",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_enqueued"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L265",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_origpush"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L267",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_result"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L285",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_neverresolve"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L286",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_slowpromise"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L322",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_test_skips"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L119",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_test_startandwaitforupsert",
+      "target": "watcher_manager_test_createwatcher"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/watcher/manager.ts",
       "source_location": "L2",
       "weight": 1.0,
@@ -12246,6 +12790,16 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "src/watcher/manager.ts",
+      "source_location": "L81",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_scanaccounts"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
       "source_location": "L67",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -12277,10 +12831,32 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/watcher/manager.ts",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_start",
+      "target": "watcher_manager_watchermanager_scanaccounts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
       "source_location": "L55",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "watcher_manager_watchermanager_start",
+      "target": "watcher_manager_watchermanager_schedulepoll"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L88",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_scanaccounts",
       "target": "watcher_manager_watchermanager_schedulepoll"
     },
     {
@@ -18763,6 +19339,66 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L5",
       "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_prerequisites",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_step_by_step",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_connecting_agents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_provider_credentials_optional",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_authentication_optional"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_what_s_in_the_dockerfile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L5",
+      "weight": 1.0,
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
       "target": "hyper_email_mcp_0_dokploy_docker_compose_yml_what_s_in_it"
@@ -18786,16 +19422,6 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
       "target": "hyper_email_mcp_0_dokploy_how_agents_connect"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L125",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_authentication_optional"
     },
     {
       "relation": "contains",
@@ -18871,6 +19497,116 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_deploying_hypermail_mcp_to_dokploy",
+      "target": "hyper_email_mcp_0_dokploy_prerequisites"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_1_create_the_application",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_2_set_the_encryption_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_3_configure_persistent_storage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_4_add_a_domain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_5_deploy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step",
+      "target": "hyper_email_mcp_0_dokploy_6_verify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_5_deploy",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L64",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_5_deploy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_5_deploy",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_2"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L129",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_5_deploy",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_3"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
       "source_location": "L7",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -18911,101 +19647,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
-      "source_location": "L17",
+      "source_location": "L57",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_1_push_to_a_git_repository"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_2_connect_git_provider_in_dokploy"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_3_create_a_compose_service"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L48",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_4_set_required_env_var"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L56",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_5_add_provider_credentials_optional"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L69",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_6_deploy"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L77",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_7_verify"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_4_set_environment_variables"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L64",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_5_deploy"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L76",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
-      "target": "hyper_email_mcp_0_dokploy_6_verify_it_s_running"
+      "source": "hyper_email_mcp_0_dokploy_6_verify",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_2",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19015,16 +19661,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_1_push_to_a_git_repository",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_2"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L72",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_5_deploy",
       "target": "hyper_email_mcp_0_dokploy_codeblock_2"
     },
     {
@@ -19041,20 +19677,20 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
-      "source_location": "L73",
+      "source_location": "L63",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_6_deploy",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_3"
+      "source": "hyper_email_mcp_0_dokploy_connecting_agents",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_3",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
-      "source_location": "L129",
+      "source_location": "L73",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_5_deploy",
+      "source": "hyper_email_mcp_0_dokploy_6_deploy",
       "target": "hyper_email_mcp_0_dokploy_codeblock_3"
     },
     {
@@ -19071,111 +19707,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
-      "source_location": "L79",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_7_verify",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L135",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_6_verify_it_s_running",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L94",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_connecting_pi_to_the_deployed_server",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L87",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_how_agents_connect",
-      "target": "hyper_email_mcp_0_dokploy_default_direct_localhost"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L104",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_how_agents_connect",
-      "target": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L91",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_default_direct_localhost",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_5"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L151",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_no_auth_default_internal_vps",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_5"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L114",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_6"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L164",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_with_api_key_auth",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_6"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
       "source_location": "L133",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_authentication_optional",
       "target": "hyper_email_mcp_0_dokploy_codeblock_7"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L162",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_customizing_the_port",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_8"
     },
     {
       "relation": "contains",
@@ -19271,6 +19807,206 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "DOKPLOY.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_1_push_to_a_git_repository"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_2_connect_git_provider_in_dokploy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_3_create_a_compose_service"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_4_set_required_env_var"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_5_add_provider_credentials_optional"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_6_deploy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_7_verify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_4_set_environment_variables"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_step_by_step_deployment",
+      "target": "hyper_email_mcp_0_dokploy_6_verify_it_s_running"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L79",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_7_verify",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L135",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_6_verify_it_s_running",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L94",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_connecting_pi_to_the_deployed_server",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_4"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L87",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_how_agents_connect",
+      "target": "hyper_email_mcp_0_dokploy_default_direct_localhost"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L104",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_how_agents_connect",
+      "target": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_default_direct_localhost",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L151",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_no_auth_default_internal_vps",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_5"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_optional_public_domain_via_dokploy_domains_ui",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_6"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L164",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_with_api_key_auth",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_6"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
+      "source_location": "L162",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_dokploy_customizing_the_port",
+      "target": "hyper_email_mcp_0_dokploy_codeblock_8"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L71",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_package_pnpm",
+      "target": "hyper_email_mcp_0_package_pnpm_onlybuiltdependencies"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DOKPLOY.md",
       "source_location": "L29",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19306,16 +20042,6 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_connecting_pi_to_the_deployed_server",
       "target": "hyper_email_mcp_0_dokploy_with_api_key_auth"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "DOKPLOY.md",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_dokploy_deploying_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_prerequisites"
     },
     {
       "relation": "contains",
@@ -19894,5 +20620,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "c0d1bce9b1b62b0ed3c639152a06028106ccac7e"
+  "built_at_commit": "a62e13dc1e3256fca0e073ce1ee35eca4a1bbaf2"
 }
