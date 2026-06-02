@@ -32,9 +32,9 @@ export async function startServer(opts: ServerOptions): Promise<void> {
   const tools: ResolvedTools = resolveTools(config);
 
   // Shared notification buffer: the watcher pushes, the check_notifications
-  // tool drains. Only created in HTTP mode — watching requires a long-lived
-  // server process. In stdio mode the check_notifications tool is not registered.
-  const notificationBuffer: WatchNotification[] | undefined = config.http.enabled
+  // tool drains. Only created when both HTTP and watch are enabled.
+  const watchEnabled = config.http.enabled && config.watch?.enabled !== false;
+  const notificationBuffer: WatchNotification[] | undefined = watchEnabled
     ? []
     : undefined;
 
@@ -73,18 +73,35 @@ export async function startServer(opts: ServerOptions): Promise<void> {
     // Per-session notification targets — the watcher pushes to all of them.
     const notifyTargets = new Set<(n: WatchNotification) => void>();
 
-    const watcher = new WatcherManager({
-      registry,
-      store,
-      pollIntervalSeconds: config.watch?.pollIntervalSeconds ?? 60,
-      onNotification: (notification) => {
-        for (const fn of notifyTargets) {
-          fn(notification);
-        }
-      },
-      buffer: notificationBuffer!,
-    });
-    watcher.start();
+    // Compute account filter from all agents' authorized accounts.
+    // When no agents are configured, poll all stored accounts (legacy).
+    const accountFilter: string[] | undefined = agentStoreForFactory
+      ? (() => {
+          const all = new Set<string>();
+          for (const agent of agentStoreForFactory.listAgents()) {
+            for (const email of agent.accounts) {
+              all.add(email.toLowerCase());
+            }
+          }
+          return all.size > 0 ? [...all] : undefined;
+        })()
+      : undefined;
+
+    if (watchEnabled) {
+      const watcher = new WatcherManager({
+        registry,
+        store,
+        pollIntervalSeconds: config.watch?.pollIntervalSeconds ?? 60,
+        accountFilter,
+        onNotification: (notification) => {
+          for (const fn of notifyTargets) {
+            fn(notification);
+          }
+        },
+        buffer: notificationBuffer!,
+      });
+      watcher.start();
+    }
 
     await startHttp(
       createServer,

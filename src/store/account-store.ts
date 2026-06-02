@@ -26,6 +26,11 @@ export interface AccountRecord {
   /** ISO timestamp of the newest email the watcher has already seen.
    *  Used by the email-watcher to detect new mail since last poll. */
   lastSeenAt?: string;
+  /** Email IDs the watcher has already seen (most recent first, capped at 200).
+   *  Used for ID-based dedup — emails whose ID is in this list are skipped
+   *  during polling, preventing duplicate/lost notifications from timestamp
+   *  collisions. */
+  lastSeenIds?: string[];
 }
 
 interface StoreFile {

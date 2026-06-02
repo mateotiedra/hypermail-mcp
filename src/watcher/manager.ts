@@ -47,6 +47,8 @@ export class WatcherManager {
   private running = false;
   /** Per-account inflight guards to prevent overlapping polls. */
   private readonly inflight = new Map<string, boolean>();
+  /** Accounts with active polling timers (lowercased email). */
+  private readonly tracked = new Set<string>();
 
   constructor(opts: WatcherManagerOptions) {
     this.opts = opts;
@@ -56,6 +58,27 @@ export class WatcherManager {
     if (this.running) return;
     this.running = true;
 
+    // Initial scan — schedule polling for all matching accounts.
+    this.scanAccounts();
+
+    // Periodic re-scan to pick up accounts added after start().
+    const rescanTimer = setInterval(() => {
+      if (!this.running) return;
+      this.scanAccounts();
+    }, this.opts.pollIntervalSeconds * 1000);
+    this.timers.push(rescanTimer);
+  }
+
+  stop(): void {
+    this.running = false;
+    for (const t of this.timers) clearInterval(t);
+    this.timers = [];
+    this.tracked.clear();
+  }
+
+  // ── internals ──
+
+  private scanAccounts(): void {
     let accounts = this.opts.store.listAccounts();
     if (this.opts.accountFilter) {
       const filter = new Set(this.opts.accountFilter.map((e) => e.toLowerCase()));
@@ -66,15 +89,11 @@ export class WatcherManager {
     }
   }
 
-  stop(): void {
-    this.running = false;
-    for (const t of this.timers) clearInterval(t);
-    this.timers = [];
-  }
-
-  // ── internals ──
-
   private schedulePoll(account: AccountRecord): void {
+    const key = account.email.toLowerCase();
+    if (this.tracked.has(key)) return;
+    this.tracked.add(key);
+
     // Run immediately on start, then on interval.
     this.pollAccount(account).catch(() => {
       /* errors surfaced via notifications */
@@ -97,24 +116,29 @@ export class WatcherManager {
 
     try {
       const { provider } = this.opts.registry.resolveByEmail(account.email);
-      const lastSeen = account.lastSeenAt;
+      const seenIds = new Set(account.lastSeenIds ?? []);
+      const isFirstPoll = !account.lastSeenAt && !account.lastSeenIds?.length;
       const limit = 25;
+      const MAX_PAGES = 5;
       let skip = 0;
+      let pageCount = 0;
       const newEmails: EmailSummary[] = [];
-      let newestTimestamp = lastSeen ?? "";
+      let newestTimestamp = account.lastSeenAt ?? "";
 
-      // Paginate through the inbox until we hit the lastSeen boundary.
+      // Paginate through inbox until we hit a previously seen email ID
+      // or exhaust available pages.
       let hitBoundary = false;
-      while (true) {
+      while (pageCount < MAX_PAGES) {
         const { items, hasMore } = await provider.listEmails(account, {
           folder: "inbox",
           limit,
           skip,
         });
+        pageCount++;
 
         for (const item of items) {
           if (!item.receivedAt) continue;
-          if (lastSeen && item.receivedAt <= lastSeen) {
+          if (seenIds.has(item.id)) {
             hitBoundary = true;
             break;
           }
@@ -128,13 +152,8 @@ export class WatcherManager {
         skip += limit;
       }
 
-      if (!lastSeen) {
-        // First poll: set baseline from newest email, don't notify.
-        if (newEmails.length > 0) {
-          newestTimestamp = newEmails[0]!.receivedAt!;
-        }
-      } else if (newEmails.length > 0) {
-        // Subsequent poll: notify about new emails.
+      // First poll: set baseline silently. Subsequent polls: notify.
+      if (!isFirstPoll && newEmails.length > 0) {
         this.enqueue({
           type: "new_emails",
           account: account.email,
@@ -143,12 +162,32 @@ export class WatcherManager {
         });
       }
 
-      // Persist updated lastSeenAt if it changed.
-      if (newestTimestamp !== (lastSeen ?? "")) {
+      // Persist updated state: prepend new IDs to lastSeenIds (cap 200),
+      // update lastSeenAt. On empty-inbox first poll, mark current time
+      // as baseline so future polls exit first-poll mode.
+      if (isFirstPoll && newEmails.length === 0 && !newestTimestamp) {
+        newestTimestamp = new Date().toISOString();
+      }
+      const newIds = newEmails.map((e) => e.id);
+      const updatedLastSeenIds = [
+        ...newIds,
+        ...(account.lastSeenIds ?? []),
+      ].slice(0, 200);
+
+      try {
         await this.opts.store.upsertAccount({
           ...account,
           lastSeenAt: newestTimestamp || undefined,
+          lastSeenIds: updatedLastSeenIds,
         });
+      } catch (storeErr) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "[hypermail-mcp] failed to persist poll state for",
+          account.email,
+          ":",
+          storeErr instanceof Error ? storeErr.message : String(storeErr),
+        );
       }
     } catch (err: unknown) {
       this.enqueue({
