@@ -2,11 +2,11 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Install pnpm globally
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm v10 (v11 breaks onlyBuiltDependencies config)
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
 # Copy dependency manifests
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml .npmrc ./
 
 # Install production deps only (keytar is optional, skip native failures)
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts 2>/dev/null; \
@@ -22,11 +22,6 @@ RUN pnpm prune --prod
 
 # Runtime
 ENV NODE_ENV=production
-ENV HYPERMAIL_MCP_KEY=""
-ENV HYPERMAIL_MCP_DATA_DIR="/data"
-# Uncomment to enable API key auth (requires agents.yaml mounted at /data/agents.yaml):
-# ENV HYPERMAIL_AGENTS_CONFIG="/data/agents.yaml"
-
 EXPOSE 3000
 
 # Create data directory and set up volumes
