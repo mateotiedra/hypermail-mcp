@@ -24,7 +24,8 @@ RUN pnpm prune --prod
 ENV NODE_ENV=production
 ENV HYPERMAIL_MCP_KEY=""
 ENV HYPERMAIL_MCP_DATA_DIR="/data"
-ENV HYPERMAIL_AGENTS_CONFIG="/data/agents.yaml"
+# Uncomment to enable API key auth (requires agents.yaml mounted at /data/agents.yaml):
+# ENV HYPERMAIL_AGENTS_CONFIG="/data/agents.yaml"
 
 EXPOSE 3000
 
