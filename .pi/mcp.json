@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "hypermail-http": {
-      "url": "http://127.0.0.1:3000/mcp",
-      "directTools": false,
+      "url": "https://hypermail.hypersimple.ch/mcp",
+      "directTools": true,
       "lifecycle": "eager"
     }
   }

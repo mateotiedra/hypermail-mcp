@@ -1013,7 +1013,7 @@
       "source_file": "src/server.ts",
       "source_location": "L1",
       "id": "src_server_ts",
-      "community": 0,
+      "community": 37,
       "norm_label": "server.ts"
     },
     {
@@ -1022,7 +1022,7 @@
       "source_file": "src/server.ts",
       "source_location": "L23",
       "id": "src_server_serveroptions",
-      "community": 0,
+      "community": 37,
       "norm_label": "serveroptions"
     },
     {
@@ -1031,7 +1031,7 @@
       "source_file": "src/server.ts",
       "source_location": "L28",
       "id": "src_server_startserver",
-      "community": 0,
+      "community": 37,
       "norm_label": "startserver()"
     },
     {
@@ -1040,7 +1040,7 @@
       "source_file": "src/server.ts",
       "source_location": "L126",
       "id": "src_server_httpsession",
-      "community": 0,
+      "community": 41,
       "norm_label": "httpsession"
     },
     {
@@ -1049,7 +1049,7 @@
       "source_file": "src/server.ts",
       "source_location": "L132",
       "id": "src_server_starthttp",
-      "community": 0,
+      "community": 37,
       "norm_label": "starthttp()"
     },
     {
@@ -1076,7 +1076,7 @@
       "source_file": "src/version.ts",
       "source_location": "L1",
       "id": "src_version_ts",
-      "community": 0,
+      "community": 3,
       "norm_label": "version.ts"
     },
     {
@@ -1085,7 +1085,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L1",
       "id": "src_cli_ts",
-      "community": 0,
+      "community": 36,
       "norm_label": "cli.ts"
     },
     {
@@ -1094,7 +1094,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L6",
       "id": "src_cli_parsedargs",
-      "community": 0,
+      "community": 36,
       "norm_label": "parsedargs"
     },
     {
@@ -1103,7 +1103,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L16",
       "id": "src_cli_parseargs",
-      "community": 0,
+      "community": 36,
       "norm_label": "parseargs()"
     },
     {
@@ -1112,7 +1112,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L58",
       "id": "src_cli_printhelp",
-      "community": 0,
+      "community": 36,
       "norm_label": "printhelp()"
     },
     {
@@ -1121,7 +1121,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L91",
       "id": "src_cli_main",
-      "community": 0,
+      "community": 36,
       "norm_label": "main()"
     },
     {
@@ -1130,7 +1130,7 @@
       "source_file": "src/config.ts",
       "source_location": "L1",
       "id": "src_config_ts",
-      "community": 0,
+      "community": 36,
       "norm_label": "config.ts"
     },
     {
@@ -1139,7 +1139,7 @@
       "source_file": "src/config.ts",
       "source_location": "L6",
       "id": "src_config_httpconfigschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "httpconfigschema"
     },
     {
@@ -1148,7 +1148,7 @@
       "source_file": "src/config.ts",
       "source_location": "L12",
       "id": "src_config_toolsconfigschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "toolsconfigschema"
     },
     {
@@ -1157,7 +1157,7 @@
       "source_file": "src/config.ts",
       "source_location": "L17",
       "id": "src_config_outlookproviderschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "outlookproviderschema"
     },
     {
@@ -1166,7 +1166,7 @@
       "source_file": "src/config.ts",
       "source_location": "L22",
       "id": "src_config_gmailproviderschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "gmailproviderschema"
     },
     {
@@ -1175,7 +1175,7 @@
       "source_file": "src/config.ts",
       "source_location": "L27",
       "id": "src_config_providersconfigschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "providersconfigschema"
     },
     {
@@ -1184,7 +1184,7 @@
       "source_file": "src/config.ts",
       "source_location": "L32",
       "id": "src_config_watchconfigschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "watchconfigschema"
     },
     {
@@ -1193,7 +1193,7 @@
       "source_file": "src/config.ts",
       "source_location": "L37",
       "id": "src_config_rawconfigschema",
-      "community": 0,
+      "community": 36,
       "norm_label": "rawconfigschema"
     },
     {
@@ -1202,7 +1202,7 @@
       "source_file": "src/config.ts",
       "source_location": "L47",
       "id": "src_config_httpconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "httpconfig"
     },
     {
@@ -1211,7 +1211,7 @@
       "source_file": "src/config.ts",
       "source_location": "L53",
       "id": "src_config_toolsconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "toolsconfig"
     },
     {
@@ -1220,7 +1220,7 @@
       "source_file": "src/config.ts",
       "source_location": "L58",
       "id": "src_config_outlookproviderconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "outlookproviderconfig"
     },
     {
@@ -1229,7 +1229,7 @@
       "source_file": "src/config.ts",
       "source_location": "L63",
       "id": "src_config_gmailproviderconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "gmailproviderconfig"
     },
     {
@@ -1238,7 +1238,7 @@
       "source_file": "src/config.ts",
       "source_location": "L68",
       "id": "src_config_providersconfig",
-      "community": 0,
+      "community": 37,
       "norm_label": "providersconfig"
     },
     {
@@ -1247,7 +1247,7 @@
       "source_file": "src/config.ts",
       "source_location": "L73",
       "id": "src_config_watchconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "watchconfig"
     },
     {
@@ -1256,7 +1256,7 @@
       "source_file": "src/config.ts",
       "source_location": "L79",
       "id": "src_config_appconfig",
-      "community": 0,
+      "community": 37,
       "norm_label": "appconfig"
     },
     {
@@ -1265,7 +1265,7 @@
       "source_file": "src/config.ts",
       "source_location": "L90",
       "id": "src_config_clioverrides",
-      "community": 0,
+      "community": 36,
       "norm_label": "clioverrides"
     },
     {
@@ -1274,7 +1274,7 @@
       "source_file": "src/config.ts",
       "source_location": "L104",
       "id": "src_config_known_tools",
-      "community": 0,
+      "community": 36,
       "norm_label": "known_tools"
     },
     {
@@ -1283,7 +1283,7 @@
       "source_file": "src/config.ts",
       "source_location": "L136",
       "id": "src_config_resolveenvvars",
-      "community": 0,
+      "community": 36,
       "norm_label": "resolveenvvars()"
     },
     {
@@ -1292,7 +1292,7 @@
       "source_file": "src/config.ts",
       "source_location": "L143",
       "id": "src_config_deepresolve",
-      "community": 0,
+      "community": 36,
       "norm_label": "deepresolve()"
     },
     {
@@ -1301,7 +1301,7 @@
       "source_file": "src/config.ts",
       "source_location": "L158",
       "id": "src_config_validatetoolnames",
-      "community": 0,
+      "community": 36,
       "norm_label": "validatetoolnames()"
     },
     {
@@ -1310,7 +1310,7 @@
       "source_file": "src/config.ts",
       "source_location": "L182",
       "id": "src_config_loadconfig",
-      "community": 0,
+      "community": 36,
       "norm_label": "loadconfig()"
     },
     {
@@ -1319,7 +1319,7 @@
       "source_file": "src/config.ts",
       "source_location": "L252",
       "id": "src_config_resolvedtools",
-      "community": 0,
+      "community": 41,
       "norm_label": "resolvedtools"
     },
     {
@@ -1328,7 +1328,7 @@
       "source_file": "src/config.ts",
       "source_location": "L260",
       "id": "src_config_resolvetools",
-      "community": 0,
+      "community": 37,
       "norm_label": "resolvetools()"
     },
     {
@@ -1373,7 +1373,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L1",
       "id": "src_config_agents_config_ts",
-      "community": 24,
+      "community": 37,
       "norm_label": "agents-config.ts"
     },
     {
@@ -1382,7 +1382,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L9",
       "id": "config_agents_config_agentdefschema",
-      "community": 24,
+      "community": 37,
       "norm_label": "agentdefschema"
     },
     {
@@ -1391,7 +1391,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L29",
       "id": "config_agents_config_emailaccountdefschema",
-      "community": 24,
+      "community": 37,
       "norm_label": "emailaccountdefschema"
     },
     {
@@ -1400,7 +1400,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L34",
       "id": "config_agents_config_agentsconfigschema",
-      "community": 24,
+      "community": 37,
       "norm_label": "agentsconfigschema"
     },
     {
@@ -1409,7 +1409,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L44",
       "id": "config_agents_config_agentdef",
-      "community": 24,
+      "community": 37,
       "norm_label": "agentdef"
     },
     {
@@ -1418,7 +1418,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L52",
       "id": "config_agents_config_emailaccountdef",
-      "community": 24,
+      "community": 37,
       "norm_label": "emailaccountdef"
     },
     {
@@ -1427,7 +1427,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L57",
       "id": "config_agents_config_agentsconfig",
-      "community": 24,
+      "community": 37,
       "norm_label": "agentsconfig"
     },
     {
@@ -1436,7 +1436,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L70",
       "id": "config_agents_config_loadagentsconfig",
-      "community": 24,
+      "community": 37,
       "norm_label": "loadagentsconfig()"
     },
     {
@@ -1445,7 +1445,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L122",
       "id": "config_agents_config_syncagentstostore",
-      "community": 24,
+      "community": 37,
       "norm_label": "syncagentstostore()"
     },
     {
@@ -1454,7 +1454,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L154",
       "id": "config_agents_config_livereloadhandle",
-      "community": 24,
+      "community": 37,
       "norm_label": "livereloadhandle"
     },
     {
@@ -1463,7 +1463,7 @@
       "source_file": "src/config/agents-config.ts",
       "source_location": "L168",
       "id": "config_agents_config_watchagentsconfig",
-      "community": 0,
+      "community": 37,
       "norm_label": "watchagentsconfig()"
     },
     {
@@ -1742,7 +1742,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L50",
       "id": "store_account_store_accountstore",
-      "community": 25,
+      "community": 24,
       "norm_label": "accountstore"
     },
     {
@@ -1751,7 +1751,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L51",
       "id": "store_account_store_accountstore_constructor",
-      "community": 25,
+      "community": 24,
       "norm_label": ".constructor()"
     },
     {
@@ -1769,7 +1769,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L77",
       "id": "store_account_store_accountstore_listaccounts",
-      "community": 25,
+      "community": 24,
       "norm_label": ".listaccounts()"
     },
     {
@@ -1778,7 +1778,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L83",
       "id": "store_account_store_accountstore_getaccount",
-      "community": 25,
+      "community": 24,
       "norm_label": ".getaccount()"
     },
     {
@@ -1850,7 +1850,7 @@
       "source_file": "src/tools/shared.ts",
       "source_location": "L37",
       "id": "tools_shared_provideridenum",
-      "community": 0,
+      "community": 43,
       "norm_label": "provideridenum"
     },
     {
@@ -1859,7 +1859,7 @@
       "source_file": "src/tools/shared.ts",
       "source_location": "L39",
       "id": "tools_shared_emailaddrschema",
-      "community": 0,
+      "community": 39,
       "norm_label": "emailaddrschema"
     },
     {
@@ -1877,7 +1877,7 @@
       "source_file": "src/tools/shared.ts",
       "source_location": "L49",
       "id": "tools_shared_accountsummaryoutputschema",
-      "community": 0,
+      "community": 43,
       "norm_label": "accountsummaryoutputschema"
     },
     {
@@ -1886,7 +1886,7 @@
       "source_file": "src/tools/shared.ts",
       "source_location": "L58",
       "id": "tools_shared_styleoutputschema",
-      "community": 0,
+      "community": 43,
       "norm_label": "styleoutputschema"
     },
     {
@@ -1895,7 +1895,7 @@
       "source_file": "src/tools/shared.ts",
       "source_location": "L65",
       "id": "tools_shared_accountfulloutputschema",
-      "community": 0,
+      "community": 43,
       "norm_label": "accountfulloutputschema"
     },
     {
@@ -1976,7 +1976,7 @@
       "source_file": "src/tools/compose.ts",
       "source_location": "L1",
       "id": "src_tools_compose_ts",
-      "community": 0,
+      "community": 39,
       "norm_label": "compose.ts"
     },
     {
@@ -1994,7 +1994,7 @@
       "source_file": "src/tools/accounts.ts",
       "source_location": "L1",
       "id": "src_tools_accounts_ts",
-      "community": 0,
+      "community": 43,
       "norm_label": "accounts.ts"
     },
     {
@@ -2030,7 +2030,7 @@
       "source_file": "src/tools/agent-context.ts",
       "source_location": "L1",
       "id": "src_tools_agent_context_ts",
-      "community": 0,
+      "community": 43,
       "norm_label": "agent-context.ts"
     },
     {
@@ -2039,7 +2039,7 @@
       "source_file": "src/tools/agent-context.ts",
       "source_location": "L5",
       "id": "tools_agent_context_agentcontext",
-      "community": 0,
+      "community": 41,
       "norm_label": "agentcontext"
     },
     {
@@ -2048,7 +2048,7 @@
       "source_file": "src/tools/agent-context.ts",
       "source_location": "L20",
       "id": "tools_agent_context_checkaccountaccess",
-      "community": 0,
+      "community": 43,
       "norm_label": "checkaccountaccess()"
     },
     {
@@ -2057,7 +2057,7 @@
       "source_file": "src/tools/agent-context.ts",
       "source_location": "L38",
       "id": "tools_agent_context_checkprovisioning",
-      "community": 0,
+      "community": 43,
       "norm_label": "checkprovisioning()"
     },
     {
@@ -2093,7 +2093,7 @@
       "source_file": "src/tools/index.ts",
       "source_location": "L22",
       "id": "tools_index_registertoolsoptions",
-      "community": 0,
+      "community": 41,
       "norm_label": "registertoolsoptions"
     },
     {
@@ -2129,7 +2129,7 @@
       "source_file": "src/tools/notifications.ts",
       "source_location": "L1",
       "id": "src_tools_notifications_ts",
-      "community": 0,
+      "community": 41,
       "norm_label": "notifications.ts"
     },
     {
@@ -2138,7 +2138,7 @@
       "source_file": "src/tools/notifications.ts",
       "source_location": "L9",
       "id": "tools_notifications_notificationtoolcontext",
-      "community": 0,
+      "community": 41,
       "norm_label": "notificationtoolcontext"
     },
     {
@@ -2174,7 +2174,7 @@
       "source_file": "src/watcher/index.ts",
       "source_location": "L1",
       "id": "src_watcher_index_ts",
-      "community": 0,
+      "community": 41,
       "norm_label": "index.ts"
     },
     {
@@ -2345,7 +2345,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L1",
       "id": "src_watcher_manager_ts",
-      "community": 0,
+      "community": 41,
       "norm_label": "manager.ts"
     },
     {
@@ -2354,7 +2354,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L7",
       "id": "watcher_manager_watchnotification",
-      "community": 0,
+      "community": 41,
       "norm_label": "watchnotification"
     },
     {
@@ -2363,7 +2363,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L18",
       "id": "watcher_manager_watchermanageroptions",
-      "community": 0,
+      "community": 41,
       "norm_label": "watchermanageroptions"
     },
     {
@@ -2444,7 +2444,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L1",
       "id": "src_providers_registry_ts",
-      "community": 0,
+      "community": 37,
       "norm_label": "registry.ts"
     },
     {
@@ -2453,7 +2453,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L8",
       "id": "providers_registry_registry",
-      "community": 0,
+      "community": 41,
       "norm_label": "registry"
     },
     {
@@ -2462,7 +2462,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L14",
       "id": "providers_registry_buildregistryoptions",
-      "community": 0,
+      "community": 37,
       "norm_label": "buildregistryoptions"
     },
     {
@@ -2471,7 +2471,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L19",
       "id": "providers_registry_buildregistry",
-      "community": 0,
+      "community": 37,
       "norm_label": "buildregistry()"
     },
     {
@@ -2480,7 +2480,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L1",
       "id": "src_providers_types_ts",
-      "community": 1,
+      "community": 6,
       "norm_label": "types.ts"
     },
     {
@@ -2489,7 +2489,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L3",
       "id": "providers_types_providerid",
-      "community": 0,
+      "community": 43,
       "norm_label": "providerid"
     },
     {
@@ -2507,7 +2507,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L10",
       "id": "providers_types_emailsummary",
-      "community": 1,
+      "community": 6,
       "norm_label": "emailsummary"
     },
     {
@@ -2516,7 +2516,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L22",
       "id": "providers_types_emailfull",
-      "community": 1,
+      "community": 6,
       "norm_label": "emailfull"
     },
     {
@@ -2525,7 +2525,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L35",
       "id": "providers_types_listemailsoptions",
-      "community": 1,
+      "community": 6,
       "norm_label": "listemailsoptions"
     },
     {
@@ -2534,7 +2534,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L44",
       "id": "providers_types_listemailsresult",
-      "community": 1,
+      "community": 6,
       "norm_label": "listemailsresult"
     },
     {
@@ -2543,7 +2543,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L49",
       "id": "providers_types_searchemailsoptions",
-      "community": 1,
+      "community": 6,
       "norm_label": "searchemailsoptions"
     },
     {
@@ -2552,7 +2552,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L53",
       "id": "providers_types_sendinput",
-      "community": 1,
+      "community": 38,
       "norm_label": "sendinput"
     },
     {
@@ -2561,7 +2561,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L78",
       "id": "providers_types_draftupdateinput",
-      "community": 1,
+      "community": 6,
       "norm_label": "draftupdateinput"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L94",
       "id": "providers_types_addaccountresult",
-      "community": 1,
+      "community": 2,
       "norm_label": "addaccountresult"
     },
     {
@@ -2579,7 +2579,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L107",
       "id": "providers_types_addaccountinput",
-      "community": 1,
+      "community": 2,
       "norm_label": "addaccountinput"
     },
     {
@@ -2588,7 +2588,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L114",
       "id": "providers_types_completeaddaccountresult",
-      "community": 1,
+      "community": 45,
       "norm_label": "completeaddaccountresult"
     },
     {
@@ -2597,7 +2597,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L120",
       "id": "providers_types_attachmentcontent",
-      "community": 1,
+      "community": 6,
       "norm_label": "attachmentcontent"
     },
     {
@@ -2606,7 +2606,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L126",
       "id": "providers_types_folderinfo",
-      "community": 1,
+      "community": 42,
       "norm_label": "folderinfo"
     },
     {
@@ -2615,7 +2615,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L135",
       "id": "providers_types_listfoldersoptions",
-      "community": 1,
+      "community": 6,
       "norm_label": "listfoldersoptions"
     },
     {
@@ -2624,7 +2624,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L141",
       "id": "providers_types_createfolderinput",
-      "community": 1,
+      "community": 42,
       "norm_label": "createfolderinput"
     },
     {
@@ -2633,7 +2633,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L148",
       "id": "providers_types_emailprovider",
-      "community": 1,
+      "community": 40,
       "norm_label": "emailprovider"
     },
     {
@@ -2732,7 +2732,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L60",
       "id": "outlook_index_convertinlineimages",
-      "community": 1,
+      "community": 44,
       "norm_label": "convertinlineimages()"
     },
     {
@@ -2750,7 +2750,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L85",
       "id": "outlook_index_outlookprovideroptions",
-      "community": 25,
+      "community": 24,
       "norm_label": "outlookprovideroptions"
     },
     {
@@ -2759,7 +2759,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L91",
       "id": "outlook_index_outlookprovider",
-      "community": 1,
+      "community": 38,
       "norm_label": "outlookprovider"
     },
     {
@@ -2768,7 +2768,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L98",
       "id": "outlook_index_outlookprovider_constructor",
-      "community": 1,
+      "community": 38,
       "norm_label": ".constructor()"
     },
     {
@@ -2777,7 +2777,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L106",
       "id": "outlook_index_outlookprovider_addaccount",
-      "community": 1,
+      "community": 2,
       "norm_label": ".addaccount()"
     },
     {
@@ -2786,7 +2786,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L156",
       "id": "outlook_index_outlookprovider_completeaddaccount",
-      "community": 1,
+      "community": 45,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -2795,7 +2795,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L181",
       "id": "outlook_index_outlookprovider_listemails",
-      "community": 1,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -2804,7 +2804,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L216",
       "id": "outlook_index_outlookprovider_searchemails",
-      "community": 1,
+      "community": 6,
       "norm_label": ".searchemails()"
     },
     {
@@ -2813,7 +2813,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L245",
       "id": "outlook_index_outlookprovider_reademail",
-      "community": 1,
+      "community": 25,
       "norm_label": ".reademail()"
     },
     {
@@ -2822,7 +2822,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L296",
       "id": "outlook_index_outlookprovider_readattachment",
-      "community": 1,
+      "community": 38,
       "norm_label": ".readattachment()"
     },
     {
@@ -2831,7 +2831,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L328",
       "id": "outlook_index_outlookprovider_builddraftfromreference",
-      "community": 1,
+      "community": 38,
       "norm_label": ".builddraftfromreference()"
     },
     {
@@ -2840,7 +2840,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L363",
       "id": "outlook_index_outlookprovider_sendorsave",
-      "community": 1,
+      "community": 38,
       "norm_label": ".sendorsave()"
     },
     {
@@ -2849,7 +2849,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L433",
       "id": "outlook_index_outlookprovider_sendemail",
-      "community": 1,
+      "community": 38,
       "norm_label": ".sendemail()"
     },
     {
@@ -2858,7 +2858,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L440",
       "id": "outlook_index_outlookprovider_savedraft",
-      "community": 1,
+      "community": 38,
       "norm_label": ".savedraft()"
     },
     {
@@ -2867,7 +2867,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L447",
       "id": "outlook_index_outlookprovider_updatedraft",
-      "community": 1,
+      "community": 44,
       "norm_label": ".updatedraft()"
     },
     {
@@ -2876,7 +2876,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L487",
       "id": "outlook_index_outlookprovider_moveemail",
-      "community": 1,
+      "community": 38,
       "norm_label": ".moveemail()"
     },
     {
@@ -2885,7 +2885,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L498",
       "id": "outlook_index_outlookprovider_senddraft",
-      "community": 1,
+      "community": 38,
       "norm_label": ".senddraft()"
     },
     {
@@ -2894,7 +2894,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L507",
       "id": "outlook_index_outlookprovider_addattachmenttodraft",
-      "community": 1,
+      "community": 38,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -2903,7 +2903,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L529",
       "id": "outlook_index_outlookprovider_markread",
-      "community": 1,
+      "community": 38,
       "norm_label": ".markread()"
     },
     {
@@ -2912,7 +2912,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L540",
       "id": "outlook_index_outlookprovider_listfolders",
-      "community": 1,
+      "community": 42,
       "norm_label": ".listfolders()"
     },
     {
@@ -2921,7 +2921,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L562",
       "id": "outlook_index_outlookprovider_createfolder",
-      "community": 1,
+      "community": 42,
       "norm_label": ".createfolder()"
     },
     {
@@ -2930,7 +2930,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L574",
       "id": "outlook_index_outlookprovider_renamefolder",
-      "community": 1,
+      "community": 42,
       "norm_label": ".renamefolder()"
     },
     {
@@ -2939,7 +2939,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L586",
       "id": "outlook_index_outlookprovider_deletefolder",
-      "community": 1,
+      "community": 38,
       "norm_label": ".deletefolder()"
     },
     {
@@ -2984,7 +2984,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L630",
       "id": "outlook_index_mapfolder",
-      "community": 1,
+      "community": 42,
       "norm_label": "mapfolder()"
     },
     {
@@ -3020,7 +3020,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L666",
       "id": "outlook_index_clamplimit",
-      "community": 1,
+      "community": 6,
       "norm_label": "clamplimit()"
     },
     {
@@ -3119,7 +3119,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L1",
       "id": "src_providers_outlook_index_test_ts",
-      "community": 25,
+      "community": 44,
       "norm_label": "index.test.ts"
     },
     {
@@ -3128,7 +3128,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L8",
       "id": "outlook_index_test_result",
-      "community": 25,
+      "community": 44,
       "norm_label": "result"
     },
     {
@@ -3137,7 +3137,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L103",
       "id": "outlook_index_test_body",
-      "community": 25,
+      "community": 44,
       "norm_label": "body"
     },
     {
@@ -3173,7 +3173,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L33",
       "id": "gmail_client_gmailclientfactory_constructor",
-      "community": 6,
+      "community": 24,
       "norm_label": ".constructor()"
     },
     {
@@ -3389,7 +3389,7 @@
       "source_file": "src/providers/gmail/helpers.ts",
       "source_location": "L89",
       "id": "gmail_helpers_parsedpayload",
-      "community": 1,
+      "community": 6,
       "norm_label": "parsedpayload"
     },
     {
@@ -3533,7 +3533,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L60",
       "id": "gmail_index_gmailprovideroptions",
-      "community": 25,
+      "community": 24,
       "norm_label": "gmailprovideroptions"
     },
     {
@@ -3542,7 +3542,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L66",
       "id": "gmail_index_gmailprovider",
-      "community": 1,
+      "community": 40,
       "norm_label": "gmailprovider"
     },
     {
@@ -3551,7 +3551,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L73",
       "id": "gmail_index_gmailprovider_constructor",
-      "community": 1,
+      "community": 40,
       "norm_label": ".constructor()"
     },
     {
@@ -3560,7 +3560,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L85",
       "id": "gmail_index_gmailprovider_addaccount",
-      "community": 1,
+      "community": 2,
       "norm_label": ".addaccount()"
     },
     {
@@ -3569,7 +3569,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L138",
       "id": "gmail_index_gmailprovider_completeaddaccount",
-      "community": 1,
+      "community": 45,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -3578,7 +3578,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L167",
       "id": "gmail_index_gmailprovider_listemails",
-      "community": 1,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -3587,7 +3587,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L174",
       "id": "gmail_index_gmailprovider_searchemails",
-      "community": 1,
+      "community": 6,
       "norm_label": ".searchemails()"
     },
     {
@@ -3596,7 +3596,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L182",
       "id": "gmail_index_gmailprovider_reademail",
-      "community": 1,
+      "community": 40,
       "norm_label": ".reademail()"
     },
     {
@@ -3605,7 +3605,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L186",
       "id": "gmail_index_gmailprovider_readattachment",
-      "community": 1,
+      "community": 40,
       "norm_label": ".readattachment()"
     },
     {
@@ -3614,7 +3614,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L196",
       "id": "gmail_index_gmailprovider_sendemail",
-      "community": 1,
+      "community": 38,
       "norm_label": ".sendemail()"
     },
     {
@@ -3623,7 +3623,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L203",
       "id": "gmail_index_gmailprovider_savedraft",
-      "community": 1,
+      "community": 38,
       "norm_label": ".savedraft()"
     },
     {
@@ -3632,7 +3632,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L210",
       "id": "gmail_index_gmailprovider_updatedraft",
-      "community": 1,
+      "community": 40,
       "norm_label": ".updatedraft()"
     },
     {
@@ -3641,7 +3641,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L218",
       "id": "gmail_index_gmailprovider_moveemail",
-      "community": 1,
+      "community": 40,
       "norm_label": ".moveemail()"
     },
     {
@@ -3650,7 +3650,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L226",
       "id": "gmail_index_gmailprovider_senddraft",
-      "community": 1,
+      "community": 40,
       "norm_label": ".senddraft()"
     },
     {
@@ -3659,7 +3659,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L233",
       "id": "gmail_index_gmailprovider_addattachmenttodraft",
-      "community": 1,
+      "community": 40,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -3668,7 +3668,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L255",
       "id": "gmail_index_gmailprovider_markread",
-      "community": 1,
+      "community": 40,
       "norm_label": ".markread()"
     },
     {
@@ -3677,7 +3677,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L265",
       "id": "gmail_index_gmailprovider_listfolders",
-      "community": 1,
+      "community": 42,
       "norm_label": ".listfolders()"
     },
     {
@@ -3686,7 +3686,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L272",
       "id": "gmail_index_gmailprovider_createfolder",
-      "community": 1,
+      "community": 42,
       "norm_label": ".createfolder()"
     },
     {
@@ -3695,7 +3695,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L279",
       "id": "gmail_index_gmailprovider_renamefolder",
-      "community": 1,
+      "community": 42,
       "norm_label": ".renamefolder()"
     },
     {
@@ -3704,7 +3704,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L287",
       "id": "gmail_index_gmailprovider_deletefolder",
-      "community": 1,
+      "community": 40,
       "norm_label": ".deletefolder()"
     },
     {
@@ -4271,7 +4271,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L46",
       "id": "imap_index_imapprovider_constructor",
-      "community": 1,
+      "community": 24,
       "norm_label": ".constructor()"
     },
     {
@@ -4280,7 +4280,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L50",
       "id": "imap_index_imapprovider_addaccount",
-      "community": 1,
+      "community": 2,
       "norm_label": ".addaccount()"
     },
     {
@@ -4289,7 +4289,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L55",
       "id": "imap_index_imapprovider_completeaddaccount",
-      "community": 1,
+      "community": 45,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -4298,7 +4298,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L61",
       "id": "imap_index_imapprovider_listemails",
-      "community": 1,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -4671,7 +4671,7 @@
       "label": "Why",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L28",
+      "source_location": "L36",
       "id": "hyper_email_mcp_0_readme_why",
       "community": 17,
       "norm_label": "why"
@@ -4680,7 +4680,7 @@
       "label": "Install / run",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L37",
+      "source_location": "L45",
       "id": "hyper_email_mcp_0_readme_install_run",
       "community": 17,
       "norm_label": "install / run"
@@ -4689,7 +4689,7 @@
       "label": "code:bash (npm install -g hypermail-mcp     # or pnpm / npx)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L39",
+      "source_location": "L47",
       "id": "hyper_email_mcp_0_readme_codeblock_1",
       "community": 17,
       "norm_label": "code:bash (npm install -g hypermail-mcp     # or pnpm / npx)"
@@ -4698,7 +4698,7 @@
       "label": "Claude Desktop / Claude Code",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L46",
+      "source_location": "L54",
       "id": "hyper_email_mcp_0_readme_claude_desktop_claude_code",
       "community": 17,
       "norm_label": "claude desktop / claude code"
@@ -4707,7 +4707,7 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L48",
+      "source_location": "L56",
       "id": "hyper_email_mcp_0_readme_codeblock_2",
       "community": 17,
       "norm_label": "code:jsonc ({)"
@@ -4716,7 +4716,7 @@
       "label": "code:bash (claude mcp add hypermail -- npx -y hypermail-mcp)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L61",
+      "source_location": "L69",
       "id": "hyper_email_mcp_0_readme_codeblock_3",
       "community": 17,
       "norm_label": "code:bash (claude mcp add hypermail -- npx -y hypermail-mcp)"
@@ -4725,7 +4725,7 @@
       "label": "As a hosted HTTP server",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L65",
+      "source_location": "L73",
       "id": "hyper_email_mcp_0_readme_as_a_hosted_http_server",
       "community": 17,
       "norm_label": "as a hosted http server"
@@ -4734,16 +4734,34 @@
       "label": "code:bash (hypermail-mcp --http --port 3000 --host 0.0.0.0)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L67",
+      "source_location": "L75",
       "id": "hyper_email_mcp_0_readme_codeblock_4",
       "community": 17,
       "norm_label": "code:bash (hypermail-mcp --http --port 3000 --host 0.0.0.0)"
     },
     {
+      "label": "Docker",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L83",
+      "id": "hyper_email_mcp_0_readme_docker",
+      "community": 17,
+      "norm_label": "docker"
+    },
+    {
+      "label": "code:bash (# Build)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L85",
+      "id": "hyper_email_mcp_0_readme_codeblock_5",
+      "community": 17,
+      "norm_label": "code:bash (# build)"
+    },
+    {
       "label": "Development (HTTP mode + email watch)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L75",
+      "source_location": "L104",
       "id": "hyper_email_mcp_0_readme_development_http_mode_email_watch",
       "community": 17,
       "norm_label": "development (http mode + email watch)"
@@ -4752,8 +4770,8 @@
       "label": "code:bash (# Terminal 1: auto-rebuild TypeScript on save)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L79",
-      "id": "hyper_email_mcp_0_readme_codeblock_5",
+      "source_location": "L108",
+      "id": "hyper_email_mcp_0_readme_codeblock_6",
       "community": 17,
       "norm_label": "code:bash (# terminal 1: auto-rebuild typescript on save)"
     },
@@ -4761,7 +4779,7 @@
       "label": "Modes: stdio vs HTTP",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L94",
+      "source_location": "L123",
       "id": "hyper_email_mcp_0_readme_modes_stdio_vs_http",
       "community": 17,
       "norm_label": "modes: stdio vs http"
@@ -4770,7 +4788,7 @@
       "label": "Agent multi-tenancy",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L119",
+      "source_location": "L148",
       "id": "hyper_email_mcp_0_readme_agent_multi_tenancy",
       "community": 17,
       "norm_label": "agent multi-tenancy"
@@ -4779,7 +4797,7 @@
       "label": "agents.yaml",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L125",
+      "source_location": "L154",
       "id": "hyper_email_mcp_0_readme_agents_yaml",
       "community": 17,
       "norm_label": "agents.yaml"
@@ -4788,8 +4806,8 @@
       "label": "code:yaml (agents:)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L127",
-      "id": "hyper_email_mcp_0_readme_codeblock_6",
+      "source_location": "L156",
+      "id": "hyper_email_mcp_0_readme_codeblock_7",
       "community": 17,
       "norm_label": "code:yaml (agents:)"
     },
@@ -4797,8 +4815,8 @@
       "label": "code:bash (hypermail-mcp generate-key)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L153",
-      "id": "hyper_email_mcp_0_readme_codeblock_7",
+      "source_location": "L182",
+      "id": "hyper_email_mcp_0_readme_codeblock_8",
       "community": 17,
       "norm_label": "code:bash (hypermail-mcp generate-key)"
     },
@@ -4806,7 +4824,7 @@
       "label": "Configuration",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L168",
+      "source_location": "L197",
       "id": "hyper_email_mcp_0_readme_configuration",
       "community": 17,
       "norm_label": "configuration"
@@ -4815,8 +4833,8 @@
       "label": "code:bash (# Via CLI flag)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L172",
-      "id": "hyper_email_mcp_0_readme_codeblock_8",
+      "source_location": "L201",
+      "id": "hyper_email_mcp_0_readme_codeblock_9",
       "community": 17,
       "norm_label": "code:bash (# via cli flag)"
     },
@@ -4824,8 +4842,8 @@
       "label": "Configuration",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L187",
-      "id": "hyper_email_mcp_0_readme_configuration_187",
+      "source_location": "L216",
+      "id": "hyper_email_mcp_0_readme_configuration_216",
       "community": 17,
       "norm_label": "configuration"
     },
@@ -4833,7 +4851,7 @@
       "label": "Config file (`hypermail-config.json`)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L201",
+      "source_location": "L230",
       "id": "hyper_email_mcp_0_readme_config_file_hypermail_config_json",
       "community": 17,
       "norm_label": "config file (`hypermail-config.json`)"
@@ -4842,8 +4860,8 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L207",
-      "id": "hyper_email_mcp_0_readme_codeblock_9",
+      "source_location": "L236",
+      "id": "hyper_email_mcp_0_readme_codeblock_10",
       "community": 17,
       "norm_label": "code:jsonc ({)"
     },
@@ -4851,7 +4869,7 @@
       "label": "Tools",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L227",
+      "source_location": "L256",
       "id": "hyper_email_mcp_0_readme_tools",
       "community": 17,
       "norm_label": "tools"
@@ -4860,7 +4878,7 @@
       "label": "Email Watch",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L261",
+      "source_location": "L290",
       "id": "hyper_email_mcp_0_readme_email_watch",
       "community": 17,
       "norm_label": "email watch"
@@ -4869,8 +4887,8 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L274",
-      "id": "hyper_email_mcp_0_readme_codeblock_10",
+      "source_location": "L303",
+      "id": "hyper_email_mcp_0_readme_codeblock_11",
       "community": 17,
       "norm_label": "code:jsonc ({)"
     },
@@ -4878,7 +4896,7 @@
       "label": "Add-account flow (Outlook)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L297",
+      "source_location": "L326",
       "id": "hyper_email_mcp_0_readme_add_account_flow_outlook",
       "community": 17,
       "norm_label": "add-account flow (outlook)"
@@ -4887,8 +4905,8 @@
       "label": "code:json ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L301",
-      "id": "hyper_email_mcp_0_readme_codeblock_11",
+      "source_location": "L330",
+      "id": "hyper_email_mcp_0_readme_codeblock_12",
       "community": 17,
       "norm_label": "code:json ({)"
     },
@@ -4896,7 +4914,7 @@
       "label": "Roadmap",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L318",
+      "source_location": "L347",
       "id": "hyper_email_mcp_0_readme_roadmap",
       "community": 17,
       "norm_label": "roadmap"
@@ -4905,25 +4923,25 @@
       "label": "Project layout",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L323",
+      "source_location": "L352",
       "id": "hyper_email_mcp_0_readme_project_layout",
       "community": 17,
       "norm_label": "project layout"
     },
     {
-      "label": "code:block12 (src/)",
+      "label": "code:block13 (src/)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L325",
-      "id": "hyper_email_mcp_0_readme_codeblock_12",
+      "source_location": "L354",
+      "id": "hyper_email_mcp_0_readme_codeblock_13",
       "community": 17,
-      "norm_label": "code:block12 (src/)"
+      "norm_label": "code:block13 (src/)"
     },
     {
       "label": "License",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L365",
+      "source_location": "L394",
       "id": "hyper_email_mcp_0_readme_license",
       "community": 17,
       "norm_label": "license"
@@ -5179,6 +5197,15 @@
       "id": "pi_prompts_updatenpm_md",
       "community": 21,
       "norm_label": "updatenpm.md"
+    },
+    {
+      "label": "Configuration",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L187",
+      "community": 17,
+      "norm_label": "configuration",
+      "id": "hyper_email_mcp_0_readme_configuration_187"
     },
     {
       "label": "docker-compose.yml \u2014 what's in it",
@@ -5536,7 +5563,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L132",
-      "community": 0,
+      "community": 39,
       "norm_label": "sendemailoutputschema",
       "id": "tools_compose_sendemailoutputschema"
     },
@@ -5545,7 +5572,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L167",
-      "community": 0,
+      "community": 39,
       "norm_label": "draftemailoutputschema",
       "id": "tools_compose_draftemailoutputschema"
     },
@@ -5554,7 +5581,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L203",
-      "community": 0,
+      "community": 39,
       "norm_label": "editdraftschema",
       "id": "tools_compose_editdraftschema"
     },
@@ -5563,7 +5590,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L230",
-      "community": 0,
+      "community": 39,
       "norm_label": "editdraftargs",
       "id": "tools_compose_editdraftargs"
     },
@@ -5572,7 +5599,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L232",
-      "community": 0,
+      "community": 39,
       "norm_label": "editdraftoutputschema",
       "id": "tools_compose_editdraftoutputschema"
     },
@@ -5581,7 +5608,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L256",
-      "community": 0,
+      "community": 39,
       "norm_label": "a",
       "id": "tools_compose_a"
     },
@@ -5590,7 +5617,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L258",
-      "community": 0,
+      "community": 39,
       "norm_label": "accesserr",
       "id": "tools_compose_accesserr"
     },
@@ -5599,7 +5626,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L260",
-      "community": 0,
+      "community": 39,
       "norm_label": "{ provider, account }",
       "id": "tools_compose_provider_account"
     },
@@ -5608,7 +5635,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L269",
-      "community": 0,
+      "community": 39,
       "norm_label": "composed",
       "id": "tools_compose_composed"
     },
@@ -5617,7 +5644,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L288",
-      "community": 0,
+      "community": 39,
       "norm_label": "result",
       "id": "tools_compose_result"
     },
@@ -5626,7 +5653,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L303",
-      "community": 0,
+      "community": 39,
       "norm_label": "senddraftoutputschema",
       "id": "tools_compose_senddraftoutputschema"
     },
@@ -5635,7 +5662,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L328",
-      "community": 0,
+      "community": 39,
       "norm_label": "data",
       "id": "tools_compose_data"
     },
@@ -5644,7 +5671,7 @@
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
       "source_location": "L339",
-      "community": 0,
+      "community": 39,
       "norm_label": "addattachmentoutputschema",
       "id": "tools_compose_addattachmentoutputschema"
     },
@@ -6877,6 +6904,17 @@
       "confidence_score": 1.0,
       "source": "package_json",
       "target": "hyper_email_mcp_0_package_devdependencies"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/version.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "src_version_ts",
+      "target": "package_json",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -18937,11 +18975,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L187",
+      "source_location": "L216",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_hypermail_mcp",
-      "target": "hyper_email_mcp_0_readme_configuration_187"
+      "target": "hyper_email_mcp_0_readme_configuration_216",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -18997,6 +19035,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
+      "source_location": "L187",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_hypermail_mcp",
+      "target": "hyper_email_mcp_0_readme_configuration_187"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
       "source_location": "L71",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19032,6 +19080,16 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_install_run",
       "target": "hyper_email_mcp_0_readme_as_a_hosted_http_server"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_install_run",
+      "target": "hyper_email_mcp_0_readme_docker",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19077,6 +19135,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_docker",
+      "target": "hyper_email_mcp_0_readme_codeblock_5",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
       "source_location": "L75",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19097,21 +19165,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L125",
+      "source_location": "L108",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_agent_multi_tenancy",
-      "target": "hyper_email_mcp_0_readme_agents_yaml"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L168",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_agent_multi_tenancy",
-      "target": "hyper_email_mcp_0_readme_configuration"
+      "source": "hyper_email_mcp_0_readme_development_http_mode_email_watch",
+      "target": "hyper_email_mcp_0_readme_codeblock_6",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19122,16 +19180,6 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_agents_yaml",
       "target": "hyper_email_mcp_0_readme_codeblock_6"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
-      "source_location": "L153",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_agents_yaml",
-      "target": "hyper_email_mcp_0_readme_codeblock_7"
     },
     {
       "relation": "contains",
@@ -19162,6 +19210,46 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_add_account_flow_outlook",
       "target": "hyper_email_mcp_0_readme_codeblock_6"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_agent_multi_tenancy",
+      "target": "hyper_email_mcp_0_readme_agents_yaml"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L168",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_agent_multi_tenancy",
+      "target": "hyper_email_mcp_0_readme_configuration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L153",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_agents_yaml",
+      "target": "hyper_email_mcp_0_readme_codeblock_7"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L182",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_agents_yaml",
+      "target": "hyper_email_mcp_0_readme_codeblock_8",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19207,16 +19295,6 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_configuration",
-      "target": "hyper_email_mcp_0_readme_config_file_hypermail_config_json"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "README.md",
       "source_location": "L201",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19239,8 +19317,18 @@
       "source_file": "README.md",
       "source_location": "L201",
       "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_configuration",
+      "target": "hyper_email_mcp_0_readme_codeblock_9",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L82",
+      "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_configuration_187",
+      "source": "hyper_email_mcp_0_readme_configuration",
       "target": "hyper_email_mcp_0_readme_config_file_hypermail_config_json"
     },
     {
@@ -19267,11 +19355,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L141",
+      "source_location": "L230",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_configuration_216",
+      "target": "hyper_email_mcp_0_readme_config_file_hypermail_config_json",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L236",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_config_file_hypermail_config_json",
+      "target": "hyper_email_mcp_0_readme_codeblock_10",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L201",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "hyper_email_mcp_0_readme_tools",
-      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook"
+      "source": "hyper_email_mcp_0_readme_configuration_187",
+      "target": "hyper_email_mcp_0_readme_config_file_hypermail_config_json"
     },
     {
       "relation": "contains",
@@ -19282,6 +19390,26 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_email_watch",
       "target": "hyper_email_mcp_0_readme_codeblock_10"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_tools",
+      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_email_watch",
+      "target": "hyper_email_mcp_0_readme_codeblock_11",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19307,11 +19435,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
+      "source_location": "L330",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_add_account_flow_outlook",
+      "target": "hyper_email_mcp_0_readme_codeblock_12",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
       "source_location": "L325",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_project_layout",
       "target": "hyper_email_mcp_0_readme_codeblock_12"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L354",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_project_layout",
+      "target": "hyper_email_mcp_0_readme_codeblock_13",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19339,9 +19487,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_prerequisites",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_prerequisites"
     },
     {
       "relation": "contains",
@@ -19349,9 +19497,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_step_by_step",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_step_by_step"
     },
     {
       "relation": "contains",
@@ -19359,9 +19507,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_connecting_agents",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_connecting_agents"
     },
     {
       "relation": "contains",
@@ -19369,9 +19517,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L74",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_provider_credentials_optional",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_provider_credentials_optional"
     },
     {
       "relation": "contains",
@@ -19389,9 +19537,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L91",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_deploy_hypermail_mcp_to_dokploy",
-      "target": "hyper_email_mcp_0_dokploy_what_s_in_the_dockerfile",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_what_s_in_the_dockerfile"
     },
     {
       "relation": "contains",
@@ -19509,9 +19657,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_1_create_the_application",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_1_create_the_application"
     },
     {
       "relation": "contains",
@@ -19519,9 +19667,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_2_set_the_encryption_key",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_2_set_the_encryption_key"
     },
     {
       "relation": "contains",
@@ -19529,9 +19677,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_3_configure_persistent_storage",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_3_configure_persistent_storage"
     },
     {
       "relation": "contains",
@@ -19539,9 +19687,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_4_add_a_domain",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_4_add_a_domain"
     },
     {
       "relation": "contains",
@@ -19549,9 +19697,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_5_deploy",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_5_deploy"
     },
     {
       "relation": "contains",
@@ -19559,9 +19707,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L55",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_step_by_step",
-      "target": "hyper_email_mcp_0_dokploy_6_verify",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_6_verify"
     },
     {
       "relation": "contains",
@@ -19569,9 +19717,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L51",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_5_deploy",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_1",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_codeblock_1"
     },
     {
       "relation": "contains",
@@ -19649,9 +19797,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L57",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_6_verify",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_2",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_codeblock_2"
     },
     {
       "relation": "contains",
@@ -19679,9 +19827,9 @@
       "source_file": "DOKPLOY.md",
       "source_location": "L63",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_dokploy_connecting_agents",
-      "target": "hyper_email_mcp_0_dokploy_codeblock_3",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_dokploy_codeblock_3"
     },
     {
       "relation": "contains",
@@ -20620,5 +20768,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "a62e13dc1e3256fca0e073ce1ee35eca4a1bbaf2"
+  "built_at_commit": "28edd6c04379fee6303672ef99b8a999b03bc490"
 }
