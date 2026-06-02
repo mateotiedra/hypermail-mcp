@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.6.2** — Version source-of-truth fix: `version.ts` now imports directly
+> from `package.json` instead of hardcoding, preventing version drift between
+> the two files.
+>
 > **v0.6.1** — Docker deployment (standalone Dockerfile with HEALTHCHECK),
 > email notification bug fixes (ID-based dedup, pagination cap, dynamic
 > re-scan), Node 22 base image, dropped docker-compose.
