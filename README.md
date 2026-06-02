@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.6.1** — Docker deployment (standalone Dockerfile with HEALTHCHECK),
+> email notification bug fixes (ID-based dedup, pagination cap, dynamic
+> re-scan), Node 22 base image, dropped docker-compose.
+>
 > **v0.6.0** — Email watch notifications (polling-based), `signaturePath`
 > support in `set_account_settings` for loading signatures from files,
 > and a `check_notifications` tool for draining pending alerts.
@@ -71,6 +75,27 @@ hypermail-mcp --http --port 3000 --host 0.0.0.0
 
 When hosted you **must** set `HYPERMAIL_MCP_KEY` so the account file is
 reproducibly decryptable.
+
+### Docker
+
+```bash
+# Build
+docker build -t hypermail-mcp .
+
+# Run
+docker run -d \
+  --name hypermail-mcp \
+  -p 3000:3000 \
+  -e HYPERMAIL_MCP_KEY=<32-byte-key> \
+  -e MS_CLIENT_ID=<your-client-id> \
+  -e MS_TENANT_ID=<your-tenant-id> \
+  -v hypermail-data:/data \
+  hypermail-mcp
+```
+
+The image runs the server in HTTP mode on port 3000 with a 30-second
+HEALTHCHECK against `/mcp`. Data is persisted via a Docker volume at `/data`.
+Pass `HYPERMAIL_AGENTS_CONFIG` and mount a config file for agent multi-tenancy.
 
 ### Development (HTTP mode + email watch)
 
