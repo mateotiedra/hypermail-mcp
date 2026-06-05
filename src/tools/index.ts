@@ -1,10 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import type { AccountStore } from "../store/account-store.js";
-import type { AgentStore } from "../store/agent-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
-import type { AgentContext } from "./agent-context.js";
 
 // Re-export compose helpers for tests
 export { composeBody, escapeHtml, buildStyleAttr } from "./shared.js";
@@ -16,35 +14,23 @@ import { registerBrowseTools } from "./browse.js";
 import { registerFolderTools } from "./folders.js";
 import { registerOrganizeTools } from "./organize.js";
 import { registerComposeTools } from "./compose.js";
-import { registerNotificationTools } from "./notifications.js";
-import type { WatchNotification } from "../watcher/index.js";
+
 
 export interface RegisterToolsOptions {
   store: AccountStore;
-  agentStore?: AgentStore;
   registry: Registry;
   tools: ResolvedTools;
-  notificationBuffer?: WatchNotification[];
-  /** Agent identity for access control. null = stdio mode (unrestricted). */
-  agentContext?: AgentContext | null;
 }
 
 export function registerTools(
   server: McpServer,
   opts: RegisterToolsOptions,
 ): void {
-  const { store, registry, tools, agentContext, agentStore } = opts;
+  const { store, registry, tools } = opts;
 
-  registerAccountTools(server, { store, registry, tools, agentContext, agentStore });
-  registerBrowseTools(server, { registry, tools, agentContext });
-  registerFolderTools(server, { registry, tools, agentContext });
-  registerOrganizeTools(server, { registry, tools, agentContext });
-  registerComposeTools(server, { store, registry, tools, agentContext });
-  if (opts.notificationBuffer) {
-    registerNotificationTools(server, {
-      tools,
-      notificationBuffer: opts.notificationBuffer,
-      agentContext,
-    });
-  }
+  registerAccountTools(server, { store, registry, tools });
+  registerBrowseTools(server, { registry, tools });
+  registerFolderTools(server, { registry, tools });
+  registerOrganizeTools(server, { registry, tools });
+  registerComposeTools(server, { store, registry, tools });
 }

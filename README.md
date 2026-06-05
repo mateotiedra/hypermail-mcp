@@ -11,10 +11,6 @@ inboxes through a single, unified tool surface.
 > email notification bug fixes (ID-based dedup, pagination cap, dynamic
 > re-scan), Node 22 base image, dropped docker-compose.
 >
-> **v0.6.0** — Email watch notifications (polling-based), `signaturePath`
-> support in `set_account_settings` for loading signatures from files,
-> and a `check_notifications` tool for draining pending alerts.
->
 > **v0.5.0** — Replaced optional `isHtml` boolean with required `format`
 > parameter (`"html"` | `"markdown"`) on `send_email`, `draft_email`, and
 > `edit_draft`. Markdown bodies are converted to HTML via `marked` so
@@ -99,135 +95,37 @@ docker run -d \
 
 The image runs the server in HTTP mode on port 3000 with a 30-second
 HEALTHCHECK against `/mcp`. Data is persisted via a Docker volume at `/data`.
-Pass `HYPERMAIL_AGENTS_CONFIG` and mount a config file for agent multi-tenancy.
 
-### Development (HTTP mode + email watch)
+### Development
 
-To test the email watch feature locally:
+To test the HTTP server locally:
 
 ```bash
 # Terminal 1: auto-rebuild TypeScript on save
 pnpm dev
 
-# Terminal 2: start HTTP server with dev config (10s poll, separate data dir)
+# Terminal 2: start HTTP server with dev config
 pnpm dev:http
 ```
 
 The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
 `.pi/mcp.json` config (read by `pi-mcp-adapter`). Tools appear as
-`hypermail_http_*` (e.g. `hypermail_http_check_notifications`).
+`hypermail_http_*`.
 
-The dev config (`hypermail-config.http.json`) uses a separate data dir
-(`~/.hypermail-mcp-dev`) and a 10-second poll interval for fast feedback.
-
-## Modes: stdio vs HTTP
-
-The server runs in one of two modes — the choice affects session management,
-security, and which features are available.
-
-| | stdio (default) | HTTP (`--http`) |
-| --- | --- | --- |
-| **Transport** | stdin/stdout | HTTP (Streamable HTTP MCP) |
-| **Lifecycle** | Per-invocation (lazy) — spawned on demand by the MCP host | Long-lived server process |
-| **Session model** | One `McpServer` instance for all invocations | One `McpServer` per MCP session (multi-tenant) |
-| **Key management** | Auto-generated, stored in OS keychain or `master.key` file | Requires `HYPERMAIL_MCP_KEY` env var (32-byte key for AES-256-GCM) |
-| **Email watch** | ❌ Not available | ✅ Polls inbox every N seconds for new mail |
-| **`check_notifications`** | ❌ Not registered | ✅ Drains pending new-mail alerts |
-| **Agent multi-tenancy** | ❌ Unrestricted access | ✅ Per-agent API keys, account allowlists, provisioning control (via `agents.yaml`) |
-| **Pi tool naming** | `hyper_*` | `hypermail_http_*` |
-
-**When to use HTTP mode:**
-- You need email watch / push notifications
-- You want to expose the server to multiple agents with different permissions
-- You're hosting the server as a service (Docker, cloud)
-
-**When to use stdio mode:**
-- Single-user local development with a desktop MCP client (Claude, Pi)
-- You don't need email watch or multi-agent access control
-
-## Agent multi-tenancy
-
-In HTTP mode, the server can be shared across multiple agents with
-different permissions. Agent identity and authorization are defined in an
-`agents.yaml` file.
-
-### agents.yaml
-
-```yaml
-agents:
-  - id: my-assistant
-    api_key: hm_sk_<64-hex-chars>
-    name: My Email Assistant
-    accounts:                          # which email addresses this agent can access
-      - alice@example.com
-      - bob@example.com
-    provisioning: false                # can this agent add/remove accounts?
-
-  - id: admin-agent
-    api_key: hm_sk_<64-hex-chars>
-    name: Admin Agent
-    accounts: []                       # empty = all accounts
-    provisioning: true
-
-# Optional: pre-declare email accounts with provider hints
-email_accounts:
-  alice@example.com:
-    provider: outlook
-```
-
-**Agent ID:** lowercase letters, digits, hyphens, underscores. No spaces.
-
-**API key format:** `hm_sk_` prefix + 64 hex characters. Generate with:
-
-```bash
-hypermail-mcp generate-key
-# => hm_sk_a1b2c3d4...
-```
-
-The API key is hashed (SHA-256) before storage — the plaintext is never
-written to disk. Agents authenticate by passing the key in the
-`Authorization: Bearer hm_sk_...` header.
-
-**accounts:** An allowlist of email addresses the agent can operate on.
-If empty or omitted, the agent can access all configured accounts.
-
-**provisioning:** When `true`, the agent can call `add_account` and
-`remove_account`. Defaults to `false`.
-
-### Configuration
-
-Point the server at your agents.yaml:
-
-```bash
-# Via CLI flag
-hypermail-mcp --http --agents-config ./agents.yaml
-
-# Via env var
-export HYPERMAIL_AGENTS_CONFIG=/etc/hypermail/agents.yaml
-```
-
-The server watches `agents.yaml` for changes and reloads automatically
-(live reload — no restart needed). Agents removed from the file lose
-access on their next request.
-
-In **stdio mode**, agent multi-tenancy is not available — the server runs
-with unrestricted access (the local user _is_ the agent).
-
-## Configuration
+## Add-account flow (Outlook)
 
 | Env var | Purpose | Default |
 | --- | --- | --- |
 | `HYPERMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hypermail-mcp` |
-| `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
-| `HYPERMAIL_AGENTS_CONFIG` | Path to `agents.yaml` for HTTP multi-tenant mode (see Agent multi-tenancy above). | — (multi-tenancy disabled) |
+| `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. Auto-generated for stdio. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
 | `MS_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
 | `MS_TENANT_ID` | Tenant for the authority URL | `common` |
 
-CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--agents-config`, `--read-only`, `--help`.
+CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--read-only`, `--help`.
 
-Subcommands: `hypermail-mcp generate-key` — generate an `hm_sk_` API key for agents.yaml.
+Subcommands: `hypermail-mcp generate-key` — generate an `hm_sk_` API key.
 
-### Config file (`hypermail-config.json`)
+### Configuration
 
 Instead of (or in addition to) CLI flags and env vars, you can configure the
 server with a `hypermail-config.json` file next to the server binary. The server
@@ -285,45 +183,8 @@ account store.
 | `rename_folder` | `account`, `folderId`, `newName` | Rename an existing mail folder. Disabled under `--read-only`. |
 | `mark_read` | `account`, `id` | Mark a message as read. Disabled under `--read-only`. |
 | `mark_unread` | `account`, `id` | Mark a message as unread. Disabled under `--read-only`. |
-| `check_notifications` | — | Returns pending email-watch notifications (new-email alerts, auth failures). Drains the buffer on read. Only registered in HTTP mode. |
 
-## Email Watch
-
-When running in **HTTP mode** (`--http`), the server polls all configured
-accounts every N seconds for new inbox mail. Detected emails and auth failures
-are delivered through two channels:
-
-- **Push** — `notifications/message` sent over the MCP stream. Compatible
-  clients (e.g. Mastra) receive these in real time.
-- **Poll** — `check_notifications` tool drains an in-memory buffer. Works with
-  **any** MCP client, even those that don't maintain an SSE listener.
-
-**Configuration** (in `hypermail-config.json`):
-
-```jsonc
-{
-  "watch": {
-    "enabled": true,            // default true
-    "pollIntervalSeconds": 60   // default 60 (min 10, max 3600)
-  }
-}
-```
-
-**Behavior:**
-
-- Only the **inbox** folder is watched. All stored accounts are polled by default.
-- On first poll per account, the server records the newest email as a baseline
-  (no notifications). Only emails arriving after baseline trigger alerts.
-- Baselines (`lastSeenAt`) persist in the account store — they survive server
-  restarts.
-- Each poll paginates through the inbox (25 items per page) to catch email
-  bursts without missing messages.
-- Auth failures (e.g. expired OAuth tokens) generate immediate notifications.
-
-**Not supported in stdio mode.** The watcher requires a long-lived server
-process. In stdio mode the `check_notifications` tool is not registered.
-
-### Add-account flow (Outlook)
+## Add-account flow (Outlook)
 
 1. Agent calls `add_account({ provider: "outlook" })`.
 2. Server returns:
@@ -357,11 +218,8 @@ src/
   server.ts                    # MCP server, stdio + HTTP transports, session management
   version.ts                   # version constant
   config.ts                    # hypermail-config.json schema + resolution
-  config/
-    agents-config.ts           # agents.yaml schema, validation, live-reload watcher
   store/
     account-store.ts           # encrypted multi-account store (AES-256-GCM)
-    agent-store.ts             # agent identity + credentials store (HTTP multi-tenant)
     crypto.ts                  # AES-256-GCM encrypt/decrypt, key resolution, atomic writes
   providers/
     types.ts                   # EmailProvider interface + shared DTOs
@@ -376,17 +234,12 @@ src/
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
     shared/                    # shared utilities across providers
-  watcher/
-    manager.ts                 # inbox poller + notification buffer
-    index.ts                   # watcher public API
   tools/
     index.ts                   # MCP tool registrations
-    agent-context.ts           # agent authorization guards (checkAccountAccess, checkProvisioning)
     accounts.ts                # list/add/remove/complete-add account tools
     browse.ts                  # list/search/read email tools
     compose.ts                 # send/draft/edit/send-draft/add-attachment tools
     folders.ts                 # list/create/delete/rename folder tools
-    notifications.ts           # check_notifications tool (HTTP only)
     organize.ts                # archive/trash/move/mark-read/mark-unread tools
     shared.ts                  # shared tool helpers
 ```

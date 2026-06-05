@@ -58,7 +58,7 @@ Click **Deploy**. Check **Logs** — you should see:
 curl https://your-domain.com/mcp
 ```
 
-## Connecting agents
+## Connecting clients
 
 ```json
 {
@@ -81,12 +81,6 @@ Set these in the **Environment** tab — only for providers you use:
 | `MS_TENANT_ID` | Outlook |
 | `GOOGLE_CLIENT_ID` | Gmail |
 | `GOOGLE_CLIENT_SECRET` | Gmail |
-
-## Authentication (optional)
-
-By default the server runs without auth — anyone who can reach it can use it.
-
-To enable API key auth, see the project README for `agents.yaml` setup, then set `HYPERMAIL_AGENTS_CONFIG=/data/agents.yaml` in the Environment tab and mount the file via Dokploy File Mounts.
 
 ## What's in the Dockerfile
 

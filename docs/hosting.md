@@ -1,7 +1,7 @@
 # Hosting hypermail-mcp
 
 This server is designed to run either as a local stdio MCP (per-user) or as a
-multi-tenant HTTP service. This doc covers the HTTP case.
+hosted HTTP service. This doc covers the HTTP case.
 
 ## Quick start
 

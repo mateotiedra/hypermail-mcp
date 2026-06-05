@@ -3,22 +3,13 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "node:crypto";
 import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from "node:http";
-import path from "node:path";
 
 import { AccountStore } from "./store/account-store.js";
-import { AgentStore } from "./store/agent-store.js";
 import { buildRegistry } from "./providers/registry.js";
 import { registerTools } from "./tools/index.js";
 import { VERSION } from "./version.js";
 import type { AppConfig, ResolvedTools } from "./config.js";
 import { resolveTools } from "./config.js";
-import { WatcherManager } from "./watcher/index.js";
-import type { WatchNotification } from "./watcher/index.js";
-import {
-  loadAgentsConfig,
-  watchAgentsConfig,
-} from "./config/agents-config.js";
-import type { AgentContext } from "./tools/agent-context.js";
 
 export interface ServerOptions {
   /** Fully resolved application config from hypermail-config.json. */
@@ -31,91 +22,19 @@ export async function startServer(opts: ServerOptions): Promise<void> {
   const registry = buildRegistry({ store, providers: config.providers });
   const tools: ResolvedTools = resolveTools(config);
 
-  // Shared notification buffer: the watcher pushes, the check_notifications
-  // tool drains. Only created when both HTTP and watch are enabled.
-  const watchEnabled = config.http.enabled && config.watch?.enabled !== false;
-  const notificationBuffer: WatchNotification[] | undefined = watchEnabled
-    ? []
-    : undefined;
-
   // Factory: creates a fresh McpServer with all tools registered.
   // HTTP mode creates one per session; stdio mode uses a single instance.
-  let agentStoreForFactory: AgentStore | undefined;
-  const createServer = (agentContext: AgentContext | null = null): McpServer => {
+  const createServer = (): McpServer => {
     const s = new McpServer(
       { name: "hypermail-mcp", version: VERSION },
       { capabilities: { tools: {}, logging: {} } },
     );
-    registerTools(s, { store, registry, tools, notificationBuffer, agentContext, agentStore: agentStoreForFactory });
+    registerTools(s, { store, registry, tools });
     return s;
   };
 
   if (config.http.enabled) {
-    // Open AgentStore and load agents.yaml (HTTP mode only).
-    let liveReloadHandle: { close(): void } | undefined;
-    if (config.agentsConfigPath) {
-      agentStoreForFactory = await AgentStore.open({ dataDir: config.dataDir });
-      liveReloadHandle = watchAgentsConfig(
-        path.resolve(config.agentsConfigPath),
-        agentStoreForFactory!,
-        (_removedIds) => {
-          // Sessions use the same agentStore instance — they'll pick up
-          // updated agents on next lookup. Removed agents' existing sessions
-          // remain valid until they disconnect (local-trust model).
-        },
-        (err) => {
-          // eslint-disable-next-line no-console
-          console.error("[hypermail-mcp] agents.yaml reload error:", err.message);
-        },
-      );
-    }
-
-    // Per-session notification targets — the watcher pushes to all of them.
-    const notifyTargets = new Set<(n: WatchNotification) => void>();
-
-    // Compute account filter from all agents' authorized accounts.
-    // When no agents are configured, poll all stored accounts (legacy).
-    const accountFilter: string[] | undefined = agentStoreForFactory
-      ? (() => {
-          const all = new Set<string>();
-          for (const agent of agentStoreForFactory.listAgents()) {
-            for (const email of agent.accounts) {
-              all.add(email.toLowerCase());
-            }
-          }
-          return all.size > 0 ? [...all] : undefined;
-        })()
-      : undefined;
-
-    if (watchEnabled) {
-      const watcher = new WatcherManager({
-        registry,
-        store,
-        pollIntervalSeconds: config.watch?.pollIntervalSeconds ?? 60,
-        accountFilter,
-        onNotification: (notification) => {
-          for (const fn of notifyTargets) {
-            fn(notification);
-          }
-        },
-        buffer: notificationBuffer!,
-      });
-      watcher.start();
-    }
-
-    await startHttp(
-      createServer,
-      config.http.host,
-      config.http.port,
-      notifyTargets,
-      agentStoreForFactory,
-    );
-
-    // Cleanup on shutdown
-    if (liveReloadHandle) {
-      process.on("SIGINT", () => liveReloadHandle!.close());
-      process.on("SIGTERM", () => liveReloadHandle!.close());
-    }
+    await startHttp(createServer, config.http.host, config.http.port);
   } else {
     const server = createServer();
     const transport = new StdioServerTransport();
@@ -126,15 +45,12 @@ export async function startServer(opts: ServerOptions): Promise<void> {
 interface HttpSession {
   transport: StreamableHTTPServerTransport;
   server: McpServer;
-  agentContext: AgentContext | null;
 }
 
 async function startHttp(
-  createServer: (agentContext: AgentContext | null) => McpServer,
+  createServer: () => McpServer,
   host: string,
   port: number,
-  notifyTargets: Set<(n: WatchNotification) => void>,
-  agentStore?: AgentStore,
 ): Promise<void> {
   // One McpServer + transport per session, keyed by Mcp-Session-Id header.
   const sessions = new Map<string, HttpSession>();
@@ -150,68 +66,18 @@ async function startHttp(
       let session = sessionId ? sessions.get(sessionId) : undefined;
 
       if (!session) {
-        // ── Session-init API key validation ──
-        let agentContext: AgentContext | null = null;
-        if (agentStore) {
-          const apiKey = (req.headers["x-api-key"] as string | undefined)?.trim();
-          if (!apiKey) {
-            res.statusCode = 401;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Missing x-api-key header" }));
-            return;
-          }
-          const agent = agentStore.findAgentByApiKey(apiKey);
-          if (!agent) {
-            res.statusCode = 401;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Invalid API key" }));
-            return;
-          }
-          agentContext = {
-            agentId: agent.id,
-            accounts: agent.accounts,
-            provisioning: agent.provisioning,
-          };
-        }
-
-        const server = createServer(agentContext);
+        const server = createServer();
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (sid: string) => {
-            sessions.set(sid, { transport, server, agentContext });
-
-            // Register push notification target for this session.
-            // Scope to this agent's accounts only.
-            const agentAccounts = agentContext
-              ? new Set(agentContext.accounts.map((a) => a.toLowerCase()))
-              : null;
-            const notifyFn = (n: WatchNotification) => {
-              // Only deliver notifications for accounts this agent can access.
-              if (agentAccounts && !agentAccounts.has(n.account.toLowerCase())) {
-                return;
-              }
-              server.server
-                .notification({
-                  method: "notifications/message",
-                  params: {
-                    level: n.type === "new_emails" ? "notice" : "warning",
-                    logger: "hypermail-watch",
-                    data: n,
-                  },
-                })
-                .catch(() => {
-                  /* SSE not connected — fallback via check_notifications */
-                });
-            };
-            notifyTargets.add(notifyFn);
+            sessions.set(sid, { transport, server });
             transport.onclose = () => {
               if (transport.sessionId) sessions.delete(transport.sessionId);
-              notifyTargets.delete(notifyFn);
             };
           },
         });
         await server.connect(transport);
-        session = { transport, server, agentContext };
+        session = { transport, server };
       }
 
       // Buffer body for POST / DELETE

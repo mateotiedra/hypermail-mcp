@@ -3,8 +3,6 @@ import { z } from "zod";
 
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
-import type { AgentContext } from "./agent-context.js";
-import { checkAccountAccess } from "./agent-context.js";
 import { ok, fail, errMsg, shouldRegister } from "./shared.js";
 
 export function registerOrganizeTools(
@@ -12,10 +10,9 @@ export function registerOrganizeTools(
   ctx: {
     registry: Registry;
     tools: ResolvedTools;
-    agentContext?: AgentContext | null;
   },
 ): void {
-  const { registry, tools, agentContext } = ctx;
+  const { registry, tools } = ctx;
 
   // Shared helpers — extract the resolved-account lookup and error handling
   // so archive/trash/mark_read/mark_unread handlers stay minimal.
@@ -65,8 +62,6 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           return await moveToWellKnown(args, "archive", "archived");
         } catch (err) {
           return fail(errMsg(err));
@@ -93,8 +88,6 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           return await moveToWellKnown(args, "deleteditems", "trashed");
         } catch (err) {
           return fail(errMsg(err));
@@ -135,8 +128,6 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           await provider.moveEmail(account, args.id, args.destination);
           const data = {
@@ -176,8 +167,6 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           return await markReadState(args, true);
         } catch (err) {
           return fail(errMsg(err));
@@ -197,8 +186,6 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           return await markReadState(args, false);
         } catch (err) {
           return fail(errMsg(err));

@@ -9,7 +9,6 @@ type ParsedArgs = {
   host: string;
   dataDir?: string;
   config?: string;
-  agentsConfig?: string;
   help: boolean;
 };
 
@@ -37,9 +36,6 @@ function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--config":
         out.config = String(argv[++i] ?? "");
-        break;
-      case "--agents-config":
-        out.agentsConfig = String(argv[++i] ?? "");
         break;
       case "-h":
       case "--help":
@@ -109,7 +105,6 @@ async function main(): Promise<void> {
     port: opts.port,
     host: opts.host,
     dataDir: opts.dataDir,
-    agentsConfig: opts.agentsConfig,
   });
 
   await startServer({ config });

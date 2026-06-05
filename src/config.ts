@@ -70,20 +70,12 @@ export interface ProvidersConfig {
   gmail?: GmailProviderConfig;
 }
 
-export interface WatchConfig {
-  enabled: boolean;
-  pollIntervalSeconds: number;
-}
-
 /** Fully resolved application configuration (after ${VAR} expansion and CLI merge). */
 export interface AppConfig {
   dataDir?: string;
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
-  watch?: WatchConfig;
-  /** Path to agents.yaml for HTTP multi-tenant mode. Only used when http.enabled is true. */
-  agentsConfigPath?: string;
 }
 
 /** CLI flags that can override config file values. */
@@ -92,7 +84,6 @@ export interface CliOverrides {
   port?: number;
   host?: string;
   dataDir?: string;
-  agentsConfig?: string;
 }
 
 // ── Known tool names ──
@@ -101,6 +92,8 @@ export interface CliOverrides {
  * Every tool that {@link registerTools} may register.
  * Used for validation — typos in tools.disabled / tools.enabled are caught at startup.
  */
+// Legacy: `check_notifications` was removed in v0.7.0 but is kept here
+// so existing configs that reference it don't break validation.
 export const KNOWN_TOOLS = [
   "list_accounts",
   "add_account",
@@ -239,10 +232,6 @@ export function loadConfig(
       ? { disabled: parsed.tools.disabled, enabled: parsed.tools.enabled }
       : undefined,
     providers: parsed.providers as ProvidersConfig | undefined,
-    watch: parsed.watch as WatchConfig | undefined,
-    agentsConfigPath:
-      cliOverrides.agentsConfig ??
-      process.env.HYPERMAIL_AGENTS_CONFIG,
   };
 }
 

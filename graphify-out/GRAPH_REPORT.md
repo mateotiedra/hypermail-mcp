@@ -1,16 +1,16 @@
-# Graph Report - hyper-email-mcp-0  (2026-06-02)
+# Graph Report - hyper-email-mcp-0  (2026-06-05)
 
 ## Corpus Check
-- 55 files · ~30,930 words
+- 48 files · ~25,232 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 676 nodes · 1375 edges · 46 communities (39 shown, 7 thin omitted)
+- 680 nodes · 1388 edges · 42 communities (37 shown, 5 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `28edd6c0`
+- Built from commit: `5fa99699`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -54,10 +54,6 @@
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
-- [[_COMMUNITY_Community 42|Community 42]]
-- [[_COMMUNITY_Community 43|Community 43]]
-- [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Community 45|Community 45]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `AccountRecord` - 73 edges
@@ -66,7 +62,7 @@
 4. `GmailProvider` - 22 edges
 5. `ImapProvider` - 21 edges
 6. `FolderInfo` - 19 edges
-7. `Deploy hypermail-mcp to Dokploy` - 17 edges
+7. `Deploy hypermail-mcp to Dokploy` - 18 edges
 8. `AgentStore` - 16 edges
 9. `compilerOptions` - 15 edges
 10. `SendInput` - 15 edges
@@ -88,15 +84,19 @@
 - **Server Security Posture** — readmemd_account_encryption, hostingmd_encryption_key_management, readmemd_read_only_mode, readmemd_per_tool_filtering [INFERRED 0.80]
 - **Multi-Provider Routing Stack** — agentsmd_provider_architecture, readmemd_multi_provider_routing, readmemd_ms_graph_client, readmemd_msal_node [INFERRED 0.90]
 
-## Communities (46 total, 7 thin omitted)
+## Communities (42 total, 5 thin omitted)
 
 ### Community 0 - "Community 0"
+Cohesion: 0.16
+Nodes (11): ParsedPayload, DeviceCodeBegin, GraphAttachment, GraphFolder, GraphMessage, GraphRecipient, InlineAttachment, mapRecipient() (+3 more)
+
+### Community 1 - "Community 1"
 Cohesion: 0.20
-Nodes (21): markdownToHtml(), registerAccountTools(), registerBrowseTools(), registerComposeTools(), registerFolderTools(), registerTools(), result, registerNotificationTools() (+13 more)
+Nodes (3): ImapProvider, AttachmentContent, AccountRecord
 
 ### Community 2 - "Community 2"
-Cohesion: 0.07
-Nodes (51): extractTokens(), ImapClient, ImapClientFactory, ImapTokens, isImapTokens(), BodyNode, clampLimit(), decodeId() (+43 more)
+Cohesion: 0.06
+Nodes (55): extractTokens(), ImapClientFactory, ImapTokens, isImapTokens(), BodyNode, clampLimit(), decodeId(), encodeId() (+47 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.12
@@ -111,8 +111,8 @@ Cohesion: 0.18
 Nodes (11): Authentication (optional), code:yaml (agents:), code:yaml (# In docker-compose.yml:), Customizing the port, Deploy hypermail-mcp to Dokploy, Optional: Public domain with TLS, Provider credentials (optional), Troubleshooting (+3 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.07
-Nodes (54): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildOAuth2Client(), DEFAULT_SCOPES, DeviceCodeBegin, isSerializedGmailTokens(), SerializedGmailTokens (+46 more)
+Cohesion: 0.08
+Nodes (44): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildOAuth2Client(), DEFAULT_SCOPES, DeviceCodeBegin, isSerializedGmailTokens(), SerializedGmailTokens (+36 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.09
@@ -148,7 +148,7 @@ Nodes (4): Markdown-to-HTML Conversion (marked), 24-Tool Email API Catalog, Zod 
 
 ### Community 17 - "Community 17"
 Cohesion: 0.10
-Nodes (33): Add-account flow (Outlook), Agent multi-tenancy, agents.yaml, As a hosted HTTP server, Claude Desktop / Claude Code, code:bash (npm install -g hypermail-mcp     # or pnpm / npx), code:jsonc ({), code:jsonc ({) (+25 more)
+Nodes (36): Add-account flow (Outlook), Add-account flow (Outlook), Add-account flow (Outlook), Agent multi-tenancy, agents.yaml, As a hosted HTTP server, Claude Desktop / Claude Code, code:bash (npm install -g hypermail-mcp     # or pnpm / npx) (+28 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.20
@@ -159,24 +159,24 @@ Cohesion: 0.20
 Nodes (9): code:bash (HYPERMAIL_MCP_KEY=$(openssl rand -base64 32) \), code:dockerfile (FROM node:20-slim), code:bash (docker run -d -p 3000:3000 \), Docker (minimal), Hosting hypermail-mcp, Quick start, Read-only mode, Required environment (+1 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.22
-Nodes (9): 1. Create the Application, 1. Push to a Git repository, 2. Set the encryption key, 3. Configure persistent storage, 4. Add a domain, 6. Verify, code:bash (curl https://your-domain.com/mcp), Step 5: Verify (+1 more)
+Cohesion: 0.18
+Nodes (13): 1. Create the Application, 1. Push to a Git repository, 2. Set the encryption key, 3. Configure persistent storage, 4. Add a domain, 5. Deploy, 6. Verify, code:block1 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp) (+5 more)
 
 ### Community 24 - "Community 24"
 Cohesion: 0.08
 Nodes (26): GmailProviderOptions, OutlookProviderOptions, AccountStore, decrypt(), encrypt(), OpenOptions, parseEnvKey(), resolveDataDir() (+18 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.12
-Nodes (18): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildPca(), DEFAULT_SCOPES, DeviceCodeBegin, isSerializedTokens(), makeConfig() (+10 more)
+Cohesion: 0.21
+Nodes (9): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildPca(), DEFAULT_SCOPES, isSerializedTokens(), makeConfig(), SerializedTokens (+1 more)
 
 ### Community 26 - "Community 26"
 Cohesion: 0.15
 Nodes (13): dependencies, @azure/msal-node, google-auth-library, googleapis, imapflow, isomorphic-fetch, js-yaml, marked (+5 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.19
-Nodes (13): 2. Connect Git provider in Dokploy, 3. Create a Compose service, 4. Set environment variables, 4. Set required env var, 5. Add provider credentials (optional), 5. Deploy, 6. Deploy, 6. Verify it's running (+5 more)
+Cohesion: 0.18
+Nodes (13): 2. Connect Git provider in Dokploy, 3. Create a Compose service, 4. Set environment variables, 4. Set required env var, 5. Add provider credentials (optional), 6. Deploy, 6. Verify it's running, 7. Verify (+5 more)
 
 ### Community 28 - "Community 28"
 Cohesion: 0.29
@@ -199,59 +199,47 @@ Cohesion: 0.67
 Nodes (3): repository, type, url
 
 ### Community 34 - "Community 34"
-Cohesion: 0.33
-Nodes (6): Authentication, code:block1 ([hypermail-mcp] listening on http://0.0.0.0:3000/mcp), Default: No auth, docker-compose.yml — what's in it, Optional: API key auth (multi-tenant), Step 1: Push to Git
-
-### Community 35 - "Community 35"
-Cohesion: 0.83
-Nodes (3): htmlToMarkdown(), selectBody(), turndown
+Cohesion: 0.67
+Nodes (3): Authentication, Default: No auth, Optional: API key auth (multi-tenant)
 
 ### Community 36 - "Community 36"
-Cohesion: 0.11
-Nodes (22): main(), parseArgs(), ParsedArgs, printHelp(), CliOverrides, deepResolve(), GmailProviderConfig, gmailProviderSchema (+14 more)
+Cohesion: 0.07
+Nodes (38): AgentDef, agentDefSchema, AgentsConfig, agentsConfigSchema, EmailAccountDef, emailAccountDefSchema, LiveReloadHandle, loadAgentsConfig() (+30 more)
 
 ### Community 37 - "Community 37"
-Cohesion: 0.14
-Nodes (17): AgentDef, agentDefSchema, AgentsConfig, agentsConfigSchema, EmailAccountDef, emailAccountDefSchema, LiveReloadHandle, loadAgentsConfig() (+9 more)
+Cohesion: 0.17
+Nodes (3): GmailProvider, CompleteAddAccountResult, EmailProvider
+
+### Community 38 - "Community 38"
+Cohesion: 0.25
+Nodes (4): mapFolder(), CreateFolderInput, FolderInfo, ListFoldersOptions
 
 ### Community 39 - "Community 39"
-Cohesion: 0.13
-Nodes (14): a, accessErr, addAttachmentOutputSchema, composed, data, draftEmailOutputSchema, EditDraftArgs, editDraftOutputSchema (+6 more)
+Cohesion: 0.29
+Nodes (4): convertInlineImages(), body, result, DraftUpdateInput
 
 ### Community 41 - "Community 41"
-Cohesion: 0.36
-Nodes (8): Registry, ResolvedTools, HttpSession, AgentContext, RegisterToolsOptions, NotificationToolContext, WatcherManagerOptions, WatchNotification
-
-### Community 42 - "Community 42"
-Cohesion: 0.28
-Nodes (3): mapFolder(), CreateFolderInput, FolderInfo
-
-### Community 43 - "Community 43"
-Cohesion: 0.28
-Nodes (7): ProviderId, checkAccountAccess(), checkProvisioning(), accountFullOutputSchema, accountSummaryOutputSchema, providerIdEnum, styleOutputSchema
-
-### Community 44 - "Community 44"
-Cohesion: 0.40
-Nodes (3): convertInlineImages(), body, result
+Cohesion: 0.08
+Nodes (54): BuildRegistryOptions, Registry, ProviderId, ProvidersConfig, ResolvedTools, htmlToMarkdown(), selectBody(), turndown (+46 more)
 
 ## Knowledge Gaps
 - **228 isolated node(s):** `target`, `module`, `moduleResolution`, `lib`, `outDir` (+223 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AccountRecord` connect `Community 1` to `Community 2`, `Community 4`, `Community 37`, `Community 6`, `Community 39`, `Community 38`, `Community 41`, `Community 42`, `Community 40`, `Community 44`, `Community 45`, `Community 24`, `Community 25`?**
-  _High betweenness centrality (0.100) - this node is a cross-community bridge._
-- **Why does `AccountStore` connect `Community 24` to `Community 0`, `Community 2`, `Community 37`, `Community 6`, `Community 39`, `Community 41`, `Community 43`, `Community 25`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **Why does `AccountRecord` connect `Community 1` to `Community 0`, `Community 2`, `Community 35`, `Community 4`, `Community 37`, `Community 6`, `Community 39`, `Community 38`, `Community 41`, `Community 24`, `Community 25`?**
+  _High betweenness centrality (0.099) - this node is a cross-community bridge._
+- **Why does `AccountStore` connect `Community 24` to `Community 0`, `Community 1`, `Community 2`, `Community 36`, `Community 6`, `Community 41`, `Community 25`?**
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `Community 26` to `Community 3`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `target`, `module`, `moduleResolution` to the rest of the system?**
   _228 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.06512890094979647 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06430745814307458 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.125 - nodes in this community are weakly interconnected._
 - **Should `Community 4` be split into smaller, more focused modules?**

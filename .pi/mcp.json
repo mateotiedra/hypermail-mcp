@@ -2,7 +2,7 @@
   "mcpServers": {
     "hypermail-http": {
       "url": "https://hypermail.hypersimple.ch/mcp",
-      "directTools": true,
+      "directTools": false,
       "lifecycle": "eager"
     }
   }

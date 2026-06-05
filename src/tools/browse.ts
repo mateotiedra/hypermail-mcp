@@ -3,8 +3,6 @@ import { z } from "zod";
 
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
-import type { AgentContext } from "./agent-context.js";
-import { checkAccountAccess } from "./agent-context.js";
 import { selectBody } from "../html-to-markdown.js";
 import {
   ok,
@@ -21,10 +19,9 @@ export function registerBrowseTools(
   ctx: {
     registry: Registry;
     tools: ResolvedTools;
-    agentContext?: AgentContext | null;
   },
 ): void {
-  const { registry, tools, agentContext } = ctx;
+  const { registry, tools } = ctx;
 
   // ---------- email ops ----------
 
@@ -60,8 +57,6 @@ export function registerBrowseTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const { items, hasMore } = await provider.listEmails(account, {
             folder: args.folder,
@@ -99,8 +94,6 @@ export function registerBrowseTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const items = await provider.searchEmails(account, args.query, {
             limit: args.limit,
@@ -159,8 +152,6 @@ export function registerBrowseTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const msg = await provider.readEmail(account, args.id);
           const format = args.format ?? "markdown";
@@ -211,8 +202,6 @@ export function registerBrowseTools(
       },
       async (args) => {
         try {
-          const accessErr = checkAccountAccess(agentContext ?? null, args.account);
-          if (accessErr) return fail(accessErr);
           const { provider, account } = registry.resolveByEmail(args.account);
           const res = await provider.readAttachment(
             account,
