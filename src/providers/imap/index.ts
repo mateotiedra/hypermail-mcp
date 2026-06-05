@@ -1,4 +1,5 @@
-import type { AccountRecord, AccountStore } from "../../store/account-store.js";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { IAccountStore } from "../../mode/types.js";
 import type {
   AddAccountInput,
   AddAccountResult,
@@ -43,12 +44,12 @@ export class ImapProvider implements EmailProvider {
   readonly id = "imap" as const;
   private readonly clients = new ImapClientFactory();
 
-  constructor(private readonly store?: AccountStore) {}
+  constructor(private readonly store?: IAccountStore) {}
 
   // ---------- account lifecycle ----------
 
   async addAccount(input: AddAccountInput): Promise<AddAccountResult> {
-    if (!this.store) throw new Error("IMAP provider requires an AccountStore");
+    if (!this.store) throw new Error("IMAP provider requires an account store");
     return addAccount(this.clients, this.store, input);
   }
 

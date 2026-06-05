@@ -1,4 +1,5 @@
-import type { AccountStore, AccountRecord } from "../store/account-store.js";
+import type { AccountRecord } from "../store/account-store.js";
+import type { IAccountStore } from "../mode/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { EmailSummary } from "../providers/types.js";
 
@@ -17,7 +18,7 @@ export interface WatchNotification {
 
 export interface WatcherManagerOptions {
   registry: Registry;
-  store: AccountStore;
+  store: IAccountStore;
   /** Polling interval per account, in seconds. */
   pollIntervalSeconds: number;
   /**
@@ -78,8 +79,8 @@ export class WatcherManager {
 
   // ── internals ──
 
-  private scanAccounts(): void {
-    let accounts = this.opts.store.listAccounts();
+  private async scanAccounts(): Promise<void> {
+    let accounts = await this.opts.store.listAccounts();
     if (this.opts.accountFilter) {
       const filter = new Set(this.opts.accountFilter.map((e) => e.toLowerCase()));
       accounts = accounts.filter((a) => filter.has(a.email.toLowerCase()));
@@ -115,7 +116,7 @@ export class WatcherManager {
     this.inflight.set(key, true);
 
     try {
-      const { provider } = this.opts.registry.resolveByEmail(account.email);
+      const { provider } = await this.opts.registry.resolveByEmail(account.email);
       const seenIds = new Set(account.lastSeenIds ?? []);
       const isFirstPoll = !account.lastSeenAt && !account.lastSeenIds?.length;
       const limit = 25;

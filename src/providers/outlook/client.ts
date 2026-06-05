@@ -4,7 +4,8 @@ import {
   type AuthenticationProvider,
 } from "@microsoft/microsoft-graph-client";
 
-import type { AccountStore, AccountRecord } from "../../store/account-store.js";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { IAccountStore } from "../../mode/types.js";
 import { acquireAccessToken, isSerializedTokens, type SerializedTokens } from "./auth.js";
 
 /**
@@ -20,7 +21,7 @@ export class OutlookClientFactory {
   private readonly refreshLocks = new Map<string, Promise<string>>();
 
   constructor(
-    private readonly store: AccountStore,
+    private readonly store: IAccountStore,
     private readonly clientId?: string,
     private readonly tenantId?: string,
   ) {}
@@ -43,7 +44,7 @@ export class OutlookClientFactory {
           }
         }
         const promise = (async (): Promise<string> => {
-          const fresh = store.getAccount(account.email) ?? account;
+          const fresh = await store.getAccount(account.email) ?? account;
           if (!isSerializedTokens(fresh.tokens)) {
             throw new Error(
               "Outlook account tokens are missing or corrupted — re-run add_account",

@@ -62,7 +62,7 @@ export function registerBrowseTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const { items, hasMore } = await provider.listEmails(account, {
             folder: args.folder,
             limit: args.limit,
@@ -101,7 +101,7 @@ export function registerBrowseTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const items = await provider.searchEmails(account, args.query, {
             limit: args.limit,
           });
@@ -161,7 +161,7 @@ export function registerBrowseTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const msg = await provider.readEmail(account, args.id);
           const format = args.format ?? "markdown";
           const body = selectBody(msg, format);
@@ -213,7 +213,7 @@ export function registerBrowseTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const res = await provider.readAttachment(
             account,
             args.messageId,

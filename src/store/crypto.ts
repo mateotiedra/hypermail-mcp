@@ -65,6 +65,27 @@ export function parseEnvKey(raw: string): Buffer | undefined {
   return createHash("sha256").update(s, "utf8").digest();
 }
 
+/**
+ * Resolve the encryption key from HYPERMAIL_ENCRYPTION_KEY env var.
+ * Used by multi mode — crashes fast if the key is missing or invalid.
+ */
+export function resolveEncryptionKey(): Buffer {
+  const raw = process.env.HYPERMAIL_ENCRYPTION_KEY;
+  if (!raw || raw.trim().length === 0) {
+    throw new Error(
+      "HYPERMAIL_ENCRYPTION_KEY is required for multi mode. " +
+        "Generate one with: openssl rand -hex 32",
+    );
+  }
+  const key = parseEnvKey(raw);
+  if (!key) {
+    throw new Error(
+      "HYPERMAIL_ENCRYPTION_KEY must be 64 hex chars or base64-encoded 32 bytes",
+    );
+  }
+  return key;
+}
+
 export async function resolveKey(dataDir: string): Promise<Buffer> {
   const env = process.env.HYPERMAIL_MCP_KEY;
   if (env && env.length > 0) {

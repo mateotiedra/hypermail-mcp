@@ -74,13 +74,13 @@ export class AccountStore {
     return new AccountStore(filePath, key, data);
   }
 
-  listAccounts(): AccountRecord[] {
+  async listAccounts(): Promise<AccountRecord[]> {
     // Return shallow clones without tokens leaking out unintentionally is the
     // caller's job; here we expose the full record for provider use.
     return this.data.accounts.map((a) => ({ ...a }));
   }
 
-  getAccount(email: string): AccountRecord | undefined {
+  async getAccount(email: string): Promise<AccountRecord | undefined> {
     const norm = email.trim().toLowerCase();
     const rec = this.data.accounts.find((a) => a.email.toLowerCase() === norm);
     return rec ? { ...rec } : undefined;

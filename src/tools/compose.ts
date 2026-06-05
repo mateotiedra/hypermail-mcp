@@ -1,7 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { AccountRecord, AccountStore } from "../store/account-store.js";
+import type { AccountRecord } from "../store/account-store.js";
+import type { IAccountStore } from "../mode/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { EmailProvider, SendInput } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
@@ -19,7 +20,7 @@ import {
 export function registerComposeTools(
   server: McpServer,
   ctx: {
-    store: AccountStore;
+    store: IAccountStore;
     registry: Registry;
     tools: ResolvedTools;
     agentContext?: AgentContext | null;
@@ -87,7 +88,7 @@ export function registerComposeTools(
     try {
       const accessErr = checkAccountAccess(agentContext ?? null, args.account);
       if (accessErr) return fail(accessErr);
-      const { provider, account } = registry.resolveByEmail(args.account);
+      const { provider, account } = await registry.resolveByEmail(args.account);
       if (args.include_signature && !account.signature) {
         return fail(
           "include_signature is true but no signature is configured for this account. " +
@@ -258,7 +259,7 @@ export function registerComposeTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, a.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(a.account);
+          const { provider, account } = await registry.resolveByEmail(a.account);
           if (a.include_signature && !account.signature) {
             return fail(
               "include_signature is true but no signature is configured for this account. " +
@@ -325,7 +326,7 @@ export function registerComposeTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const res = await provider.sendDraft(account, args.id);
           const data = { sent: true as const, id: res.id };
           return ok(data, data);
@@ -380,7 +381,7 @@ export function registerComposeTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const res = await provider.addAttachmentToDraft(
             account,
             args.id,

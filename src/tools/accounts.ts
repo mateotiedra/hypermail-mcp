@@ -2,8 +2,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { promises as fs } from "node:fs";
 import { z } from "zod";
 
-import type { AccountStore } from "../store/account-store.js";
-import type { AgentStore } from "../store/agent-store.js";
+import type { AccountRecord } from "../store/account-store.js";
+import type { IAccountStore, IAgentStore } from "../mode/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { ProviderId } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
@@ -26,8 +26,8 @@ import {
 export function registerAccountTools(
   server: McpServer,
   ctx: {
-    store: AccountStore;
-    agentStore?: AgentStore;
+    store: IAccountStore;
+    agentStore?: IAgentStore | null;
     registry: Registry;
     tools: ResolvedTools;
     agentContext?: AgentContext | null;
@@ -52,7 +52,7 @@ export function registerAccountTools(
         outputSchema: listAccountsOutputSchema,
       },
       async () => {
-        const rows = store.listAccounts().map((a) => ({
+        const rows = (await store.listAccounts()).map((a) => ({
           email: a.email,
           provider: a.provider,
           displayName: a.displayName,
@@ -196,7 +196,7 @@ export function registerAccountTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const acct = store.getAccount(args.account);
+          const acct = await store.getAccount(args.account);
           if (!acct)
             return fail(`no account registered for "${args.account}"`);
           const data = {
@@ -264,7 +264,7 @@ export function registerAccountTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const acct = store.getAccount(args.account);
+          const acct = await store.getAccount(args.account);
           if (!acct)
             return fail(`no account registered for "${args.account}"`);
           let resolvedSignature: string | undefined = acct.signature;

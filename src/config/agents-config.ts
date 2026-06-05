@@ -124,7 +124,7 @@ export async function syncAgentsToStore(
   store: AgentStore,
 ): Promise<string[]> {
   const configAgentIds = new Set(config.agents.map((a) => a.id));
-  const storedAgents = store.listAgents();
+  const storedAgents = await store.listAgents();
 
   // Upsert config-defined agents
   for (const def of config.agents) {

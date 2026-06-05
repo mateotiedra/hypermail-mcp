@@ -1,4 +1,5 @@
-import type { AccountStore, AccountRecord } from "../store/account-store.js";
+import type { AccountRecord } from "../store/account-store.js";
+import type { IAccountStore } from "../mode/types.js";
 import type { EmailProvider, ProviderId } from "./types.js";
 import type { ProvidersConfig } from "../config.js";
 import { OutlookProvider } from "./outlook/index.js";
@@ -7,12 +8,12 @@ import { GmailProvider } from "./gmail/index.js";
 
 export interface Registry {
   get(id: ProviderId): EmailProvider;
-  resolveByEmail(email: string): { provider: EmailProvider; account: AccountRecord };
+  resolveByEmail(email: string): Promise<{ provider: EmailProvider; account: AccountRecord }>;
   list(): EmailProvider[];
 }
 
 export interface BuildRegistryOptions {
-  store: AccountStore;
+  store: IAccountStore;
   providers?: ProvidersConfig;
 }
 
@@ -38,11 +39,11 @@ export function buildRegistry(opts: BuildRegistryOptions): Registry {
     return p;
   }
 
-  function resolveByEmail(email: string): {
+  async function resolveByEmail(email: string): Promise<{
     provider: EmailProvider;
     account: AccountRecord;
-  } {
-    const account = opts.store.getAccount(email);
+  }> {
+    const account = await opts.store.getAccount(email);
     if (!account) {
       throw new Error(
         `no account registered for "${email}". Call add_account first.`,

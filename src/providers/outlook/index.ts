@@ -7,7 +7,8 @@ import { ResponseType, type Client } from "@microsoft/microsoft-graph-client";
 
 import { parseInlineImages } from "../shared/inline-images.js";
 
-import type { AccountRecord, AccountStore } from "../../store/account-store.js";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { IAccountStore } from "../../mode/types.js";
 import type {
   AddAccountInput,
   AddAccountResult,
@@ -83,7 +84,7 @@ interface PendingFlow {
 }
 
 export interface OutlookProviderOptions {
-  store: AccountStore;
+  store: IAccountStore;
   clientId?: string;
   tenantId?: string;
 }

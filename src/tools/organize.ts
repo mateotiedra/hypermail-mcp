@@ -25,7 +25,7 @@ export function registerOrganizeTools(
     destination: string,
     resultKey: string,
   ) {
-    const { provider, account } = registry.resolveByEmail(args.account);
+    const { provider, account } = await registry.resolveByEmail(args.account);
     await provider.moveEmail(account, args.id, destination);
     const data: Record<string, unknown> = { id: args.id };
     data[resultKey] = true;
@@ -36,7 +36,7 @@ export function registerOrganizeTools(
     args: { account: string; id: string },
     isRead: boolean,
   ) {
-    const { provider, account } = registry.resolveByEmail(args.account);
+    const { provider, account } = await registry.resolveByEmail(args.account);
     await provider.markRead(account, args.id, isRead);
     const data = { marked: true as const, id: args.id, isRead };
     return ok(data, data);
@@ -137,7 +137,7 @@ export function registerOrganizeTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           await provider.moveEmail(account, args.id, args.destination);
           const data = {
             moved: true as const,

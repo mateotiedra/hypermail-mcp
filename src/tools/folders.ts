@@ -54,7 +54,7 @@ export function registerFolderTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const items = await provider.listFolders(account, {
             parentFolderId: args.parentFolderId,
           });
@@ -106,7 +106,7 @@ export function registerFolderTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const folder = await provider.createFolder(account, {
             displayName: args.displayName,
             parentFolderId: args.parentFolderId,
@@ -146,7 +146,7 @@ export function registerFolderTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           await provider.deleteFolder(account, args.folderId);
           const data = { deleted: true as const, id: args.folderId };
           return ok(data, data);
@@ -187,7 +187,7 @@ export function registerFolderTools(
         try {
           const accessErr = checkAccountAccess(agentContext ?? null, args.account);
           if (accessErr) return fail(accessErr);
-          const { provider, account } = registry.resolveByEmail(args.account);
+          const { provider, account } = await registry.resolveByEmail(args.account);
           const folder = await provider.renameFolder(
             account,
             args.folderId,

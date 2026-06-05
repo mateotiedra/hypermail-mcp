@@ -12,5 +12,5 @@ export default defineConfig({
   shims: false,
   banner: { js: "#!/usr/bin/env node" },
   // keep optional native deps external so install doesn't fail on platforms without them
-  external: ["keytar"],
+  external: ["keytar", "pg"],
 });

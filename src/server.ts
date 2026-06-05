@@ -3,10 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { randomUUID } from "node:crypto";
 import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from "node:http";
-import path from "node:path";
 
-import { AccountStore } from "./store/account-store.js";
-import { AgentStore } from "./store/agent-store.js";
 import { buildRegistry } from "./providers/registry.js";
 import { registerTools } from "./tools/index.js";
 import { VERSION } from "./version.js";
@@ -14,78 +11,63 @@ import type { AppConfig, ResolvedTools } from "./config.js";
 import { resolveTools } from "./config.js";
 import { WatcherManager } from "./watcher/index.js";
 import type { WatchNotification } from "./watcher/index.js";
-import {
-  loadAgentsConfig,
-  watchAgentsConfig,
-} from "./config/agents-config.js";
 import type { AgentContext } from "./tools/agent-context.js";
+import type { ModePlugin, IAccountStore, IAgentStore } from "./mode/types.js";
+import { AuthError } from "./mode/types.js";
 
 export interface ServerOptions {
   /** Fully resolved application config from hypermail-config.json. */
   config: AppConfig;
+  /** Mode plugin (solo or multi). */
+  plugin: ModePlugin;
 }
 
 export async function startServer(opts: ServerOptions): Promise<void> {
-  const { config } = opts;
-  const store = await AccountStore.open({ dataDir: config.dataDir });
+  const { config, plugin } = opts;
+
+  // 1. Init plugin (DB connect + migrate in multi mode)
+  await plugin.init();
+
+  // 2. Create stores via plugin
+  const store: IAccountStore = await plugin.createAccountStore(config.dataDir);
+  const agentStore: IAgentStore | null = await plugin.createAgentStore(config.dataDir);
+
   const registry = buildRegistry({ store, providers: config.providers });
   const tools: ResolvedTools = resolveTools(config);
 
-  // Shared notification buffer: the watcher pushes, the check_notifications
-  // tool drains. Only created when both HTTP and watch are enabled.
+  // 3. Notification buffer (HTTP + watch mode only)
   const watchEnabled = config.http.enabled && config.watch?.enabled !== false;
   const notificationBuffer: WatchNotification[] | undefined = watchEnabled
     ? []
     : undefined;
 
-  // Factory: creates a fresh McpServer with all tools registered.
-  // HTTP mode creates one per session; stdio mode uses a single instance.
-  let agentStoreForFactory: AgentStore | undefined;
+  // 4. MCP server factory (shared by both modes)
   const createServer = (agentContext: AgentContext | null = null): McpServer => {
     const s = new McpServer(
       { name: "hypermail-mcp", version: VERSION },
       { capabilities: { tools: {}, logging: {} } },
     );
-    registerTools(s, { store, registry, tools, notificationBuffer, agentContext, agentStore: agentStoreForFactory });
+    registerTools(s, { store, registry, tools, notificationBuffer, agentContext, agentStore });
     return s;
   };
 
   if (config.http.enabled) {
-    // Open AgentStore and load agents.yaml (HTTP mode only).
-    let liveReloadHandle: { close(): void } | undefined;
-    if (config.agentsConfigPath) {
-      agentStoreForFactory = await AgentStore.open({ dataDir: config.dataDir });
-      liveReloadHandle = watchAgentsConfig(
-        path.resolve(config.agentsConfigPath),
-        agentStoreForFactory!,
-        (_removedIds) => {
-          // Sessions use the same agentStore instance — they'll pick up
-          // updated agents on next lookup. Removed agents' existing sessions
-          // remain valid until they disconnect (local-trust model).
-        },
-        (err) => {
-          // eslint-disable-next-line no-console
-          console.error("[hypermail-mcp] agents.yaml reload error:", err.message);
-        },
-      );
-    }
-
-    // Per-session notification targets — the watcher pushes to all of them.
-    const notifyTargets = new Set<(n: WatchNotification) => void>();
-
-    // Compute account filter from all agents' authorized accounts.
-    // When no agents are configured, poll all stored accounts (legacy).
-    const accountFilter: string[] | undefined = agentStoreForFactory
-      ? (() => {
-          const all = new Set<string>();
-          for (const agent of agentStoreForFactory.listAgents()) {
-            for (const email of agent.accounts) {
-              all.add(email.toLowerCase());
+    // 5. Watcher account filter via plugin
+    const accountFilter = plugin.getWatcherAccountFilter
+      ? await plugin.getWatcherAccountFilter()
+      : agentStore
+        ? await (async () => {
+            const all = new Set<string>();
+            for (const agent of await agentStore.listAgents()) {
+              for (const email of agent.accounts) {
+                all.add(email.toLowerCase());
+              }
             }
-          }
-          return all.size > 0 ? [...all] : undefined;
-        })()
-      : undefined;
+            return all.size > 0 ? [...all] : undefined;
+          })()
+        : undefined;
+
+    const notifyTargets = new Set<(n: WatchNotification) => void>();
 
     if (watchEnabled) {
       const watcher = new WatcherManager({
@@ -108,20 +90,16 @@ export async function startServer(opts: ServerOptions): Promise<void> {
       config.http.host,
       config.http.port,
       notifyTargets,
-      agentStoreForFactory,
+      plugin,
     );
-
-    // Cleanup on shutdown
-    if (liveReloadHandle) {
-      process.on("SIGINT", () => liveReloadHandle!.close());
-      process.on("SIGTERM", () => liveReloadHandle!.close());
-    }
   } else {
     const server = createServer();
     const transport = new StdioServerTransport();
     await server.connect(transport);
   }
 }
+
+// ── HTTP server ──
 
 interface HttpSession {
   transport: StreamableHTTPServerTransport;
@@ -134,44 +112,46 @@ async function startHttp(
   host: string,
   port: number,
   notifyTargets: Set<(n: WatchNotification) => void>,
-  agentStore?: AgentStore,
+  plugin: ModePlugin,
 ): Promise<void> {
-  // One McpServer + transport per session, keyed by Mcp-Session-Id header.
   const sessions = new Map<string, HttpSession>();
 
   const http = createHttpServer(async (req: IncomingMessage, res: ServerResponse) => {
     try {
+      // ── Admin routes (multi mode only) ──
+      if (req.url?.startsWith("/admin")) {
+        if (plugin.handleAdminRequest) {
+          const handled = await plugin.handleAdminRequest(req, res);
+          if (handled) return;
+        }
+        res.statusCode = 404;
+        res.end("not found");
+        return;
+      }
+
+      // ── MCP routes ──
       if (!req.url || !req.url.startsWith("/mcp")) {
         res.statusCode = 404;
         res.end("not found");
         return;
       }
+
       const sessionId = (req.headers["mcp-session-id"] as string | undefined) ?? undefined;
       let session = sessionId ? sessions.get(sessionId) : undefined;
 
       if (!session) {
-        // ── Session-init API key validation ──
+        // ── Auth via plugin ──
         let agentContext: AgentContext | null = null;
-        if (agentStore) {
-          const apiKey = (req.headers["x-api-key"] as string | undefined)?.trim();
-          if (!apiKey) {
-            res.statusCode = 401;
+        try {
+          agentContext = await plugin.authenticate(req);
+        } catch (err) {
+          if (err instanceof AuthError) {
+            res.statusCode = err.statusCode;
             res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Missing x-api-key header" }));
+            res.end(JSON.stringify({ error: err.message }));
             return;
           }
-          const agent = agentStore.findAgentByApiKey(apiKey);
-          if (!agent) {
-            res.statusCode = 401;
-            res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "Invalid API key" }));
-            return;
-          }
-          agentContext = {
-            agentId: agent.id,
-            accounts: agent.accounts,
-            provisioning: agent.provisioning,
-          };
+          throw err;
         }
 
         const server = createServer(agentContext);
@@ -181,12 +161,10 @@ async function startHttp(
             sessions.set(sid, { transport, server, agentContext });
 
             // Register push notification target for this session.
-            // Scope to this agent's accounts only.
             const agentAccounts = agentContext
               ? new Set(agentContext.accounts.map((a) => a.toLowerCase()))
               : null;
             const notifyFn = (n: WatchNotification) => {
-              // Only deliver notifications for accounts this agent can access.
               if (agentAccounts && !agentAccounts.has(n.account.toLowerCase())) {
                 return;
               }

@@ -16,6 +16,10 @@ import {
  * is never stored. The `id` is a human-readable slug; `accounts` lists the
  * email addresses this agent is authorized to operate on.
  */
+export type UpsertAgentInput = Omit<AgentRecord, "apiKeyHash" | "createdAt"> & {
+  plaintextApiKey?: string;
+};
+
 export interface AgentRecord {
   id: string;
   /** scrypt hash of the agent's API key (format: "salt:hash", both hex). */
@@ -70,11 +74,11 @@ export class AgentStore {
 
   // ── queries ──
 
-  listAgents(): AgentRecord[] {
+  async listAgents(): Promise<AgentRecord[]> {
     return this.data.agents.map((a) => ({ ...a }));
   }
 
-  getAgent(id: string): AgentRecord | undefined {
+  async getAgent(id: string): Promise<AgentRecord | undefined> {
     const rec = this.data.agents.find((a) => a.id === id);
     return rec ? { ...rec } : undefined;
   }
@@ -84,7 +88,7 @@ export class AgentStore {
    * compares against stored hashes with constant-time comparison.
    * Returns undefined if no agent matches.
    */
-  findAgentByApiKey(apiKey: string): AgentRecord | undefined {
+  async findAgentByApiKey(apiKey: string): Promise<AgentRecord | undefined> {
     for (const agent of this.data.agents) {
       if (verifyApiKey(apiKey, agent.apiKeyHash)) {
         return { ...agent };

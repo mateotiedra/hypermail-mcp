@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import type { AccountStore, AccountRecord } from "../../store/account-store.js";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { IAccountStore } from "../../mode/types.js";
 import type {
   AddAccountInput,
   AddAccountResult,
@@ -58,7 +59,7 @@ interface PendingFlow {
 // ── provider ──
 
 export interface GmailProviderOptions {
-  store: AccountStore;
+  store: IAccountStore;
   clientId?: string;
   clientSecret?: string;
 }

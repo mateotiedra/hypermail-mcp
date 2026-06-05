@@ -52,6 +52,7 @@
     "js-yaml": "^4.2.0",
     "marked": "^18.0.4",
     "nodemailer": "^8.0.8",
+    "pg": "^8.21.0",
     "turndown": "^7.2.4",
     "zod": "^4.4.3"
   },
@@ -63,6 +64,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.2",
     "@types/nodemailer": "^8.0.0",
+    "@types/pg": "^8.20.0",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

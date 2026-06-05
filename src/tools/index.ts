@@ -1,7 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import type { AccountStore } from "../store/account-store.js";
-import type { AgentStore } from "../store/agent-store.js";
+import type { IAccountStore, IAgentStore } from "../mode/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
 import type { AgentContext } from "./agent-context.js";
@@ -20,8 +19,8 @@ import { registerNotificationTools } from "./notifications.js";
 import type { WatchNotification } from "../watcher/index.js";
 
 export interface RegisterToolsOptions {
-  store: AccountStore;
-  agentStore?: AgentStore;
+  store: IAccountStore;
+  agentStore?: IAgentStore | null;
   registry: Registry;
   tools: ResolvedTools;
   notificationBuffer?: WatchNotification[];

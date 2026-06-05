@@ -12,6 +12,23 @@ Provides 26 tools to pi for email operations via the Model Context Protocol:
 - `list_folders` / `create_folder` / `delete_folder` / `rename_folder` — folders
 - `check_notifications` — email watch alerts (HTTP mode only)
 
+## Modes
+
+Two operation modes, selected via `--mode` flag (default: `solo`):
+
+### Solo mode (`--mode solo`, default)
+- File-based stores (accounts.json.enc, agents.yaml)
+- Works over stdio or HTTP
+- No authentication required
+- No database needed
+
+### Multi mode (`--mode multi`)
+- PostgreSQL-backed stores (agents, accounts tables)
+- HTTP only (implied `--http`)
+- x-api-key authentication required for MCP sessions
+- Admin API at `/admin` for managing agents and accounts
+- Requires `DATABASE_URL` and `HYPERMAIL_ENCRYPTION_KEY` env vars
+
 ## Structure
 
 ```
@@ -21,21 +38,33 @@ src/
 ├── version.ts          # Version constant
 ├── config.ts           # hypermail-config.json schema + resolution
 ├── config/
-│   └── agents-config.ts  # agents.yaml schema, validation, live-reload watcher
+│   └── agents-config.ts  # agents.yaml schema, validation, live-reload watcher (solo mode)
+├── admin/
+│   └── router.ts       # Admin API route handler (multi mode only)
+├── db/                 # PostgreSQL layer (multi mode only, dynamic import)
+│   ├── index.ts        # Public API: healthCheck, closePool, runMigrations
+│   ├── connection.ts   # Connection pool manager (dynamic pg import)
+│   ├── migrate.ts      # Versioned migration runner
+│   ├── account-store.ts  # DB-backed account store (AES-256-GCM encryption)
+│   └── agent-store.ts    # DB-backed agent store (scrypt API key hashing)
+├── mode/               # Mode plugin abstraction
+│   ├── types.ts        # ModePlugin interface + store interfaces
+│   ├── solo.ts         # Solo plugin (file-based, no auth)
+│   └── multi.ts        # Multi plugin (DB-backed, auth, admin API)
 ├── providers/          # Email provider backends
 │   ├── outlook/        # Microsoft Graph API (auth.ts, client.ts, index.ts)
 │   ├── imap/           # IMAP provider (index.ts)
 │   ├── gmail/          # Gmail API provider (auth.ts, client.ts, index.ts)
 │   ├── registry.ts     # Provider registry/selection
 │   └── types.ts        # Shared provider interfaces
-├── store/              # Persistence
+├── store/              # File-based persistence (solo mode)
 │   ├── account-store.ts  # AES-256-GCM encrypted multi-account store
-│   ├── agent-store.ts    # Agent identity + credentials (HTTP multi-tenant)
+│   ├── agent-store.ts    # Agent identity + credentials
 │   └── crypto.ts         # encrypt/decrypt, key resolution, atomic writes
 ├── watcher/            # Email watch (HTTP mode only)
 │   ├── manager.ts      # Inbox poller + notification buffer
 │   └── index.ts        # Public API
-└── tools/              # Per-tool handler implementations
+└── tools/              # Per-tool handler implementations (shared, mode-agnostic)
     ├── index.ts        # Tool registration
     ├── agent-context.ts  # Agent authorization guards
     ├── accounts.ts     # Account management tools
@@ -74,7 +103,39 @@ pnpm start        # Run dist/cli.js directly
 Required env vars (set in `.mcp.json`):
 - `MS_CLIENT_ID` — Azure/Entra ID app registration client ID
 - `MS_TENANT_ID` — Azure/Entra ID tenant ID
-- `HYPERMAIL_MCP_DATA_DIR` — directory for token/account storage
+- `HYPERMAIL_MCP_DATA_DIR` — directory for token/account storage (solo mode)
+
+Multi mode env vars:
+- `DATABASE_URL` — PostgreSQL connection string (required, e.g. `postgresql://user:pass@localhost:5432/hypermail`)
+- `HYPERMAIL_ENCRYPTION_KEY` — 64 hex chars or base64-encoded 32 bytes for OAuth token encryption (required, generate with `openssl rand -hex 32`)
+- `HYPERMAIL_ADMIN_KEY` — bearer token for admin API access (optional; admin API returns 404 if unset)
+
+## Admin API (multi mode only)
+
+Protected by `Authorization: Bearer <HYPERMAIL_ADMIN_KEY>` header.
+Returns 404 if `HYPERMAIL_ADMIN_KEY` env var is not set.
+
+```
+GET    /admin/agents           → list agents (no api_key_hash exposed)
+POST   /admin/agents           → create agent { id, api_key, name, accounts?, provisioning? }
+DELETE /admin/agents/:id       → remove agent
+GET    /admin/accounts          → list email accounts (no tokens exposed)
+DELETE /admin/accounts/:email  → remove email account (URL-encode the email)
+```
+
+Agent creation example:
+```bash
+curl -X POST http://localhost:3000/admin/agents \
+  -H "Authorization: Bearer $HYPERMAIL_ADMIN_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "my-agent",
+    "api_key": "hm_sk_$(openssl rand -hex 32)",
+    "name": "My Agent",
+    "accounts": ["user@example.com"],
+    "provisioning": true
+  }'
+```
 
 ## Key Dependencies
 

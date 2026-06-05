@@ -1,6 +1,7 @@
 import { gmail_v1, google } from "googleapis";
 
-import type { AccountStore, AccountRecord } from "../../store/account-store.js";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { IAccountStore } from "../../mode/types.js";
 import {
   acquireAccessToken,
   buildOAuth2Client,
@@ -31,7 +32,7 @@ export class GmailClientFactory {
   private readonly persistLocks = new Map<string, Promise<void>>();
 
   constructor(
-    private readonly store: AccountStore,
+    private readonly store: IAccountStore,
     private readonly clientId?: string,
     private readonly clientSecret?: string,
   ) {}
@@ -67,7 +68,7 @@ export class GmailClientFactory {
       // on the store read-modify-write cycle.
       const existing = persistLocks.get(key);
       const chain = (existing ?? Promise.resolve()).then(async () => {
-        const fresh = store.getAccount(account.email) ?? account;
+        const fresh = await store.getAccount(account.email) ?? account;
         const currentTokens = isSerializedGmailTokens(fresh.tokens)
           ? (fresh.tokens as unknown as SerializedGmailTokens)
           : tokens;
