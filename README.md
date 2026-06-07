@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.0** — Email watch mode: background poll loop detects new inbox
+> messages and POSTs them to a configurable webhook URL (e.g. Mastra). Opt-in —
+> disabled by default, enabled via `HYPERMAIL_WATCH_ENABLED=true` or config.
+> Works in both stdio and HTTP transport modes.
+>
 > **v0.6.3** — Unify stdio and HTTP modes into a single feature set. Removed
 > email watch (inbox polling, SSE push, notification buffer), agent
 > multi-tenancy (`agents.yaml`, `x-api-key` auth, per-agent allowlists), and
@@ -149,6 +154,14 @@ looks for it in the same directory as `cli.js`.
   },
   "providers": {
     "outlook": { "clientId": "...", "tenantId": "..." }
+  },
+  "watch": {
+    "enabled": true,
+    "pollIntervalSeconds": 10,
+    "webhook": {
+      "url": "http://your-agent:3000/api/email-webhook",
+      "retry": { "maxAttempts": 5, "baseDelayMs": 1000 }
+    }
   }
 }
 ```
@@ -189,6 +202,49 @@ account store.
 | `rename_folder` | `account`, `folderId`, `newName` | Rename an existing mail folder. Disabled under `--read-only`. |
 | `mark_read` | `account`, `id` | Mark a message as read. Disabled under `--read-only`. |
 | `mark_unread` | `account`, `id` | Mark a message as unread. Disabled under `--read-only`. |
+
+## Email Watch
+
+When enabled, hypermail-mcp runs a background poll loop that scans inboxes for
+new messages and POSTs each one to a configurable webhook URL. Intended for
+push-based email triage — downstream agents (e.g. Mastra) receive full email
+content without polling.
+
+```jsonc
+{
+  "watch": {
+    "enabled": true,
+    "pollIntervalSeconds": 10,
+    "webhook": {
+      "url": "http://localhost:3000/api/email-webhook",
+      "retry": { "maxAttempts": 5, "baseDelayMs": 1000 }
+    }
+  }
+}
+```
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| `watch.enabled` | `false` | Toggle via config or `HYPERMAIL_WATCH_ENABLED=true` env var |
+| `watch.pollIntervalSeconds` | `10` | Min 10s, max 3600s |
+| `watch.webhook.url` | — | Endpoint that receives `POST` with `EmailFull` JSON |
+| `watch.webhook.retry.maxAttempts` | `5` | Max delivery attempts (1–10) |
+| `watch.webhook.retry.baseDelayMs` | `1000` | Base backoff delay (× 2^attempt) |
+
+**Behavior:**
+- Polls **all accounts** in the store, **inbox only**.
+- Detects new emails via `lastSeenIds` (capped at 200) stored in the encrypted
+  account file — no duplicate emits across restarts.
+- One `POST` per email (full body: subject, sender, text, HTML, attachments
+  metadata, thread ID via `EmailFull`).
+- Delivery uses exponential backoff (`baseDelay × 2^attempt`). Retries on
+  non-2xx responses and connection errors. Logs and moves on after
+  `maxAttempts` exhausted — never blocks the poll loop.
+- Works in both **stdio** and **HTTP** transport modes — the poll interval
+  fires normally alongside MCP message handling.
+
+**Rate limits:** Polling every 10s on a single inbox = 6 req/min = 0.6% of
+Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
 
 ## Add-account flow (Outlook)
 
@@ -240,6 +296,10 @@ src/
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
     shared/                    # shared utilities across providers
+  watcher/
+    manager.ts                 # WatcherManager — inbox poll loop + dedup
+    webhook.ts                 # HTTP POST with exponential backoff retry
+    index.ts                   # barrel export
   tools/
     index.ts                   # MCP tool registrations
     accounts.ts                # list/add/remove/complete-add account tools
