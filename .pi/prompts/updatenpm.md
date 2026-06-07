@@ -7,15 +7,12 @@ Review the git log since the last release (`git log --oneline $(git describe --t
 
 Then, in order:
 
-1. **Run tests:** `pnpm test`
-   - If any test fails, stop and fix before continuing.
-
-2. **Bump version:** `npm version $1` (or `npm version patch` if no argument given).
+1. **Bump version:** `npm version $1` (or `npm version patch` if no argument given).
    - This bumps `package.json`, creates a git commit, and tags the release.
 
-3. **Build:** `pnpm build`
+2. **Build:** `pnpm build`
    - This compiles TypeScript via tsup → `dist/cli.js`.
 
-4. **Publish to npm:** `npm publish`
-   - The `prepublishOnly` script will re-run build + tests as a final safety check.
+3. **Publish to npm:** `npm publish`
+   - The `prepublishOnly` script will run build + tests as a final safety check.
    - If `--otp <code>` is needed (2FA), ask the user for the one-time password.
