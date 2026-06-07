@@ -995,43 +995,43 @@
       "source_file": "src/server.ts",
       "source_location": "L1",
       "id": "src_server_ts",
-      "community": 36,
+      "community": 41,
       "norm_label": "server.ts"
     },
     {
       "label": "ServerOptions",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L14",
+      "source_location": "L15",
       "id": "src_server_serveroptions",
-      "community": 36,
+      "community": 41,
       "norm_label": "serveroptions"
     },
     {
       "label": "startServer()",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L19",
+      "source_location": "L20",
       "id": "src_server_startserver",
-      "community": 36,
+      "community": 41,
       "norm_label": "startserver()"
     },
     {
       "label": "HttpSession",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L45",
+      "source_location": "L58",
       "id": "src_server_httpsession",
-      "community": 36,
+      "community": 41,
       "norm_label": "httpsession"
     },
     {
       "label": "startHttp()",
       "file_type": "code",
       "source_file": "src/server.ts",
-      "source_location": "L50",
+      "source_location": "L63",
       "id": "src_server_starthttp",
-      "community": 36,
+      "community": 41,
       "norm_label": "starthttp()"
     },
     {
@@ -1067,7 +1067,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L1",
       "id": "src_cli_ts",
-      "community": 36,
+      "community": 41,
       "norm_label": "cli.ts"
     },
     {
@@ -1076,7 +1076,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L6",
       "id": "src_cli_parsedargs",
-      "community": 36,
+      "community": 41,
       "norm_label": "parsedargs"
     },
     {
@@ -1085,7 +1085,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L15",
       "id": "src_cli_parseargs",
-      "community": 36,
+      "community": 41,
       "norm_label": "parseargs()"
     },
     {
@@ -1094,7 +1094,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L54",
       "id": "src_cli_printhelp",
-      "community": 36,
+      "community": 41,
       "norm_label": "printhelp()"
     },
     {
@@ -1103,7 +1103,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L87",
       "id": "src_cli_main",
-      "community": 36,
+      "community": 41,
       "norm_label": "main()"
     },
     {
@@ -1112,7 +1112,7 @@
       "source_file": "src/config.ts",
       "source_location": "L1",
       "id": "src_config_ts",
-      "community": 36,
+      "community": 41,
       "norm_label": "config.ts"
     },
     {
@@ -1121,7 +1121,7 @@
       "source_file": "src/config.ts",
       "source_location": "L6",
       "id": "src_config_httpconfigschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "httpconfigschema"
     },
     {
@@ -1130,7 +1130,7 @@
       "source_file": "src/config.ts",
       "source_location": "L12",
       "id": "src_config_toolsconfigschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "toolsconfigschema"
     },
     {
@@ -1139,7 +1139,7 @@
       "source_file": "src/config.ts",
       "source_location": "L17",
       "id": "src_config_outlookproviderschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "outlookproviderschema"
     },
     {
@@ -1148,7 +1148,7 @@
       "source_file": "src/config.ts",
       "source_location": "L22",
       "id": "src_config_gmailproviderschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "gmailproviderschema"
     },
     {
@@ -1157,7 +1157,7 @@
       "source_file": "src/config.ts",
       "source_location": "L27",
       "id": "src_config_providersconfigschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "providersconfigschema"
     },
     {
@@ -1166,131 +1166,158 @@
       "source_file": "src/config.ts",
       "source_location": "L32",
       "id": "src_config_watchconfigschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "watchconfigschema"
     },
     {
       "label": "rawConfigSchema",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L37",
+      "source_location": "L48",
       "id": "src_config_rawconfigschema",
-      "community": 36,
+      "community": 41,
       "norm_label": "rawconfigschema"
     },
     {
       "label": "HttpConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L47",
+      "source_location": "L58",
       "id": "src_config_httpconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "httpconfig"
     },
     {
       "label": "ToolsConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L53",
+      "source_location": "L64",
       "id": "src_config_toolsconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "toolsconfig"
     },
     {
       "label": "OutlookProviderConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L58",
+      "source_location": "L69",
       "id": "src_config_outlookproviderconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "outlookproviderconfig"
     },
     {
       "label": "GmailProviderConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L63",
+      "source_location": "L74",
       "id": "src_config_gmailproviderconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "gmailproviderconfig"
     },
     {
       "label": "ProvidersConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L68",
+      "source_location": "L79",
       "id": "src_config_providersconfig",
       "community": 41,
       "norm_label": "providersconfig"
     },
     {
+      "label": "WatchRetryConfig",
+      "file_type": "code",
+      "source_file": "src/config.ts",
+      "source_location": "L84",
+      "id": "src_config_watchretryconfig",
+      "community": 41,
+      "norm_label": "watchretryconfig"
+    },
+    {
+      "label": "WatchWebhookConfig",
+      "file_type": "code",
+      "source_file": "src/config.ts",
+      "source_location": "L91",
+      "id": "src_config_watchwebhookconfig",
+      "community": 41,
+      "norm_label": "watchwebhookconfig"
+    },
+    {
+      "label": "WatchConfig",
+      "file_type": "code",
+      "source_file": "src/config.ts",
+      "source_location": "L98",
+      "id": "src_config_watchconfig",
+      "community": 4,
+      "norm_label": "watchconfig"
+    },
+    {
       "label": "AppConfig",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L74",
+      "source_location": "L108",
       "id": "src_config_appconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "appconfig"
     },
     {
       "label": "CliOverrides",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L82",
+      "source_location": "L117",
       "id": "src_config_clioverrides",
-      "community": 36,
+      "community": 41,
       "norm_label": "clioverrides"
     },
     {
       "label": "KNOWN_TOOLS",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L97",
+      "source_location": "L132",
       "id": "src_config_known_tools",
-      "community": 36,
+      "community": 41,
       "norm_label": "known_tools"
     },
     {
       "label": "resolveEnvVars()",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L129",
+      "source_location": "L164",
       "id": "src_config_resolveenvvars",
-      "community": 36,
+      "community": 41,
       "norm_label": "resolveenvvars()"
     },
     {
       "label": "deepResolve()",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L136",
+      "source_location": "L171",
       "id": "src_config_deepresolve",
-      "community": 36,
+      "community": 41,
       "norm_label": "deepresolve()"
     },
     {
       "label": "validateToolNames()",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L151",
+      "source_location": "L186",
       "id": "src_config_validatetoolnames",
-      "community": 36,
+      "community": 41,
       "norm_label": "validatetoolnames()"
     },
     {
       "label": "loadConfig()",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L175",
+      "source_location": "L210",
       "id": "src_config_loadconfig",
-      "community": 36,
+      "community": 41,
       "norm_label": "loadconfig()"
     },
     {
       "label": "ResolvedTools",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L241",
+      "source_location": "L288",
       "id": "src_config_resolvedtools",
       "community": 41,
       "norm_label": "resolvedtools"
@@ -1299,9 +1326,9 @@
       "label": "resolveTools()",
       "file_type": "code",
       "source_file": "src/config.ts",
-      "source_location": "L249",
+      "source_location": "L296",
       "id": "src_config_resolvetools",
-      "community": 36,
+      "community": 41,
       "norm_label": "resolvetools()"
     },
     {
@@ -1310,7 +1337,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L1",
       "id": "src_html_to_markdown_ts",
-      "community": 41,
+      "community": 1,
       "norm_label": "html-to-markdown.ts"
     },
     {
@@ -1319,7 +1346,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L3",
       "id": "src_html_to_markdown_turndown",
-      "community": 41,
+      "community": 1,
       "norm_label": "turndown"
     },
     {
@@ -1328,7 +1355,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L6",
       "id": "src_html_to_markdown_htmltomarkdown",
-      "community": 41,
+      "community": 1,
       "norm_label": "htmltomarkdown()"
     },
     {
@@ -1337,7 +1364,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L11",
       "id": "src_html_to_markdown_selectbody",
-      "community": 41,
+      "community": 1,
       "norm_label": "selectbody()"
     },
     {
@@ -1454,7 +1481,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L16",
       "id": "store_account_store_accountrecord",
-      "community": 1,
+      "community": 37,
       "norm_label": "accountrecord"
     },
     {
@@ -1845,6 +1872,114 @@
       "norm_label": "result"
     },
     {
+      "label": "webhook.ts",
+      "file_type": "code",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L1",
+      "id": "src_watcher_webhook_ts",
+      "community": 4,
+      "norm_label": "webhook.ts"
+    },
+    {
+      "label": "postWebhook()",
+      "file_type": "code",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L7",
+      "id": "watcher_webhook_postwebhook",
+      "community": 4,
+      "norm_label": "postwebhook()"
+    },
+    {
+      "label": "sleep()",
+      "file_type": "code",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L52",
+      "id": "watcher_webhook_sleep",
+      "community": 4,
+      "norm_label": "sleep()"
+    },
+    {
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "src/watcher/index.ts",
+      "source_location": "L1",
+      "id": "src_watcher_index_ts",
+      "community": 41,
+      "norm_label": "index.ts"
+    },
+    {
+      "label": "manager.ts",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L1",
+      "id": "src_watcher_manager_ts",
+      "community": 4,
+      "norm_label": "manager.ts"
+    },
+    {
+      "label": "WatcherManager",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L16",
+      "id": "watcher_manager_watchermanager",
+      "community": 4,
+      "norm_label": "watchermanager"
+    },
+    {
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L19",
+      "id": "watcher_manager_watchermanager_constructor",
+      "community": 4,
+      "norm_label": ".constructor()"
+    },
+    {
+      "label": ".start()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L28",
+      "id": "watcher_manager_watchermanager_start",
+      "community": 4,
+      "norm_label": ".start()"
+    },
+    {
+      "label": ".stop()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L39",
+      "id": "watcher_manager_watchermanager_stop",
+      "community": 4,
+      "norm_label": ".stop()"
+    },
+    {
+      "label": ".poll()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L48",
+      "id": "watcher_manager_watchermanager_poll",
+      "community": 4,
+      "norm_label": ".poll()"
+    },
+    {
+      "label": ".pollAccount()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L63",
+      "id": "watcher_manager_watchermanager_pollaccount",
+      "community": 4,
+      "norm_label": ".pollaccount()"
+    },
+    {
+      "label": ".emit()",
+      "file_type": "code",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L94",
+      "id": "watcher_manager_watchermanager_emit",
+      "community": 4,
+      "norm_label": ".emit()"
+    },
+    {
       "label": "registry.ts",
       "file_type": "code",
       "source_file": "src/providers/registry.ts",
@@ -1877,7 +2012,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L19",
       "id": "providers_registry_buildregistry",
-      "community": 36,
+      "community": 41,
       "norm_label": "buildregistry()"
     },
     {
@@ -1886,7 +2021,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L1",
       "id": "src_providers_types_ts",
-      "community": 2,
+      "community": 37,
       "norm_label": "types.ts"
     },
     {
@@ -1913,7 +2048,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L10",
       "id": "providers_types_emailsummary",
-      "community": 2,
+      "community": 37,
       "norm_label": "emailsummary"
     },
     {
@@ -1922,7 +2057,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L22",
       "id": "providers_types_emailfull",
-      "community": 6,
+      "community": 37,
       "norm_label": "emailfull"
     },
     {
@@ -1931,7 +2066,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L35",
       "id": "providers_types_listemailsoptions",
-      "community": 2,
+      "community": 37,
       "norm_label": "listemailsoptions"
     },
     {
@@ -1940,7 +2075,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L44",
       "id": "providers_types_listemailsresult",
-      "community": 2,
+      "community": 37,
       "norm_label": "listemailsresult"
     },
     {
@@ -1949,7 +2084,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L49",
       "id": "providers_types_searchemailsoptions",
-      "community": 2,
+      "community": 37,
       "norm_label": "searchemailsoptions"
     },
     {
@@ -1958,7 +2093,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L53",
       "id": "providers_types_sendinput",
-      "community": 35,
+      "community": 37,
       "norm_label": "sendinput"
     },
     {
@@ -1967,7 +2102,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L78",
       "id": "providers_types_draftupdateinput",
-      "community": 2,
+      "community": 37,
       "norm_label": "draftupdateinput"
     },
     {
@@ -1976,7 +2111,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L94",
       "id": "providers_types_addaccountresult",
-      "community": 2,
+      "community": 37,
       "norm_label": "addaccountresult"
     },
     {
@@ -1985,7 +2120,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L107",
       "id": "providers_types_addaccountinput",
-      "community": 2,
+      "community": 37,
       "norm_label": "addaccountinput"
     },
     {
@@ -1994,7 +2129,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L114",
       "id": "providers_types_completeaddaccountresult",
-      "community": 40,
+      "community": 37,
       "norm_label": "completeaddaccountresult"
     },
     {
@@ -2012,7 +2147,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L126",
       "id": "providers_types_folderinfo",
-      "community": 38,
+      "community": 37,
       "norm_label": "folderinfo"
     },
     {
@@ -2021,7 +2156,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L135",
       "id": "providers_types_listfoldersoptions",
-      "community": 38,
+      "community": 37,
       "norm_label": "listfoldersoptions"
     },
     {
@@ -2030,7 +2165,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L141",
       "id": "providers_types_createfolderinput",
-      "community": 2,
+      "community": 37,
       "norm_label": "createfolderinput"
     },
     {
@@ -2039,7 +2174,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L148",
       "id": "providers_types_emailprovider",
-      "community": 2,
+      "community": 37,
       "norm_label": "emailprovider"
     },
     {
@@ -2084,7 +2219,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L17",
       "id": "outlook_client_outlookclientfactory",
-      "community": 25,
+      "community": 0,
       "norm_label": "outlookclientfactory"
     },
     {
@@ -2093,7 +2228,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L22",
       "id": "outlook_client_outlookclientfactory_constructor",
-      "community": 25,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -2102,7 +2237,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L28",
       "id": "outlook_client_outlookclientfactory_get",
-      "community": 25,
+      "community": 0,
       "norm_label": ".get()"
     },
     {
@@ -2111,7 +2246,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L86",
       "id": "outlook_client_outlookclientfactory_invalidate",
-      "community": 25,
+      "community": 0,
       "norm_label": ".invalidate()"
     },
     {
@@ -2120,7 +2255,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L1",
       "id": "src_providers_outlook_index_ts",
-      "community": 0,
+      "community": 37,
       "norm_label": "index.ts"
     },
     {
@@ -2129,7 +2264,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L39",
       "id": "outlook_index_inlineattachment",
-      "community": 0,
+      "community": 37,
       "norm_label": "inlineattachment"
     },
     {
@@ -2138,7 +2273,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L60",
       "id": "outlook_index_convertinlineimages",
-      "community": 39,
+      "community": 37,
       "norm_label": "convertinlineimages()"
     },
     {
@@ -2147,7 +2282,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L76",
       "id": "outlook_index_pendingflow",
-      "community": 0,
+      "community": 37,
       "norm_label": "pendingflow"
     },
     {
@@ -2165,7 +2300,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L91",
       "id": "outlook_index_outlookprovider",
-      "community": 35,
+      "community": 37,
       "norm_label": "outlookprovider"
     },
     {
@@ -2174,7 +2309,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L98",
       "id": "outlook_index_outlookprovider_constructor",
-      "community": 35,
+      "community": 37,
       "norm_label": ".constructor()"
     },
     {
@@ -2183,7 +2318,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L106",
       "id": "outlook_index_outlookprovider_addaccount",
-      "community": 2,
+      "community": 37,
       "norm_label": ".addaccount()"
     },
     {
@@ -2192,7 +2327,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L156",
       "id": "outlook_index_outlookprovider_completeaddaccount",
-      "community": 40,
+      "community": 37,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -2201,7 +2336,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L181",
       "id": "outlook_index_outlookprovider_listemails",
-      "community": 2,
+      "community": 37,
       "norm_label": ".listemails()"
     },
     {
@@ -2210,7 +2345,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L216",
       "id": "outlook_index_outlookprovider_searchemails",
-      "community": 2,
+      "community": 37,
       "norm_label": ".searchemails()"
     },
     {
@@ -2219,7 +2354,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L245",
       "id": "outlook_index_outlookprovider_reademail",
-      "community": 0,
+      "community": 37,
       "norm_label": ".reademail()"
     },
     {
@@ -2228,7 +2363,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L296",
       "id": "outlook_index_outlookprovider_readattachment",
-      "community": 35,
+      "community": 37,
       "norm_label": ".readattachment()"
     },
     {
@@ -2237,7 +2372,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L328",
       "id": "outlook_index_outlookprovider_builddraftfromreference",
-      "community": 35,
+      "community": 37,
       "norm_label": ".builddraftfromreference()"
     },
     {
@@ -2246,7 +2381,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L363",
       "id": "outlook_index_outlookprovider_sendorsave",
-      "community": 35,
+      "community": 37,
       "norm_label": ".sendorsave()"
     },
     {
@@ -2255,7 +2390,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L433",
       "id": "outlook_index_outlookprovider_sendemail",
-      "community": 35,
+      "community": 37,
       "norm_label": ".sendemail()"
     },
     {
@@ -2264,7 +2399,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L440",
       "id": "outlook_index_outlookprovider_savedraft",
-      "community": 35,
+      "community": 37,
       "norm_label": ".savedraft()"
     },
     {
@@ -2273,7 +2408,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L447",
       "id": "outlook_index_outlookprovider_updatedraft",
-      "community": 39,
+      "community": 37,
       "norm_label": ".updatedraft()"
     },
     {
@@ -2282,7 +2417,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L487",
       "id": "outlook_index_outlookprovider_moveemail",
-      "community": 35,
+      "community": 37,
       "norm_label": ".moveemail()"
     },
     {
@@ -2291,7 +2426,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L498",
       "id": "outlook_index_outlookprovider_senddraft",
-      "community": 35,
+      "community": 37,
       "norm_label": ".senddraft()"
     },
     {
@@ -2300,7 +2435,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L507",
       "id": "outlook_index_outlookprovider_addattachmenttodraft",
-      "community": 35,
+      "community": 37,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -2309,7 +2444,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L529",
       "id": "outlook_index_outlookprovider_markread",
-      "community": 35,
+      "community": 37,
       "norm_label": ".markread()"
     },
     {
@@ -2318,7 +2453,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L540",
       "id": "outlook_index_outlookprovider_listfolders",
-      "community": 38,
+      "community": 37,
       "norm_label": ".listfolders()"
     },
     {
@@ -2327,7 +2462,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L562",
       "id": "outlook_index_outlookprovider_createfolder",
-      "community": 38,
+      "community": 37,
       "norm_label": ".createfolder()"
     },
     {
@@ -2336,7 +2471,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L574",
       "id": "outlook_index_outlookprovider_renamefolder",
-      "community": 38,
+      "community": 37,
       "norm_label": ".renamefolder()"
     },
     {
@@ -2345,7 +2480,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L586",
       "id": "outlook_index_outlookprovider_deletefolder",
-      "community": 35,
+      "community": 37,
       "norm_label": ".deletefolder()"
     },
     {
@@ -2354,7 +2489,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L599",
       "id": "outlook_index_graphrecipient",
-      "community": 0,
+      "community": 37,
       "norm_label": "graphrecipient"
     },
     {
@@ -2363,7 +2498,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L602",
       "id": "outlook_index_graphmessage",
-      "community": 0,
+      "community": 37,
       "norm_label": "graphmessage"
     },
     {
@@ -2372,7 +2507,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L615",
       "id": "outlook_index_graphattachment",
-      "community": 0,
+      "community": 37,
       "norm_label": "graphattachment"
     },
     {
@@ -2381,7 +2516,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L621",
       "id": "outlook_index_graphfolder",
-      "community": 0,
+      "community": 37,
       "norm_label": "graphfolder"
     },
     {
@@ -2390,7 +2525,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L630",
       "id": "outlook_index_mapfolder",
-      "community": 38,
+      "community": 37,
       "norm_label": "mapfolder()"
     },
     {
@@ -2399,7 +2534,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L641",
       "id": "outlook_index_maprecipient",
-      "community": 0,
+      "community": 37,
       "norm_label": "maprecipient()"
     },
     {
@@ -2408,7 +2543,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L648",
       "id": "outlook_index_mapsummary",
-      "community": 0,
+      "community": 37,
       "norm_label": "mapsummary()"
     },
     {
@@ -2417,7 +2552,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L662",
       "id": "outlook_index_torecipient",
-      "community": 0,
+      "community": 37,
       "norm_label": "torecipient()"
     },
     {
@@ -2426,7 +2561,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L666",
       "id": "outlook_index_clamplimit",
-      "community": 2,
+      "community": 37,
       "norm_label": "clamplimit()"
     },
     {
@@ -2453,7 +2588,7 @@
       "source_file": "src/providers/outlook/auth.ts",
       "source_location": "L26",
       "id": "outlook_auth_devicecodebegin",
-      "community": 0,
+      "community": 37,
       "norm_label": "devicecodebegin"
     },
     {
@@ -2525,7 +2660,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L1",
       "id": "src_providers_outlook_index_test_ts",
-      "community": 39,
+      "community": 37,
       "norm_label": "index.test.ts"
     },
     {
@@ -2534,7 +2669,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L8",
       "id": "outlook_index_test_result",
-      "community": 39,
+      "community": 37,
       "norm_label": "result"
     },
     {
@@ -2543,7 +2678,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L103",
       "id": "outlook_index_test_body",
-      "community": 39,
+      "community": 37,
       "norm_label": "body"
     },
     {
@@ -2795,7 +2930,7 @@
       "source_file": "src/providers/gmail/helpers.ts",
       "source_location": "L89",
       "id": "gmail_helpers_parsedpayload",
-      "community": 6,
+      "community": 37,
       "norm_label": "parsedpayload"
     },
     {
@@ -2966,7 +3101,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L85",
       "id": "gmail_index_gmailprovider_addaccount",
-      "community": 2,
+      "community": 37,
       "norm_label": ".addaccount()"
     },
     {
@@ -2975,7 +3110,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L138",
       "id": "gmail_index_gmailprovider_completeaddaccount",
-      "community": 40,
+      "community": 37,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -2984,7 +3119,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L167",
       "id": "gmail_index_gmailprovider_listemails",
-      "community": 2,
+      "community": 37,
       "norm_label": ".listemails()"
     },
     {
@@ -2993,7 +3128,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L174",
       "id": "gmail_index_gmailprovider_searchemails",
-      "community": 2,
+      "community": 37,
       "norm_label": ".searchemails()"
     },
     {
@@ -3020,7 +3155,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L196",
       "id": "gmail_index_gmailprovider_sendemail",
-      "community": 35,
+      "community": 37,
       "norm_label": ".sendemail()"
     },
     {
@@ -3029,7 +3164,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L203",
       "id": "gmail_index_gmailprovider_savedraft",
-      "community": 35,
+      "community": 37,
       "norm_label": ".savedraft()"
     },
     {
@@ -3083,7 +3218,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L265",
       "id": "gmail_index_gmailprovider_listfolders",
-      "community": 38,
+      "community": 37,
       "norm_label": ".listfolders()"
     },
     {
@@ -3092,7 +3227,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L272",
       "id": "gmail_index_gmailprovider_createfolder",
-      "community": 38,
+      "community": 37,
       "norm_label": ".createfolder()"
     },
     {
@@ -3101,7 +3236,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L279",
       "id": "gmail_index_gmailprovider_renamefolder",
-      "community": 38,
+      "community": 37,
       "norm_label": ".renamefolder()"
     },
     {
@@ -3668,7 +3803,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L42",
       "id": "imap_index_imapprovider",
-      "community": 1,
+      "community": 37,
       "norm_label": "imapprovider"
     },
     {
@@ -3677,7 +3812,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L46",
       "id": "imap_index_imapprovider_constructor",
-      "community": 24,
+      "community": 37,
       "norm_label": ".constructor()"
     },
     {
@@ -3686,7 +3821,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L50",
       "id": "imap_index_imapprovider_addaccount",
-      "community": 2,
+      "community": 37,
       "norm_label": ".addaccount()"
     },
     {
@@ -3695,7 +3830,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L55",
       "id": "imap_index_imapprovider_completeaddaccount",
-      "community": 40,
+      "community": 37,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -3704,7 +3839,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L61",
       "id": "imap_index_imapprovider_listemails",
-      "community": 1,
+      "community": 37,
       "norm_label": ".listemails()"
     },
     {
@@ -3713,7 +3848,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L65",
       "id": "imap_index_imapprovider_searchemails",
-      "community": 2,
+      "community": 37,
       "norm_label": ".searchemails()"
     },
     {
@@ -3722,7 +3857,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L69",
       "id": "imap_index_imapprovider_reademail",
-      "community": 1,
+      "community": 37,
       "norm_label": ".reademail()"
     },
     {
@@ -3731,7 +3866,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L73",
       "id": "imap_index_imapprovider_readattachment",
-      "community": 1,
+      "community": 37,
       "norm_label": ".readattachment()"
     },
     {
@@ -3740,7 +3875,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L79",
       "id": "imap_index_imapprovider_sendemail",
-      "community": 1,
+      "community": 37,
       "norm_label": ".sendemail()"
     },
     {
@@ -3749,7 +3884,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L83",
       "id": "imap_index_imapprovider_savedraft",
-      "community": 1,
+      "community": 37,
       "norm_label": ".savedraft()"
     },
     {
@@ -3758,7 +3893,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L87",
       "id": "imap_index_imapprovider_updatedraft",
-      "community": 1,
+      "community": 37,
       "norm_label": ".updatedraft()"
     },
     {
@@ -3767,7 +3902,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L91",
       "id": "imap_index_imapprovider_moveemail",
-      "community": 1,
+      "community": 37,
       "norm_label": ".moveemail()"
     },
     {
@@ -3776,7 +3911,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L95",
       "id": "imap_index_imapprovider_senddraft",
-      "community": 1,
+      "community": 37,
       "norm_label": ".senddraft()"
     },
     {
@@ -3785,7 +3920,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L99",
       "id": "imap_index_imapprovider_addattachmenttodraft",
-      "community": 1,
+      "community": 37,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -3794,7 +3929,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L111",
       "id": "imap_index_imapprovider_markread",
-      "community": 1,
+      "community": 37,
       "norm_label": ".markread()"
     },
     {
@@ -3803,7 +3938,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L117",
       "id": "imap_index_imapprovider_listfolders",
-      "community": 1,
+      "community": 37,
       "norm_label": ".listfolders()"
     },
     {
@@ -3812,7 +3947,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L121",
       "id": "imap_index_imapprovider_createfolder",
-      "community": 1,
+      "community": 37,
       "norm_label": ".createfolder()"
     },
     {
@@ -3821,7 +3956,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L125",
       "id": "imap_index_imapprovider_renamefolder",
-      "community": 1,
+      "community": 37,
       "norm_label": ".renamefolder()"
     },
     {
@@ -3830,7 +3965,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L129",
       "id": "imap_index_imapprovider_deletefolder",
-      "community": 1,
+      "community": 37,
       "norm_label": ".deletefolder()"
     },
     {
@@ -4668,20 +4803,11 @@
       "id": "hyper_email_mcp_0_package_devdependencies_types_js_yaml"
     },
     {
-      "label": "WatchConfig",
-      "file_type": "code",
-      "source_file": "src/config.ts",
-      "source_location": "L73",
-      "community": 36,
-      "norm_label": "watchconfig",
-      "id": "src_config_watchconfig"
-    },
-    {
       "label": "agents-config.ts",
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L1",
-      "community": 36,
+      "community": 24,
       "norm_label": "agents-config.ts",
       "id": "src_config_agents_config_ts"
     },
@@ -4690,7 +4816,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L9",
-      "community": 36,
+      "community": 24,
       "norm_label": "agentdefschema",
       "id": "config_agents_config_agentdefschema"
     },
@@ -4699,7 +4825,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L29",
-      "community": 36,
+      "community": 24,
       "norm_label": "emailaccountdefschema",
       "id": "config_agents_config_emailaccountdefschema"
     },
@@ -4708,7 +4834,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L34",
-      "community": 36,
+      "community": 24,
       "norm_label": "agentsconfigschema",
       "id": "config_agents_config_agentsconfigschema"
     },
@@ -4717,7 +4843,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L44",
-      "community": 36,
+      "community": 24,
       "norm_label": "agentdef",
       "id": "config_agents_config_agentdef"
     },
@@ -4726,7 +4852,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L52",
-      "community": 36,
+      "community": 24,
       "norm_label": "emailaccountdef",
       "id": "config_agents_config_emailaccountdef"
     },
@@ -4735,7 +4861,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L57",
-      "community": 36,
+      "community": 24,
       "norm_label": "agentsconfig",
       "id": "config_agents_config_agentsconfig"
     },
@@ -4744,7 +4870,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L70",
-      "community": 36,
+      "community": 24,
       "norm_label": "loadagentsconfig()",
       "id": "config_agents_config_loadagentsconfig"
     },
@@ -4753,7 +4879,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L122",
-      "community": 36,
+      "community": 24,
       "norm_label": "syncagentstostore()",
       "id": "config_agents_config_syncagentstostore"
     },
@@ -4762,7 +4888,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L154",
-      "community": 36,
+      "community": 24,
       "norm_label": "livereloadhandle",
       "id": "config_agents_config_livereloadhandle"
     },
@@ -4771,7 +4897,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L168",
-      "community": 36,
+      "community": 41,
       "norm_label": "watchagentsconfig()",
       "id": "config_agents_config_watchagentsconfig"
     },
@@ -4974,15 +5100,6 @@
       "id": "tools_notifications_registernotificationtools"
     },
     {
-      "label": "index.ts",
-      "file_type": "code",
-      "source_file": "src/watcher/index.ts",
-      "source_location": "L1",
-      "community": 41,
-      "norm_label": "index.ts",
-      "id": "src_watcher_index_ts"
-    },
-    {
       "label": "manager.test.ts",
       "file_type": "code",
       "source_file": "src/watcher/manager.test.ts",
@@ -5145,15 +5262,6 @@
       "id": "watcher_manager_test_skips"
     },
     {
-      "label": "manager.ts",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L1",
-      "community": 41,
-      "norm_label": "manager.ts",
-      "id": "src_watcher_manager_ts"
-    },
-    {
       "label": "WatchNotification",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
@@ -5172,42 +5280,6 @@
       "id": "watcher_manager_watchermanageroptions"
     },
     {
-      "label": "WatcherManager",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L44",
-      "community": 4,
-      "norm_label": "watchermanager",
-      "id": "watcher_manager_watchermanager"
-    },
-    {
-      "label": ".constructor()",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L53",
-      "community": 4,
-      "norm_label": ".constructor()",
-      "id": "watcher_manager_watchermanager_constructor"
-    },
-    {
-      "label": ".start()",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L57",
-      "community": 4,
-      "norm_label": ".start()",
-      "id": "watcher_manager_watchermanager_start"
-    },
-    {
-      "label": ".stop()",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L72",
-      "community": 4,
-      "norm_label": ".stop()",
-      "id": "watcher_manager_watchermanager_stop"
-    },
-    {
       "label": ".scanAccounts()",
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
@@ -5224,15 +5296,6 @@
       "community": 4,
       "norm_label": ".schedulepoll()",
       "id": "watcher_manager_watchermanager_schedulepoll"
-    },
-    {
-      "label": ".pollAccount()",
-      "file_type": "code",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L112",
-      "community": 4,
-      "norm_label": ".pollaccount()",
-      "id": "watcher_manager_watchermanager_pollaccount"
     },
     {
       "label": ".enqueue()",
@@ -7383,6 +7446,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/server.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_ts",
+      "target": "src_watcher_index_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server.ts",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -7474,6 +7548,17 @@
       "target": "src_server_ts"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_ts",
+      "target": "watcher_manager_watchermanager"
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -7494,17 +7579,6 @@
       "confidence_score": 1.0,
       "source": "src_server_ts",
       "target": "store_agent_store_agentstore"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/server.ts",
-      "source_location": "L14",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_server_ts",
-      "target": "src_watcher_index_ts"
     },
     {
       "relation": "imports_from",
@@ -7560,17 +7634,6 @@
       "confidence_score": 1.0,
       "source": "src_server_ts",
       "target": "tools_agent_context_agentcontext"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/server.ts",
-      "source_location": "L13",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_server_ts",
-      "target": "watcher_manager_watchermanager"
     },
     {
       "relation": "imports",
@@ -7988,6 +8051,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/config.ts",
+      "source_location": "L84",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_config_ts",
+      "target": "src_config_watchretryconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/config.ts",
+      "source_location": "L91",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_config_ts",
+      "target": "src_config_watchwebhookconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/config.ts",
+      "source_location": "L73",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_config_ts",
+      "target": "src_config_watchconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/config.ts",
       "source_location": "L68",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -8155,22 +8248,34 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "src_config_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_config_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/providers/registry.ts",
       "source_location": "L3",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_providers_registry_ts",
       "target": "src_config_ts"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/config.ts",
-      "source_location": "L73",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_config_ts",
-      "target": "src_config_watchconfig"
     },
     {
       "relation": "imports_from",
@@ -8204,6 +8309,39 @@
       "confidence_score": 1.0,
       "source": "providers_registry_buildregistryoptions",
       "target": "src_config_providersconfig"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "src_config_watchconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_config_watchconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_constructor",
+      "target": "src_config_watchconfig",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -8918,6 +9056,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_store_account_store_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/providers/registry.ts",
       "source_location": "L1",
       "weight": 1.0,
@@ -9088,17 +9237,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_watcher_manager_test_ts",
-      "target": "src_store_account_store_ts"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
       "target": "src_store_account_store_ts"
     },
     {
@@ -10070,6 +10208,17 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "store_account_store_accountstore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/providers/registry.ts",
       "source_location": "L1",
       "weight": 1.0,
@@ -10145,6 +10294,17 @@
     },
     {
       "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_constructor",
+      "target": "store_account_store_accountstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "src/providers/registry.ts",
@@ -10207,17 +10367,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "imap_index_imapprovider_constructor",
-      "target": "store_account_store_accountstore"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
       "target": "store_account_store_accountstore"
     },
     {
@@ -12001,6 +12150,443 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "src_providers_types_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "providers_types_emailfull",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "watcher_webhook_postwebhook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "src_watcher_webhook_ts",
+      "target": "watcher_webhook_sleep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_watcher_webhook_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/webhook.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "watcher_webhook_postwebhook",
+      "target": "watcher_webhook_sleep",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "watcher_webhook_postwebhook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_emit",
+      "target": "watcher_webhook_postwebhook"
+    },
+    {
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_index_ts",
+      "target": "src_watcher_manager_ts"
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/index.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_index_ts",
+      "target": "watcher_manager_watchermanager"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tools/notifications.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_tools_notifications_ts",
+      "target": "src_watcher_index_ts"
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_index_ts",
+      "target": "watcher_manager_watchnotification"
+    },
+    {
+      "relation": "re_exports",
+      "context": "re-export",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/index.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_index_ts",
+      "target": "watcher_manager_watchermanageroptions"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_providers_registry_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "providers_registry_registry"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "src_providers_types_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "providers_types_emailfull",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "watcher_manager_watchermanager"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "providers_types_emailsummary"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "src_watcher_manager_ts"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "watcher_manager_watchnotification"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_ts",
+      "target": "watcher_manager_watchermanageroptions"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_constructor"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L49",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_start"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L59",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_stop"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_poll",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L83",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_pollaccount"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_emit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.test.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_watcher_manager_test_ts",
+      "target": "watcher_manager_watchermanager"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L81",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_scanaccounts"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_schedulepoll"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L155",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager",
+      "target": "watcher_manager_watchermanager_enqueue"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_constructor",
+      "target": "providers_registry_registry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_start",
+      "target": "watcher_manager_watchermanager_poll",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L62",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_start",
+      "target": "watcher_manager_watchermanager_scanaccounts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_start",
+      "target": "watcher_manager_watchermanager_schedulepoll"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L52",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_poll",
+      "target": "watcher_manager_watchermanager_pollaccount",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L78",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_pollaccount",
+      "target": "watcher_manager_watchermanager_emit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L69",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_schedulepoll",
+      "target": "watcher_manager_watchermanager_pollaccount"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "watcher_manager_watchermanager_pollaccount",
+      "target": "watcher_manager_watchermanager_enqueue"
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "src/watcher/manager.ts",
+      "source_location": "L94",
+      "weight": 1.0,
+      "source": "watcher_manager_watchermanager_emit",
+      "target": "providers_types_emailfull",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "src/providers/registry.ts",
       "source_location": "L2",
       "weight": 1.0,
@@ -12138,17 +12724,6 @@
       "target": "src_providers_registry_ts"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
-      "target": "src_providers_registry_ts"
-    },
-    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -12157,17 +12732,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_watcher_manager_test_ts",
-      "target": "providers_registry_registry"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
       "target": "providers_registry_registry"
     },
     {
@@ -12462,17 +13026,6 @@
       "target": "src_providers_types_ts"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
-      "target": "src_providers_types_ts"
-    },
-    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -12646,17 +13199,6 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "src_watcher_manager_test_ts",
-      "target": "providers_types_emailsummary"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
       "target": "providers_types_emailsummary"
     },
     {
@@ -18187,9 +18729,9 @@
       "source_file": "README.md",
       "source_location": "L193",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_hypermail_mcp",
-      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_193",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_193"
     },
     {
       "relation": "contains",
@@ -18627,9 +19169,9 @@
       "source_file": "README.md",
       "source_location": "L197",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_add_account_flow_outlook_193",
-      "target": "hyper_email_mcp_0_readme_codeblock_8",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_readme_codeblock_8"
     },
     {
       "relation": "contains",
@@ -19681,17 +20223,6 @@
       "target": "tools_agent_context_agentcontext"
     },
     {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/tools/notifications.ts",
-      "source_location": "L5",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_tools_notifications_ts",
-      "target": "src_watcher_index_ts"
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/tools/notifications.ts",
@@ -19732,72 +20263,6 @@
       "confidence_score": 1.0,
       "source": "tools_notifications_notificationtoolcontext",
       "target": "watcher_manager_watchnotification"
-    },
-    {
-      "relation": "re_exports",
-      "context": "export",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/index.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_index_ts",
-      "target": "src_watcher_manager_ts"
-    },
-    {
-      "relation": "re_exports",
-      "context": "re-export",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/index.ts",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_index_ts",
-      "target": "watcher_manager_watchermanager"
-    },
-    {
-      "relation": "re_exports",
-      "context": "re-export",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/index.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_index_ts",
-      "target": "watcher_manager_watchnotification"
-    },
-    {
-      "relation": "re_exports",
-      "context": "re-export",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/index.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_index_ts",
-      "target": "watcher_manager_watchermanageroptions"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.test.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_test_ts",
-      "target": "src_watcher_manager_ts"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.test.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_test_ts",
-      "target": "watcher_manager_watchermanager"
     },
     {
       "relation": "imports",
@@ -19992,128 +20457,6 @@
       "target": "watcher_manager_test_createwatcher"
     },
     {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L7",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
-      "target": "watcher_manager_watchnotification"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
-      "target": "watcher_manager_watchermanageroptions"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_watcher_manager_ts",
-      "target": "watcher_manager_watchermanager"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L45",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_constructor"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L49",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_start"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L59",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_stop"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L81",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_scanaccounts"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L67",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_schedulepoll"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L83",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_pollaccount"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L155",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager",
-      "target": "watcher_manager_watchermanager_enqueue"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L62",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager_start",
-      "target": "watcher_manager_watchermanager_scanaccounts"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L55",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager_start",
-      "target": "watcher_manager_watchermanager_schedulepoll"
-    },
-    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -20123,28 +20466,6 @@
       "confidence_score": 1.0,
       "source": "watcher_manager_watchermanager_scanaccounts",
       "target": "watcher_manager_watchermanager_schedulepoll"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L69",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager_schedulepoll",
-      "target": "watcher_manager_watchermanager_pollaccount"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/watcher/manager.ts",
-      "source_location": "L128",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "watcher_manager_watchermanager_pollaccount",
-      "target": "watcher_manager_watchermanager_enqueue"
     },
     {
       "relation": "contains",
@@ -20963,5 +21284,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "b59372c21ce078cc5e7a8c3d42b4da443396c818"
+  "built_at_commit": "d3a85f24d5cc159ecdf61529dfe2d9a1434ac327"
 }
