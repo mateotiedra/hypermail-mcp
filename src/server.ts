@@ -8,6 +8,7 @@ import { AccountStore } from "./store/account-store.js";
 import { buildRegistry } from "./providers/registry.js";
 import { registerTools } from "./tools/index.js";
 import { VERSION } from "./version.js";
+import { WatcherManager } from "./watcher/index.js";
 import type { AppConfig, ResolvedTools } from "./config.js";
 import { resolveTools } from "./config.js";
 
@@ -21,6 +22,18 @@ export async function startServer(opts: ServerOptions): Promise<void> {
   const store = await AccountStore.open({ dataDir: config.dataDir });
   const registry = buildRegistry({ store, providers: config.providers });
   const tools: ResolvedTools = resolveTools(config);
+
+  // Start email watch loop if explicitly enabled (opt-in).
+  // Works in both stdio and HTTP modes — setInterval fires normally
+  // alongside the stdio transport's stdin listener.
+  let watcher: WatcherManager | undefined;
+  if (config.watch?.enabled) {
+    watcher = new WatcherManager(store, registry, config.watch);
+    watcher.start();
+    const stop = () => watcher?.stop();
+    process.on("SIGTERM", stop);
+    process.on("SIGINT", stop);
+  }
 
   // Factory: creates a fresh McpServer with all tools registered.
   // HTTP mode creates one per session; stdio mode uses a single instance.

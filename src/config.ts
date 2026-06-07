@@ -30,8 +30,19 @@ const providersConfigSchema = z.object({
 });
 
 const watchConfigSchema = z.object({
-  enabled: z.boolean().default(true),
-  pollIntervalSeconds: z.number().int().min(10).max(3600).default(60),
+  enabled: z.boolean().default(false),
+  pollIntervalSeconds: z.number().int().min(10).max(3600).default(10),
+  webhook: z
+    .object({
+      url: z.string(),
+      retry: z
+        .object({
+          maxAttempts: z.number().int().min(1).max(10).default(5),
+          baseDelayMs: z.number().int().min(100).default(1000),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 const rawConfigSchema = z.object({
@@ -70,12 +81,36 @@ export interface ProvidersConfig {
   gmail?: GmailProviderConfig;
 }
 
+export interface WatchRetryConfig {
+  /** Maximum number of webhook delivery attempts (default: 5). */
+  maxAttempts: number;
+  /** Base delay in milliseconds for exponential backoff (default: 1000). */
+  baseDelayMs: number;
+}
+
+export interface WatchWebhookConfig {
+  /** URL to POST new-email events to. */
+  url: string;
+  /** Retry configuration for failed deliveries. */
+  retry: WatchRetryConfig;
+}
+
+export interface WatchConfig {
+  /** Whether the email poll loop is enabled (default: false). */
+  enabled: boolean;
+  /** Seconds between inbox polls (min 10, default 10). */
+  pollIntervalSeconds: number;
+  /** Webhook delivery configuration. */
+  webhook?: WatchWebhookConfig;
+}
+
 /** Fully resolved application configuration (after ${VAR} expansion and CLI merge). */
 export interface AppConfig {
   dataDir?: string;
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
+  watch?: WatchConfig;
 }
 
 /** CLI flags that can override config file values. */
@@ -222,6 +257,17 @@ export function loadConfig(
     host: cliOverrides.host ?? parsed.http?.host ?? "127.0.0.1",
   };
 
+  // Resolve HYPERMAIL_WATCH_ENABLED env var: if set to "true", enable
+  // the poll loop regardless of config default (opt-in).
+  let watch: WatchConfig | undefined;
+  if (parsed.watch || process.env.HYPERMAIL_WATCH_ENABLED === "true") {
+    watch = {
+      enabled: process.env.HYPERMAIL_WATCH_ENABLED === "true" || Boolean(parsed.watch?.enabled),
+      pollIntervalSeconds: parsed.watch?.pollIntervalSeconds ?? 10,
+      webhook: parsed.watch?.webhook as WatchWebhookConfig | undefined,
+    };
+  }
+
   return {
     dataDir:
       cliOverrides.dataDir ??
@@ -232,6 +278,7 @@ export function loadConfig(
       ? { disabled: parsed.tools.disabled, enabled: parsed.tools.enabled }
       : undefined,
     providers: parsed.providers as ProvidersConfig | undefined,
+    watch,
   };
 }
 
