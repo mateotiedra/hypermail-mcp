@@ -3,6 +3,12 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.6.3** — Unify stdio and HTTP modes into a single feature set. Removed
+> email watch (inbox polling, SSE push, notification buffer), agent
+> multi-tenancy (`agents.yaml`, `x-api-key` auth, per-agent allowlists), and
+> the `check_notifications` tool. Dropped `js-yaml` dependency. Dockerfile
+> simplified to a single `install → build → prune` step.
+>
 > **v0.6.2** — Version source-of-truth fix: `version.ts` now imports directly
 > from `package.json` instead of hardcoding, preventing version drift between
 > the two files.
