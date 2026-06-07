@@ -86,6 +86,8 @@ Set these in the **Environment** tab — only for providers you use:
 
 | Instruction | Purpose |
 |-------------|---------|
+| `COPY . .` | Copies entire repo into `/app` |
+| `pnpm install && pnpm build && pnpm prune --prod` | Single install + build + dev dep cleanup |
 | `EXPOSE 3000` | Internal port (Dokploy uses this for routing) |
 | `HEALTHCHECK` | Docker checks `localhost:3000/mcp` every 30s |
 | `ENV NODE_ENV=production` | Production mode |
