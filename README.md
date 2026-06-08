@@ -3,7 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
-> **v0.7.1** — Every config field is now settable via a dedicated
+> **v0.7.2** — `add_attachment_to_draft` now accepts `filePath` (absolute path to
+a local file) as an alternative to `contentBytes`. The file is read from disk and
+base64-encoded automatically, the MIME type is inferred from the extension, and
+`name` defaults to the file's basename.
+>> **v0.7.1** — Every config field is now settable via a dedicated
 > `HYPERMAIL_*` env var. Legacy env vars (`MS_CLIENT_ID`, `MS_TENANT_ID`,
 > `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) still work as fallbacks. See
 > [Environment Variables](#environment-variables) for the full reference.

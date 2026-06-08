@@ -1,5 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { readFileSync } from "node:fs";
+import { basename, extname } from "node:path";
 
 import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
@@ -329,6 +331,32 @@ export function registerComposeTools(
 
   // ---------- add_attachment_to_draft ----------
 
+  const MIME_TYPES: Record<string, string> = {
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".txt": "text/plain",
+    ".html": "text/html",
+    ".css": "text/css",
+    ".csv": "text/csv",
+    ".json": "application/json",
+    ".xml": "application/xml",
+    ".zip": "application/zip",
+    ".gz": "application/gzip",
+    ".tar": "application/x-tar",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".mp3": "audio/mpeg",
+    ".mp4": "video/mp4",
+  };
+
   const addAttachmentOutputSchema = {
     attached: z.literal(true),
     id: z.string(),
@@ -345,37 +373,76 @@ export function registerComposeTools(
       {
         description:
           "Add a file attachment to an existing draft email by ID. " +
-          "`contentBytes` must be base64-encoded file content. " +
+          "Provide exactly one of `contentBytes` (base64-encoded content) " +
+          "or `filePath` (absolute path to a local file). When using `filePath`, " +
+          "the file is read from disk and base64-encoded automatically, and " +
+          "`name` defaults to the file's basename if not provided. " +
           "`contentType` is the MIME type (e.g. 'application/pdf'); " +
-          "defaults to 'application/octet-stream' if omitted. " +
+          "when using `filePath` it is inferred from the extension if omitted. " +
           "Disabled in --read-only mode.",
-        inputSchema: {
-          account: z.string().email(),
-          id: z.string().min(1).describe("Draft message ID"),
-          name: z
-            .string()
-            .min(1)
-            .describe("Attachment filename (e.g. 'report.pdf')"),
-          contentBytes: z
-            .string()
-            .min(1)
-            .describe("Base64-encoded file content"),
-          contentType: z
-            .string()
-            .optional()
-            .describe("MIME type (e.g. 'application/pdf')"),
-        },
+        inputSchema: z
+          .object({
+            account: z.string().email(),
+            id: z.string().min(1).describe("Draft message ID"),
+            name: z
+              .string()
+              .min(1)
+              .optional()
+              .describe(
+                "Attachment filename (e.g. 'report.pdf'). Defaults to the " +
+                  "file's basename when `filePath` is used.",
+              ),
+            contentBytes: z
+              .string()
+              .min(1)
+              .optional()
+              .describe("Base64-encoded file content. Mutually exclusive with `filePath`."),
+            filePath: z
+              .string()
+              .min(1)
+              .optional()
+              .describe(
+                "Absolute path to a local file. The file is read and base64-encoded " +
+                  "automatically. Mutually exclusive with `contentBytes`.",
+              ),
+            contentType: z
+              .string()
+              .optional()
+              .describe("MIME type (e.g. 'application/pdf'). Inferred from `filePath` extension if omitted."),
+          })
+          .refine(
+            (v) => Boolean(v.contentBytes) !== Boolean(v.filePath),
+            { message: "Provide exactly one of `contentBytes` or `filePath`." },
+          ),
         outputSchema: addAttachmentOutputSchema,
       },
       async (args) => {
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
+
+          let contentBytes: string;
+          let name: string;
+          let contentType: string | undefined = args.contentType;
+
+          if (args.filePath) {
+            const fileData = readFileSync(args.filePath);
+            contentBytes = fileData.toString("base64");
+            name = args.name ?? basename(args.filePath);
+            if (!contentType) {
+              const ext = extname(args.filePath).toLowerCase();
+              contentType = MIME_TYPES[ext] ?? "application/octet-stream";
+            }
+          } else {
+            contentBytes = args.contentBytes!;
+            name = args.name!;
+          }
+
           const res = await provider.addAttachmentToDraft(
             account,
             args.id,
-            args.name,
-            args.contentBytes,
-            args.contentType,
+            name,
+            contentBytes,
+            contentType,
           );
           const data = {
             attached: true as const,
