@@ -60,8 +60,8 @@ export function isSerializedTokens(obj: unknown): obj is SerializedTokens {
 }
 
 function makeConfig(prevCacheJson?: string, clientIdOverride?: string, tenantOverride?: string): Configuration {
-  const clientId = clientIdOverride || process.env.MS_CLIENT_ID || DEFAULT_CLIENT_ID;
-  const tenant = tenantOverride || process.env.MS_TENANT_ID || "common";
+  const clientId = clientIdOverride || DEFAULT_CLIENT_ID;
+  const tenant = tenantOverride || "common";
   return {
     auth: {
       clientId,

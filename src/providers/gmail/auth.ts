@@ -106,14 +106,13 @@ export function beginDeviceCode(
   clientIdOverride?: string,
   clientSecretOverride?: string,
 ): DeviceCodeBegin {
-  const clientId = clientIdOverride || process.env.GOOGLE_CLIENT_ID;
+  const clientId = clientIdOverride;
   if (!clientId) {
     throw new Error(
-      "GOOGLE_CLIENT_ID is required for Gmail OAuth — set it in env or provider config",
+      "GOOGLE_CLIENT_ID is required for Gmail OAuth — set it via HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID, GOOGLE_CLIENT_ID, or provider config",
     );
   }
-  const clientSecret =
-    clientSecretOverride || process.env.GOOGLE_CLIENT_SECRET || undefined;
+  const clientSecret = clientSecretOverride || undefined;
 
   let resolve!: (v: { tokens: SerializedGmailTokens; email: string }) => void;
   let reject!: (err: unknown) => void;

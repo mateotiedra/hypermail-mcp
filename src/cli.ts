@@ -67,19 +67,51 @@ Options:
   -h, --help          Show this help
 
 Configuration:
-  All server settings (data dir, HTTP, tool filtering, provider credentials)
-  live in hypermail-config.json. Pass it via --config.
+  All settings can be provided via environment variables — no config file
+  required. Use hypermail-config.json for advanced scenarios.
 
-Example hypermail-config.json:
-  {
-    "dataDir": "/path/to/data",
-    "http": { "enabled": false },
-    "tools": { "disabled": ["send_email"] },
-    "providers": {
-      "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" },
-      "gmail": { "clientId": "\${GOOGLE_CLIENT_ID}", "clientSecret": "\${GOOGLE_CLIENT_SECRET}" }
+  Environment variables:
+
+  HYPERMAIL_MCP_DATA_DIR              Data directory (string)
+  HYPERMAIL_HTTP_ENABLED              Enable HTTP mode (bool: true/false/1/0)
+  HYPERMAIL_HTTP_PORT                 HTTP port (number)
+  HYPERMAIL_HTTP_HOST                 HTTP bind address (string)
+  HYPERMAIL_TOOLS_DISABLED            Comma-separated tool names to disable
+  HYPERMAIL_TOOLS_ENABLED             Comma-separated tool names to enable
+  HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID   Outlook OAuth client ID (string)
+  HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID   Outlook tenant ID (string)
+  HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID     Gmail OAuth client ID (string)
+  HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET Gmail OAuth client secret (string)
+  HYPERMAIL_WATCH_ENABLED             Enable inbox polling (bool)
+  HYPERMAIL_WATCH_POLL_INTERVAL       Poll interval in seconds (number)
+  HYPERMAIL_WATCH_WEBHOOK_URL         Webhook URL for new-email events (string)
+  HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS  Retry max attempts (number)
+  HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS Retry base delay ms (number)
+  HYPERMAIL_MCP_KEY                   Encryption master key (hex or base64)
+
+  Legacy env vars (still supported):
+  MS_CLIENT_ID, MS_TENANT_ID, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+
+  Priority: CLI flags > config file > env vars > defaults.
+
+  Example (env-only, no config file):
+    HYPERMAIL_HTTP_ENABLED=true \\
+    HYPERMAIL_HTTP_PORT=8080 \\
+    HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID=abc123 \\
+    HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID=common \\
+    HYPERMAIL_MCP_DATA_DIR=/data/hypermail \\
+    hypermail-mcp --http
+
+  Example hypermail-config.json:
+    {
+      "dataDir": "/path/to/data",
+      "http": { "enabled": false },
+      "tools": { "disabled": ["send_email"] },
+      "providers": {
+        "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" },
+        "gmail": { "clientId": "\${GOOGLE_CLIENT_ID}", "clientSecret": "\${GOOGLE_CLIENT_SECRET}" }
+      }
     }
-  }
 `;
   process.stdout.write(msg);
 }

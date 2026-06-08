@@ -45,8 +45,6 @@ export function decrypt<T = unknown>(buf: Buffer, key: Buffer): T {
 
 export function resolveDataDir(explicit?: string): string {
   if (explicit && explicit.length > 0) return path.resolve(explicit);
-  const env = process.env.HYPERMAIL_MCP_DATA_DIR;
-  if (env && env.length > 0) return path.resolve(env);
   return path.join(homedir(), ".hypermail-mcp");
 }
 
