@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.1** — Every config field is now settable via a dedicated
+> `HYPERMAIL_*` env var. Legacy env vars (`MS_CLIENT_ID`, `MS_TENANT_ID`,
+> `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) still work as fallbacks. See
+> [Environment Variables](#environment-variables) for the full reference.
+>
 > **v0.7.0** — Email watch mode: background poll loop detects new inbox
 > messages and POSTs them to a configurable webhook URL (e.g. Mastra). Opt-in —
 > disabled by default, enabled via `HYPERMAIL_WATCH_ENABLED=true` or config.
@@ -169,6 +174,33 @@ looks for it in the same directory as `cli.js`.
 Per-tool filtering (`tools.enabled` / `tools.disabled`) lets operators ship
 minimal agent-facing surfaces — e.g. a read-only assistant that can only list
 and read emails.
+
+## Environment Variables
+
+Every config field can be set via a dedicated `HYPERMAIL_*` env var, following
+a dotted-path naming convention (`HYPERMAIL_HTTP_PORT`,
+`HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID`, etc.). Legacy env vars
+(`MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
+still work as fallbacks for backward compatibility.
+
+| Env var | Config path | Type |
+| --- | --- | --- |
+| `HYPERMAIL_HTTP_ENABLED` | `http.enabled` | `bool` |
+| `HYPERMAIL_HTTP_PORT` | `http.port` | `int` |
+| `HYPERMAIL_HTTP_HOST` | `http.host` | `string` |
+| `HYPERMAIL_TOOLS_ENABLED` | `tools.enabled` | comma-sep strings |
+| `HYPERMAIL_TOOLS_DISABLED` | `tools.disabled` | comma-sep strings |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | `providers.outlook.clientId` | `string` |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | `providers.outlook.tenantId` | `string` |
+| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` | `providers.gmail.clientId` | `string` |
+| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` | `providers.gmail.clientSecret` | `string` |
+| `HYPERMAIL_WATCH_ENABLED` | `watch.enabled` | `bool` |
+| `HYPERMAIL_WATCH_POLL_INTERVAL` | `watch.pollIntervalSeconds` | `int` |
+| `HYPERMAIL_WATCH_WEBHOOK_URL` | `watch.webhook.url` | `string` |
+| `HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS` | `watch.webhook.retry.maxAttempts` | `int` |
+| `HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS` | `watch.webhook.retry.baseDelayMs` | `int` |
+
+**Priority order:** CLI flags > config file > `HYPERMAIL_*` env var > hardcoded default.
 
 ## Tools
 
