@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.3** — `edit_draft` now preserves the quoted thread history when editing
+> Outlook reply/forward drafts. Previously, editing a draft body would overwrite
+> the entire content — including the quoted thread. Now only the answer part
+> (above the spacer delimiter) is replaced.
+>
 > **v0.7.2** — `add_attachment_to_draft` now accepts `filePath` (absolute path to
 a local file) as an alternative to `contentBytes`. The file is read from disk and
 base64-encoded automatically, the MIME type is inferred from the extension, and
@@ -231,7 +236,7 @@ account store.
 | `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature?`, `inReplyTo?`, `replyAll?`, `forwardMessageId?` | Save as draft instead of sending. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Returns the draft message ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
 | `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?` | Edit an existing draft by ID. Only provided fields are updated. `format` only meaningful when `body` is provided. Returns the updated draft ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
 | `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. Disabled under `--read-only`. |
-| `add_attachment_to_draft` | `account`, `id`, `name`, `contentBytes`, `contentType?` | Attach a base64-encoded file to an existing draft email by ID. Disabled under `--read-only`. |
+| `add_attachment_to_draft` | `account`, `id`, `name?`, `contentBytes?`, `filePath?`, `contentType?` | Attach a file to an existing draft by ID. Provide `contentBytes` (base64) or `filePath` (absolute path — auto-encodes). Disabled under `--read-only`. |
 | `list_folders` | `account`, `parentFolderId?` | List available mail folders. Returns top-level folders by default, or children of `parentFolderId`. |
 | `create_folder` | `account`, `displayName`, `parentFolderId?` | Create a new mail folder under root (default) or the given parent. Disabled under `--read-only`. |
 | `delete_folder` | `account`, `folderId` | Delete a mail folder by ID. Disabled under `--read-only`. |
