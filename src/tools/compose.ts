@@ -273,6 +273,26 @@ export function registerComposeTools(
             bodyPayload = composed.body;
             isHtmlPayload = composed.isHtml;
           }
+
+          // Preserve quoted thread when editing reply/forward drafts.
+          // Outlook's buildDraftFromReference inserts a known spacer between
+          // the answer and the quoted thread. Split on its first occurrence:
+          // replace only the answer part, keep the spacer + quoted thread.
+          if (bodyPayload !== undefined) {
+            const spacer = '<div style="line-height:12px"><br></div>';
+            try {
+              const existing = await provider.readEmail(account, a.id);
+              const existingHtml = existing.bodyHtml ?? "";
+              const spacerIdx = existingHtml.indexOf(spacer);
+              if (spacerIdx !== -1) {
+                bodyPayload = bodyPayload + existingHtml.slice(spacerIdx);
+              }
+            } catch {
+              // If we can't read the existing draft, proceed with the new
+              // body as-is (no thread to preserve).
+            }
+          }
+
           const res = await provider.updateDraft(account, a.id, {
             to: a.to,
             cc: a.cc,
