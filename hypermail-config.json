@@ -11,7 +11,10 @@
   },
   "watch": {
     "enabled": true,
-    "pollIntervalSeconds": 60
+    "pollIntervalSeconds": 60,
+    "webhook": {
+      "url": "${HYPERMAIL_WATCH_WEBHOOK_URL}"
+    }
   },
   "providers": {
     "outlook": {
