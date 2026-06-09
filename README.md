@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.4** — `inReplyTo` is now a required parameter on `send_email` and
+> `draft_email` (was optional). Set it to `false` for a new email, or pass a
+> message ID to thread a reply. This forces the agent to make an explicit choice
+> instead of silently treating replies as new conversations.
+>
 > **v0.7.3** — `edit_draft` now preserves the quoted thread history when editing
 > Outlook reply/forward drafts. Previously, editing a draft body would overwrite
 > the entire content — including the quoted thread. Now only the answer part
@@ -232,8 +237,8 @@ account store.
 | `archive_email` | `account`, `id` | Move a message to the Archive folder. Disabled under `--read-only`. |
 | `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). Disabled under `--read-only`. |
 | `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. Disabled under `--read-only`. |
-| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature?`, `inReplyTo?`, `replyAll?`, `forwardMessageId?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. Disabled under `--read-only`. |
-| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature?`, `inReplyTo?`, `replyAll?`, `forwardMessageId?` | Save as draft instead of sending. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Returns the draft message ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
+| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
+| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?` | Save as draft instead of sending. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
 | `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?` | Edit an existing draft by ID. Only provided fields are updated. `format` only meaningful when `body` is provided. Returns the updated draft ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
 | `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. Disabled under `--read-only`. |
 | `add_attachment_to_draft` | `account`, `id`, `name?`, `contentBytes?`, `filePath?`, `contentType?` | Attach a file to an existing draft by ID. Provide `contentBytes` (base64) or `filePath` (absolute path — auto-encodes). Disabled under `--read-only`. |
