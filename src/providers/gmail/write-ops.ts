@@ -162,6 +162,7 @@ export async function updateDraft(
     subject: update.subject ?? origSubject,
     body: update.body ?? "",
     isHtml: update.isHtml,
+    inReplyTo: false,
     cc: existingCc.length > 0 ? existingCc : undefined,
     bcc: existingBcc.length > 0 ? existingBcc : undefined,
   });

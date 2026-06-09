@@ -47,11 +47,11 @@ export function registerComposeTools(
           "Returns an error if true but no signature is configured for this account.",
       ),
     inReplyTo: z
-      .string()
-      .optional()
+      .union([z.string(), z.literal(false)])
       .describe(
         "Message ID to reply to. When set, sends as a threaded reply " +
-          "which includes the quoted thread history automatically.",
+          "which includes the quoted thread history automatically. " +
+          "Set to `false` for a new email (not a reply).",
       ),
     replyAll: z
       .boolean()
