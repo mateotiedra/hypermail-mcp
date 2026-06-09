@@ -1013,7 +1013,7 @@
       "source_file": "src/server.ts",
       "source_location": "L1",
       "id": "src_server_ts",
-      "community": 41,
+      "community": 39,
       "norm_label": "server.ts"
     },
     {
@@ -1022,7 +1022,7 @@
       "source_file": "src/server.ts",
       "source_location": "L15",
       "id": "src_server_serveroptions",
-      "community": 41,
+      "community": 39,
       "norm_label": "serveroptions"
     },
     {
@@ -1031,7 +1031,7 @@
       "source_file": "src/server.ts",
       "source_location": "L20",
       "id": "src_server_startserver",
-      "community": 41,
+      "community": 39,
       "norm_label": "startserver()"
     },
     {
@@ -1040,7 +1040,7 @@
       "source_file": "src/server.ts",
       "source_location": "L58",
       "id": "src_server_httpsession",
-      "community": 41,
+      "community": 39,
       "norm_label": "httpsession"
     },
     {
@@ -1049,7 +1049,7 @@
       "source_file": "src/server.ts",
       "source_location": "L63",
       "id": "src_server_starthttp",
-      "community": 41,
+      "community": 39,
       "norm_label": "starthttp()"
     },
     {
@@ -1085,7 +1085,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L1",
       "id": "src_cli_ts",
-      "community": 35,
+      "community": 44,
       "norm_label": "cli.ts"
     },
     {
@@ -1094,7 +1094,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L6",
       "id": "src_cli_parsedargs",
-      "community": 35,
+      "community": 44,
       "norm_label": "parsedargs"
     },
     {
@@ -1103,7 +1103,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L15",
       "id": "src_cli_parseargs",
-      "community": 35,
+      "community": 44,
       "norm_label": "parseargs()"
     },
     {
@@ -1112,7 +1112,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L54",
       "id": "src_cli_printhelp",
-      "community": 35,
+      "community": 44,
       "norm_label": "printhelp()"
     },
     {
@@ -1121,7 +1121,7 @@
       "source_file": "src/cli.ts",
       "source_location": "L119",
       "id": "src_cli_main",
-      "community": 35,
+      "community": 44,
       "norm_label": "main()"
     },
     {
@@ -1265,7 +1265,7 @@
       "source_file": "src/config.ts",
       "source_location": "L98",
       "id": "src_config_watchconfig",
-      "community": 39,
+      "community": 45,
       "norm_label": "watchconfig"
     },
     {
@@ -1274,7 +1274,7 @@
       "source_file": "src/config.ts",
       "source_location": "L108",
       "id": "src_config_appconfig",
-      "community": 41,
+      "community": 39,
       "norm_label": "appconfig"
     },
     {
@@ -1373,7 +1373,7 @@
       "source_file": "src/config.ts",
       "source_location": "L442",
       "id": "src_config_resolvetools",
-      "community": 41,
+      "community": 39,
       "norm_label": "resolvetools()"
     },
     {
@@ -1382,7 +1382,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L1",
       "id": "src_html_to_markdown_ts",
-      "community": 43,
+      "community": 41,
       "norm_label": "html-to-markdown.ts"
     },
     {
@@ -1391,7 +1391,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L3",
       "id": "src_html_to_markdown_turndown",
-      "community": 43,
+      "community": 41,
       "norm_label": "turndown"
     },
     {
@@ -1400,7 +1400,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L6",
       "id": "src_html_to_markdown_htmltomarkdown",
-      "community": 43,
+      "community": 41,
       "norm_label": "htmltomarkdown()"
     },
     {
@@ -1409,7 +1409,7 @@
       "source_file": "src/html-to-markdown.ts",
       "source_location": "L11",
       "id": "src_html_to_markdown_selectbody",
-      "community": 43,
+      "community": 41,
       "norm_label": "selectbody()"
     },
     {
@@ -1418,7 +1418,7 @@
       "source_file": "src/config.test.ts",
       "source_location": "L1",
       "id": "src_config_test_ts",
-      "community": 35,
+      "community": 42,
       "norm_label": "config.test.ts"
     },
     {
@@ -1427,7 +1427,7 @@
       "source_file": "src/config.test.ts",
       "source_location": "L7",
       "id": "src_config_test_managed_keys",
-      "community": 35,
+      "community": 42,
       "norm_label": "managed_keys"
     },
     {
@@ -1436,7 +1436,7 @@
       "source_file": "src/config.test.ts",
       "source_location": "L30",
       "id": "src_config_test_cleanenv",
-      "community": 35,
+      "community": 42,
       "norm_label": "cleanenv()"
     },
     {
@@ -1445,7 +1445,7 @@
       "source_file": "src/config.test.ts",
       "source_location": "L48",
       "id": "src_config_test_cfg",
-      "community": 35,
+      "community": 42,
       "norm_label": "cfg"
     },
     {
@@ -1454,7 +1454,7 @@
       "source_file": "src/config.test.ts",
       "source_location": "L246",
       "id": "src_config_test_resolved",
-      "community": 35,
+      "community": 42,
       "norm_label": "resolved"
     },
     {
@@ -1571,7 +1571,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L16",
       "id": "store_account_store_accountrecord",
-      "community": 1,
+      "community": 25,
       "norm_label": "accountrecord"
     },
     {
@@ -1598,7 +1598,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L50",
       "id": "store_account_store_accountstore",
-      "community": 41,
+      "community": 24,
       "norm_label": "accountstore"
     },
     {
@@ -1607,7 +1607,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L51",
       "id": "store_account_store_accountstore_constructor",
-      "community": 41,
+      "community": 24,
       "norm_label": ".constructor()"
     },
     {
@@ -1625,7 +1625,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L77",
       "id": "store_account_store_accountstore_listaccounts",
-      "community": 41,
+      "community": 24,
       "norm_label": ".listaccounts()"
     },
     {
@@ -1634,7 +1634,7 @@
       "source_file": "src/store/account-store.ts",
       "source_location": "L83",
       "id": "store_account_store_accountstore_getaccount",
-      "community": 41,
+      "community": 24,
       "norm_label": ".getaccount()"
     },
     {
@@ -1839,7 +1839,7 @@
       "label": "registerComposeTools()",
       "file_type": "code",
       "source_file": "src/tools/compose.ts",
-      "source_location": "L17",
+      "source_location": "L19",
       "id": "tools_compose_registercomposetools",
       "community": 41,
       "norm_label": "registercomposetools()"
@@ -1967,7 +1967,7 @@
       "source_file": "src/watcher/webhook.ts",
       "source_location": "L1",
       "id": "src_watcher_webhook_ts",
-      "community": 39,
+      "community": 45,
       "norm_label": "webhook.ts"
     },
     {
@@ -1976,7 +1976,7 @@
       "source_file": "src/watcher/webhook.ts",
       "source_location": "L7",
       "id": "watcher_webhook_postwebhook",
-      "community": 39,
+      "community": 45,
       "norm_label": "postwebhook()"
     },
     {
@@ -1985,7 +1985,7 @@
       "source_file": "src/watcher/webhook.ts",
       "source_location": "L52",
       "id": "watcher_webhook_sleep",
-      "community": 39,
+      "community": 45,
       "norm_label": "sleep()"
     },
     {
@@ -2012,7 +2012,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L16",
       "id": "watcher_manager_watchermanager",
-      "community": 39,
+      "community": 40,
       "norm_label": "watchermanager"
     },
     {
@@ -2021,7 +2021,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L19",
       "id": "watcher_manager_watchermanager_constructor",
-      "community": 39,
+      "community": 45,
       "norm_label": ".constructor()"
     },
     {
@@ -2030,7 +2030,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L28",
       "id": "watcher_manager_watchermanager_start",
-      "community": 39,
+      "community": 40,
       "norm_label": ".start()"
     },
     {
@@ -2039,7 +2039,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L39",
       "id": "watcher_manager_watchermanager_stop",
-      "community": 39,
+      "community": 40,
       "norm_label": ".stop()"
     },
     {
@@ -2048,7 +2048,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L48",
       "id": "watcher_manager_watchermanager_poll",
-      "community": 39,
+      "community": 40,
       "norm_label": ".poll()"
     },
     {
@@ -2057,7 +2057,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L63",
       "id": "watcher_manager_watchermanager_pollaccount",
-      "community": 39,
+      "community": 40,
       "norm_label": ".pollaccount()"
     },
     {
@@ -2066,7 +2066,7 @@
       "source_file": "src/watcher/manager.ts",
       "source_location": "L94",
       "id": "watcher_manager_watchermanager_emit",
-      "community": 39,
+      "community": 40,
       "norm_label": ".emit()"
     },
     {
@@ -2102,7 +2102,7 @@
       "source_file": "src/providers/registry.ts",
       "source_location": "L19",
       "id": "providers_registry_buildregistry",
-      "community": 41,
+      "community": 39,
       "norm_label": "buildregistry()"
     },
     {
@@ -2111,7 +2111,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L1",
       "id": "src_providers_types_ts",
-      "community": 36,
+      "community": 6,
       "norm_label": "types.ts"
     },
     {
@@ -2129,7 +2129,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L5",
       "id": "providers_types_emailaddress",
-      "community": 36,
+      "community": 6,
       "norm_label": "emailaddress"
     },
     {
@@ -2138,7 +2138,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L10",
       "id": "providers_types_emailsummary",
-      "community": 36,
+      "community": 6,
       "norm_label": "emailsummary"
     },
     {
@@ -2147,7 +2147,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L22",
       "id": "providers_types_emailfull",
-      "community": 42,
+      "community": 6,
       "norm_label": "emailfull"
     },
     {
@@ -2156,7 +2156,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L35",
       "id": "providers_types_listemailsoptions",
-      "community": 36,
+      "community": 6,
       "norm_label": "listemailsoptions"
     },
     {
@@ -2165,7 +2165,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L44",
       "id": "providers_types_listemailsresult",
-      "community": 36,
+      "community": 6,
       "norm_label": "listemailsresult"
     },
     {
@@ -2174,7 +2174,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L49",
       "id": "providers_types_searchemailsoptions",
-      "community": 36,
+      "community": 6,
       "norm_label": "searchemailsoptions"
     },
     {
@@ -2183,7 +2183,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L53",
       "id": "providers_types_sendinput",
-      "community": 25,
+      "community": 1,
       "norm_label": "sendinput"
     },
     {
@@ -2192,7 +2192,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L78",
       "id": "providers_types_draftupdateinput",
-      "community": 1,
+      "community": 6,
       "norm_label": "draftupdateinput"
     },
     {
@@ -2219,7 +2219,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L114",
       "id": "providers_types_completeaddaccountresult",
-      "community": 40,
+      "community": 36,
       "norm_label": "completeaddaccountresult"
     },
     {
@@ -2228,7 +2228,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L120",
       "id": "providers_types_attachmentcontent",
-      "community": 1,
+      "community": 6,
       "norm_label": "attachmentcontent"
     },
     {
@@ -2264,7 +2264,7 @@
       "source_file": "src/providers/types.ts",
       "source_location": "L148",
       "id": "providers_types_emailprovider",
-      "community": 36,
+      "community": 41,
       "norm_label": "emailprovider"
     },
     {
@@ -2309,7 +2309,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L17",
       "id": "outlook_client_outlookclientfactory",
-      "community": 0,
+      "community": 46,
       "norm_label": "outlookclientfactory"
     },
     {
@@ -2318,7 +2318,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L22",
       "id": "outlook_client_outlookclientfactory_constructor",
-      "community": 0,
+      "community": 46,
       "norm_label": ".constructor()"
     },
     {
@@ -2327,7 +2327,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L28",
       "id": "outlook_client_outlookclientfactory_get",
-      "community": 0,
+      "community": 46,
       "norm_label": ".get()"
     },
     {
@@ -2336,7 +2336,7 @@
       "source_file": "src/providers/outlook/client.ts",
       "source_location": "L86",
       "id": "outlook_client_outlookclientfactory_invalidate",
-      "community": 0,
+      "community": 46,
       "norm_label": ".invalidate()"
     },
     {
@@ -2345,7 +2345,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L1",
       "id": "src_providers_outlook_index_ts",
-      "community": 36,
+      "community": 0,
       "norm_label": "index.ts"
     },
     {
@@ -2354,7 +2354,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L39",
       "id": "outlook_index_inlineattachment",
-      "community": 36,
+      "community": 0,
       "norm_label": "inlineattachment"
     },
     {
@@ -2363,7 +2363,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L60",
       "id": "outlook_index_convertinlineimages",
-      "community": 25,
+      "community": 43,
       "norm_label": "convertinlineimages()"
     },
     {
@@ -2372,7 +2372,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L76",
       "id": "outlook_index_pendingflow",
-      "community": 36,
+      "community": 0,
       "norm_label": "pendingflow"
     },
     {
@@ -2381,7 +2381,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L85",
       "id": "outlook_index_outlookprovideroptions",
-      "community": 41,
+      "community": 24,
       "norm_label": "outlookprovideroptions"
     },
     {
@@ -2390,7 +2390,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L91",
       "id": "outlook_index_outlookprovider",
-      "community": 25,
+      "community": 1,
       "norm_label": "outlookprovider"
     },
     {
@@ -2399,7 +2399,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L98",
       "id": "outlook_index_outlookprovider_constructor",
-      "community": 25,
+      "community": 1,
       "norm_label": ".constructor()"
     },
     {
@@ -2417,7 +2417,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L156",
       "id": "outlook_index_outlookprovider_completeaddaccount",
-      "community": 40,
+      "community": 36,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -2426,7 +2426,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L181",
       "id": "outlook_index_outlookprovider_listemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -2435,7 +2435,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L216",
       "id": "outlook_index_outlookprovider_searchemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".searchemails()"
     },
     {
@@ -2444,7 +2444,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L245",
       "id": "outlook_index_outlookprovider_reademail",
-      "community": 42,
+      "community": 1,
       "norm_label": ".reademail()"
     },
     {
@@ -2462,7 +2462,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L328",
       "id": "outlook_index_outlookprovider_builddraftfromreference",
-      "community": 25,
+      "community": 1,
       "norm_label": ".builddraftfromreference()"
     },
     {
@@ -2471,7 +2471,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L363",
       "id": "outlook_index_outlookprovider_sendorsave",
-      "community": 25,
+      "community": 1,
       "norm_label": ".sendorsave()"
     },
     {
@@ -2480,7 +2480,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L433",
       "id": "outlook_index_outlookprovider_sendemail",
-      "community": 25,
+      "community": 1,
       "norm_label": ".sendemail()"
     },
     {
@@ -2489,7 +2489,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L440",
       "id": "outlook_index_outlookprovider_savedraft",
-      "community": 25,
+      "community": 1,
       "norm_label": ".savedraft()"
     },
     {
@@ -2498,7 +2498,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L447",
       "id": "outlook_index_outlookprovider_updatedraft",
-      "community": 25,
+      "community": 43,
       "norm_label": ".updatedraft()"
     },
     {
@@ -2507,7 +2507,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L487",
       "id": "outlook_index_outlookprovider_moveemail",
-      "community": 25,
+      "community": 1,
       "norm_label": ".moveemail()"
     },
     {
@@ -2516,7 +2516,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L498",
       "id": "outlook_index_outlookprovider_senddraft",
-      "community": 25,
+      "community": 1,
       "norm_label": ".senddraft()"
     },
     {
@@ -2525,7 +2525,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L507",
       "id": "outlook_index_outlookprovider_addattachmenttodraft",
-      "community": 25,
+      "community": 1,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -2534,7 +2534,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L529",
       "id": "outlook_index_outlookprovider_markread",
-      "community": 25,
+      "community": 1,
       "norm_label": ".markread()"
     },
     {
@@ -2570,7 +2570,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L586",
       "id": "outlook_index_outlookprovider_deletefolder",
-      "community": 25,
+      "community": 1,
       "norm_label": ".deletefolder()"
     },
     {
@@ -2579,7 +2579,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L599",
       "id": "outlook_index_graphrecipient",
-      "community": 36,
+      "community": 0,
       "norm_label": "graphrecipient"
     },
     {
@@ -2588,7 +2588,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L602",
       "id": "outlook_index_graphmessage",
-      "community": 36,
+      "community": 0,
       "norm_label": "graphmessage"
     },
     {
@@ -2597,7 +2597,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L615",
       "id": "outlook_index_graphattachment",
-      "community": 36,
+      "community": 0,
       "norm_label": "graphattachment"
     },
     {
@@ -2606,7 +2606,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L621",
       "id": "outlook_index_graphfolder",
-      "community": 36,
+      "community": 0,
       "norm_label": "graphfolder"
     },
     {
@@ -2624,7 +2624,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L641",
       "id": "outlook_index_maprecipient",
-      "community": 42,
+      "community": 0,
       "norm_label": "maprecipient()"
     },
     {
@@ -2633,7 +2633,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L648",
       "id": "outlook_index_mapsummary",
-      "community": 42,
+      "community": 0,
       "norm_label": "mapsummary()"
     },
     {
@@ -2642,7 +2642,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L662",
       "id": "outlook_index_torecipient",
-      "community": 36,
+      "community": 0,
       "norm_label": "torecipient()"
     },
     {
@@ -2651,7 +2651,7 @@
       "source_file": "src/providers/outlook/index.ts",
       "source_location": "L666",
       "id": "outlook_index_clamplimit",
-      "community": 36,
+      "community": 6,
       "norm_label": "clamplimit()"
     },
     {
@@ -2678,7 +2678,7 @@
       "source_file": "src/providers/outlook/auth.ts",
       "source_location": "L26",
       "id": "outlook_auth_devicecodebegin",
-      "community": 36,
+      "community": 0,
       "norm_label": "devicecodebegin"
     },
     {
@@ -2750,7 +2750,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L1",
       "id": "src_providers_outlook_index_test_ts",
-      "community": 25,
+      "community": 43,
       "norm_label": "index.test.ts"
     },
     {
@@ -2759,7 +2759,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L8",
       "id": "outlook_index_test_result",
-      "community": 25,
+      "community": 43,
       "norm_label": "result"
     },
     {
@@ -2768,7 +2768,7 @@
       "source_file": "src/providers/outlook/index.test.ts",
       "source_location": "L103",
       "id": "outlook_index_test_body",
-      "community": 25,
+      "community": 43,
       "norm_label": "body"
     },
     {
@@ -2777,7 +2777,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L1",
       "id": "src_providers_gmail_client_ts",
-      "community": 38,
+      "community": 6,
       "norm_label": "client.ts"
     },
     {
@@ -2786,7 +2786,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L16",
       "id": "gmail_client_gmailcliententry",
-      "community": 38,
+      "community": 6,
       "norm_label": "gmailcliententry"
     },
     {
@@ -2795,7 +2795,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L28",
       "id": "gmail_client_gmailclientfactory",
-      "community": 38,
+      "community": 6,
       "norm_label": "gmailclientfactory"
     },
     {
@@ -2804,7 +2804,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L33",
       "id": "gmail_client_gmailclientfactory_constructor",
-      "community": 38,
+      "community": 24,
       "norm_label": ".constructor()"
     },
     {
@@ -2813,7 +2813,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L39",
       "id": "gmail_client_gmailclientfactory_get",
-      "community": 38,
+      "community": 6,
       "norm_label": ".get()"
     },
     {
@@ -2822,7 +2822,7 @@
       "source_file": "src/providers/gmail/client.ts",
       "source_location": "L109",
       "id": "gmail_client_gmailclientfactory_invalidate",
-      "community": 38,
+      "community": 6,
       "norm_label": ".invalidate()"
     },
     {
@@ -3020,7 +3020,7 @@
       "source_file": "src/providers/gmail/helpers.ts",
       "source_location": "L89",
       "id": "gmail_helpers_parsedpayload",
-      "community": 42,
+      "community": 6,
       "norm_label": "parsedpayload"
     },
     {
@@ -3164,7 +3164,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L60",
       "id": "gmail_index_gmailprovideroptions",
-      "community": 41,
+      "community": 24,
       "norm_label": "gmailprovideroptions"
     },
     {
@@ -3173,7 +3173,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L66",
       "id": "gmail_index_gmailprovider",
-      "community": 1,
+      "community": 25,
       "norm_label": "gmailprovider"
     },
     {
@@ -3182,7 +3182,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L73",
       "id": "gmail_index_gmailprovider_constructor",
-      "community": 1,
+      "community": 25,
       "norm_label": ".constructor()"
     },
     {
@@ -3200,7 +3200,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L138",
       "id": "gmail_index_gmailprovider_completeaddaccount",
-      "community": 40,
+      "community": 36,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -3209,7 +3209,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L167",
       "id": "gmail_index_gmailprovider_listemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -3218,7 +3218,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L174",
       "id": "gmail_index_gmailprovider_searchemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".searchemails()"
     },
     {
@@ -3227,7 +3227,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L182",
       "id": "gmail_index_gmailprovider_reademail",
-      "community": 42,
+      "community": 6,
       "norm_label": ".reademail()"
     },
     {
@@ -3236,7 +3236,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L186",
       "id": "gmail_index_gmailprovider_readattachment",
-      "community": 1,
+      "community": 25,
       "norm_label": ".readattachment()"
     },
     {
@@ -3245,7 +3245,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L196",
       "id": "gmail_index_gmailprovider_sendemail",
-      "community": 1,
+      "community": 25,
       "norm_label": ".sendemail()"
     },
     {
@@ -3254,7 +3254,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L203",
       "id": "gmail_index_gmailprovider_savedraft",
-      "community": 1,
+      "community": 25,
       "norm_label": ".savedraft()"
     },
     {
@@ -3263,7 +3263,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L210",
       "id": "gmail_index_gmailprovider_updatedraft",
-      "community": 1,
+      "community": 25,
       "norm_label": ".updatedraft()"
     },
     {
@@ -3272,7 +3272,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L218",
       "id": "gmail_index_gmailprovider_moveemail",
-      "community": 1,
+      "community": 25,
       "norm_label": ".moveemail()"
     },
     {
@@ -3281,7 +3281,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L226",
       "id": "gmail_index_gmailprovider_senddraft",
-      "community": 1,
+      "community": 25,
       "norm_label": ".senddraft()"
     },
     {
@@ -3290,7 +3290,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L233",
       "id": "gmail_index_gmailprovider_addattachmenttodraft",
-      "community": 1,
+      "community": 25,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -3299,7 +3299,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L255",
       "id": "gmail_index_gmailprovider_markread",
-      "community": 1,
+      "community": 25,
       "norm_label": ".markread()"
     },
     {
@@ -3317,7 +3317,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L272",
       "id": "gmail_index_gmailprovider_createfolder",
-      "community": 37,
+      "community": 25,
       "norm_label": ".createfolder()"
     },
     {
@@ -3326,7 +3326,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L279",
       "id": "gmail_index_gmailprovider_renamefolder",
-      "community": 37,
+      "community": 25,
       "norm_label": ".renamefolder()"
     },
     {
@@ -3335,7 +3335,7 @@
       "source_file": "src/providers/gmail/index.ts",
       "source_location": "L287",
       "id": "gmail_index_gmailprovider_deletefolder",
-      "community": 1,
+      "community": 25,
       "norm_label": ".deletefolder()"
     },
     {
@@ -3344,7 +3344,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L1",
       "id": "src_providers_gmail_auth_ts",
-      "community": 38,
+      "community": 6,
       "norm_label": "auth.ts"
     },
     {
@@ -3353,7 +3353,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L7",
       "id": "gmail_auth_default_scopes",
-      "community": 38,
+      "community": 6,
       "norm_label": "default_scopes"
     },
     {
@@ -3362,7 +3362,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L11",
       "id": "gmail_auth_devicecodebegin",
-      "community": 38,
+      "community": 6,
       "norm_label": "devicecodebegin"
     },
     {
@@ -3371,7 +3371,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L22",
       "id": "gmail_auth_serializedgmailtokens",
-      "community": 38,
+      "community": 6,
       "norm_label": "serializedgmailtokens"
     },
     {
@@ -3380,7 +3380,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L40",
       "id": "gmail_auth_isserializedgmailtokens",
-      "community": 38,
+      "community": 6,
       "norm_label": "isserializedgmailtokens()"
     },
     {
@@ -3389,7 +3389,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L60",
       "id": "gmail_auth_buildoauth2client",
-      "community": 38,
+      "community": 6,
       "norm_label": "buildoauth2client()"
     },
     {
@@ -3398,7 +3398,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L79",
       "id": "gmail_auth_getemailfromtoken",
-      "community": 38,
+      "community": 6,
       "norm_label": "getemailfromtoken()"
     },
     {
@@ -3416,7 +3416,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L272",
       "id": "gmail_auth_awaitdevicecodeready",
-      "community": 38,
+      "community": 6,
       "norm_label": "awaitdevicecodeready()"
     },
     {
@@ -3425,7 +3425,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L282",
       "id": "gmail_auth_acquireaccesstoken",
-      "community": 38,
+      "community": 6,
       "norm_label": "acquireaccesstoken()"
     },
     {
@@ -3434,7 +3434,7 @@
       "source_file": "src/providers/gmail/auth.ts",
       "source_location": "L310",
       "id": "gmail_auth_revokerefreshtoken",
-      "community": 38,
+      "community": 6,
       "norm_label": "revokerefreshtoken()"
     },
     {
@@ -3893,7 +3893,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L42",
       "id": "imap_index_imapprovider",
-      "community": 1,
+      "community": 36,
       "norm_label": "imapprovider"
     },
     {
@@ -3902,7 +3902,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L46",
       "id": "imap_index_imapprovider_constructor",
-      "community": 41,
+      "community": 36,
       "norm_label": ".constructor()"
     },
     {
@@ -3920,7 +3920,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L55",
       "id": "imap_index_imapprovider_completeaddaccount",
-      "community": 40,
+      "community": 36,
       "norm_label": ".completeaddaccount()"
     },
     {
@@ -3929,7 +3929,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L61",
       "id": "imap_index_imapprovider_listemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".listemails()"
     },
     {
@@ -3938,7 +3938,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L65",
       "id": "imap_index_imapprovider_searchemails",
-      "community": 36,
+      "community": 6,
       "norm_label": ".searchemails()"
     },
     {
@@ -3947,7 +3947,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L69",
       "id": "imap_index_imapprovider_reademail",
-      "community": 1,
+      "community": 6,
       "norm_label": ".reademail()"
     },
     {
@@ -3956,7 +3956,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L73",
       "id": "imap_index_imapprovider_readattachment",
-      "community": 1,
+      "community": 36,
       "norm_label": ".readattachment()"
     },
     {
@@ -3983,7 +3983,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L87",
       "id": "imap_index_imapprovider_updatedraft",
-      "community": 1,
+      "community": 36,
       "norm_label": ".updatedraft()"
     },
     {
@@ -3992,7 +3992,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L91",
       "id": "imap_index_imapprovider_moveemail",
-      "community": 1,
+      "community": 36,
       "norm_label": ".moveemail()"
     },
     {
@@ -4001,7 +4001,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L95",
       "id": "imap_index_imapprovider_senddraft",
-      "community": 1,
+      "community": 36,
       "norm_label": ".senddraft()"
     },
     {
@@ -4010,7 +4010,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L99",
       "id": "imap_index_imapprovider_addattachmenttodraft",
-      "community": 1,
+      "community": 36,
       "norm_label": ".addattachmenttodraft()"
     },
     {
@@ -4019,7 +4019,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L111",
       "id": "imap_index_imapprovider_markread",
-      "community": 1,
+      "community": 36,
       "norm_label": ".markread()"
     },
     {
@@ -4037,7 +4037,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L121",
       "id": "imap_index_imapprovider_createfolder",
-      "community": 1,
+      "community": 37,
       "norm_label": ".createfolder()"
     },
     {
@@ -4046,7 +4046,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L125",
       "id": "imap_index_imapprovider_renamefolder",
-      "community": 1,
+      "community": 37,
       "norm_label": ".renamefolder()"
     },
     {
@@ -4055,7 +4055,7 @@
       "source_file": "src/providers/imap/index.ts",
       "source_location": "L129",
       "id": "imap_index_imapprovider_deletefolder",
-      "community": 1,
+      "community": 36,
       "norm_label": ".deletefolder()"
     },
     {
@@ -4302,7 +4302,7 @@
       "label": "Why",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L43",
+      "source_location": "L57",
       "id": "hyper_email_mcp_0_readme_why",
       "community": 17,
       "norm_label": "why"
@@ -4311,7 +4311,7 @@
       "label": "Install / run",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L52",
+      "source_location": "L66",
       "id": "hyper_email_mcp_0_readme_install_run",
       "community": 17,
       "norm_label": "install / run"
@@ -4320,7 +4320,7 @@
       "label": "code:bash (npm install -g hypermail-mcp     # or pnpm / npx)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L54",
+      "source_location": "L68",
       "id": "hyper_email_mcp_0_readme_codeblock_1",
       "community": 17,
       "norm_label": "code:bash (npm install -g hypermail-mcp     # or pnpm / npx)"
@@ -4329,7 +4329,7 @@
       "label": "Claude Desktop / Claude Code",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L61",
+      "source_location": "L75",
       "id": "hyper_email_mcp_0_readme_claude_desktop_claude_code",
       "community": 17,
       "norm_label": "claude desktop / claude code"
@@ -4338,7 +4338,7 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L63",
+      "source_location": "L77",
       "id": "hyper_email_mcp_0_readme_codeblock_2",
       "community": 17,
       "norm_label": "code:jsonc ({)"
@@ -4347,7 +4347,7 @@
       "label": "code:bash (claude mcp add hypermail -- npx -y hypermail-mcp)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L76",
+      "source_location": "L90",
       "id": "hyper_email_mcp_0_readme_codeblock_3",
       "community": 17,
       "norm_label": "code:bash (claude mcp add hypermail -- npx -y hypermail-mcp)"
@@ -4356,7 +4356,7 @@
       "label": "As a hosted HTTP server",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L80",
+      "source_location": "L94",
       "id": "hyper_email_mcp_0_readme_as_a_hosted_http_server",
       "community": 17,
       "norm_label": "as a hosted http server"
@@ -4365,7 +4365,7 @@
       "label": "code:bash (hypermail-mcp --http --port 3000 --host 0.0.0.0)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L82",
+      "source_location": "L96",
       "id": "hyper_email_mcp_0_readme_codeblock_4",
       "community": 17,
       "norm_label": "code:bash (hypermail-mcp --http --port 3000 --host 0.0.0.0)"
@@ -4374,7 +4374,7 @@
       "label": "Docker",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L90",
+      "source_location": "L104",
       "id": "hyper_email_mcp_0_readme_docker",
       "community": 17,
       "norm_label": "docker"
@@ -4383,7 +4383,7 @@
       "label": "code:bash (# Build)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L92",
+      "source_location": "L106",
       "id": "hyper_email_mcp_0_readme_codeblock_5",
       "community": 17,
       "norm_label": "code:bash (# build)"
@@ -4392,7 +4392,7 @@
       "label": "Development",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L110",
+      "source_location": "L124",
       "id": "hyper_email_mcp_0_readme_development",
       "community": 17,
       "norm_label": "development"
@@ -4401,7 +4401,7 @@
       "label": "code:bash (# Terminal 1: auto-rebuild TypeScript on save)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L114",
+      "source_location": "L128",
       "id": "hyper_email_mcp_0_readme_codeblock_6",
       "community": 17,
       "norm_label": "code:bash (# terminal 1: auto-rebuild typescript on save)"
@@ -4410,7 +4410,7 @@
       "label": "Add-account flow (Outlook)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L126",
+      "source_location": "L140",
       "id": "hyper_email_mcp_0_readme_add_account_flow_outlook",
       "community": 17,
       "norm_label": "add-account flow (outlook)"
@@ -4419,7 +4419,7 @@
       "label": "Configuration",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L139",
+      "source_location": "L153",
       "id": "hyper_email_mcp_0_readme_configuration",
       "community": 17,
       "norm_label": "configuration"
@@ -4428,16 +4428,25 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L145",
+      "source_location": "L159",
       "id": "hyper_email_mcp_0_readme_codeblock_7",
       "community": 17,
       "norm_label": "code:jsonc ({)"
     },
     {
+      "label": "Environment Variables",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L187",
+      "id": "hyper_email_mcp_0_readme_environment_variables",
+      "community": 17,
+      "norm_label": "environment variables"
+    },
+    {
       "label": "Tools",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L173",
+      "source_location": "L214",
       "id": "hyper_email_mcp_0_readme_tools",
       "community": 17,
       "norm_label": "tools"
@@ -4446,7 +4455,7 @@
       "label": "Email Watch",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L206",
+      "source_location": "L247",
       "id": "hyper_email_mcp_0_readme_email_watch",
       "community": 17,
       "norm_label": "email watch"
@@ -4455,7 +4464,7 @@
       "label": "code:jsonc ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L213",
+      "source_location": "L254",
       "id": "hyper_email_mcp_0_readme_codeblock_8",
       "community": 17,
       "norm_label": "code:jsonc ({)"
@@ -4464,8 +4473,8 @@
       "label": "Add-account flow (Outlook)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L249",
-      "id": "hyper_email_mcp_0_readme_add_account_flow_outlook_249",
+      "source_location": "L290",
+      "id": "hyper_email_mcp_0_readme_add_account_flow_outlook_290",
       "community": 17,
       "norm_label": "add-account flow (outlook)"
     },
@@ -4473,7 +4482,7 @@
       "label": "code:json ({)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L253",
+      "source_location": "L294",
       "id": "hyper_email_mcp_0_readme_codeblock_9",
       "community": 17,
       "norm_label": "code:json ({)"
@@ -4482,7 +4491,7 @@
       "label": "Roadmap",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L270",
+      "source_location": "L311",
       "id": "hyper_email_mcp_0_readme_roadmap",
       "community": 17,
       "norm_label": "roadmap"
@@ -4491,7 +4500,7 @@
       "label": "Project layout",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L275",
+      "source_location": "L316",
       "id": "hyper_email_mcp_0_readme_project_layout",
       "community": 17,
       "norm_label": "project layout"
@@ -4500,7 +4509,7 @@
       "label": "code:block10 (src/)",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L277",
+      "source_location": "L318",
       "id": "hyper_email_mcp_0_readme_codeblock_10",
       "community": 17,
       "norm_label": "code:block10 (src/)"
@@ -4509,7 +4518,7 @@
       "label": "License",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L313",
+      "source_location": "L354",
       "id": "hyper_email_mcp_0_readme_license",
       "community": 17,
       "norm_label": "license"
@@ -4758,11 +4767,29 @@
       "norm_label": "updatenpm.md"
     },
     {
+      "label": "Add-account flow (Outlook)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L285",
+      "community": 17,
+      "norm_label": "add-account flow (outlook)",
+      "id": "hyper_email_mcp_0_readme_add_account_flow_outlook_285"
+    },
+    {
+      "label": "Add-account flow (Outlook)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L249",
+      "community": 17,
+      "norm_label": "add-account flow (outlook)",
+      "id": "hyper_email_mcp_0_readme_add_account_flow_outlook_249"
+    },
+    {
       "label": "SAVED_ENV",
       "file_type": "code",
       "source_file": "src/config.test.ts",
       "source_location": "L5",
-      "community": 35,
+      "community": 42,
       "norm_label": "saved_env",
       "id": "src_config_test_saved_env"
     },
@@ -4771,7 +4798,7 @@
       "file_type": "code",
       "source_file": "src/config.test.ts",
       "source_location": "L7",
-      "community": 35,
+      "community": 42,
       "norm_label": "clearenv()",
       "id": "src_config_test_clearenv"
     },
@@ -4780,7 +4807,7 @@
       "file_type": "code",
       "source_file": "src/config.test.ts",
       "source_location": "L15",
-      "community": 35,
+      "community": 42,
       "norm_label": "restoreenv()",
       "id": "src_config_test_restoreenv"
     },
@@ -4933,7 +4960,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L1",
-      "community": 24,
+      "community": 38,
       "norm_label": "agents-config.ts",
       "id": "src_config_agents_config_ts"
     },
@@ -4942,7 +4969,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L9",
-      "community": 24,
+      "community": 38,
       "norm_label": "agentdefschema",
       "id": "config_agents_config_agentdefschema"
     },
@@ -4951,7 +4978,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L29",
-      "community": 24,
+      "community": 38,
       "norm_label": "emailaccountdefschema",
       "id": "config_agents_config_emailaccountdefschema"
     },
@@ -4960,7 +4987,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L34",
-      "community": 24,
+      "community": 38,
       "norm_label": "agentsconfigschema",
       "id": "config_agents_config_agentsconfigschema"
     },
@@ -4969,7 +4996,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L44",
-      "community": 24,
+      "community": 38,
       "norm_label": "agentdef",
       "id": "config_agents_config_agentdef"
     },
@@ -4978,7 +5005,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L52",
-      "community": 24,
+      "community": 38,
       "norm_label": "emailaccountdef",
       "id": "config_agents_config_emailaccountdef"
     },
@@ -4987,7 +5014,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L57",
-      "community": 24,
+      "community": 38,
       "norm_label": "agentsconfig",
       "id": "config_agents_config_agentsconfig"
     },
@@ -4996,7 +5023,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L70",
-      "community": 24,
+      "community": 38,
       "norm_label": "loadagentsconfig()",
       "id": "config_agents_config_loadagentsconfig"
     },
@@ -5005,7 +5032,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L122",
-      "community": 24,
+      "community": 38,
       "norm_label": "syncagentstostore()",
       "id": "config_agents_config_syncagentstostore"
     },
@@ -5014,7 +5041,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L154",
-      "community": 24,
+      "community": 38,
       "norm_label": "livereloadhandle",
       "id": "config_agents_config_livereloadhandle"
     },
@@ -5023,7 +5050,7 @@
       "file_type": "code",
       "source_file": "src/config/agents-config.ts",
       "source_location": "L168",
-      "community": 41,
+      "community": 39,
       "norm_label": "watchagentsconfig()",
       "id": "config_agents_config_watchagentsconfig"
     },
@@ -5410,7 +5437,7 @@
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
       "source_location": "L81",
-      "community": 39,
+      "community": 40,
       "norm_label": ".scanaccounts()",
       "id": "watcher_manager_watchermanager_scanaccounts"
     },
@@ -5419,7 +5446,7 @@
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
       "source_location": "L92",
-      "community": 39,
+      "community": 40,
       "norm_label": ".schedulepoll()",
       "id": "watcher_manager_watchermanager_schedulepoll"
     },
@@ -5428,7 +5455,7 @@
       "file_type": "code",
       "source_file": "src/watcher/manager.ts",
       "source_location": "L204",
-      "community": 39,
+      "community": 40,
       "norm_label": ".enqueue()",
       "id": "watcher_manager_watchermanager_enqueue"
     },
@@ -6784,9 +6811,9 @@
       "source_file": "hypermail-config.json",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_hypermail_config_watch",
-      "target": "hyper_email_mcp_0_hypermail_config_watch_webhook",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_hypermail_config_watch_webhook"
     },
     {
       "relation": "contains",
@@ -6794,9 +6821,9 @@
       "source_file": "hypermail-config.json",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_hypermail_config_watch_webhook",
-      "target": "hyper_email_mcp_0_hypermail_config_webhook_url",
-      "confidence_score": 1.0
+      "target": "hyper_email_mcp_0_hypermail_config_webhook_url"
     },
     {
       "relation": "contains",
@@ -19029,6 +19056,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
+      "source_location": "L182",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_hypermail_mcp",
+      "target": "hyper_email_mcp_0_readme_environment_variables"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
       "source_location": "L108",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -19049,11 +19086,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L249",
+      "source_location": "L290",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_hypermail_mcp",
-      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_249"
+      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_290",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -19084,6 +19121,26 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_hypermail_mcp",
       "target": "hyper_email_mcp_0_readme_license"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L285",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_hypermail_mcp",
+      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_285"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L249",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_hypermail_mcp",
+      "target": "hyper_email_mcp_0_readme_add_account_flow_outlook_249"
     },
     {
       "relation": "contains",
@@ -19564,6 +19621,26 @@
       "confidence_score": 1.0,
       "source": "hyper_email_mcp_0_readme_project_layout",
       "target": "hyper_email_mcp_0_readme_codeblock_8"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L294",
+      "weight": 1.0,
+      "source": "hyper_email_mcp_0_readme_add_account_flow_outlook_290",
+      "target": "hyper_email_mcp_0_readme_codeblock_9",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L289",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "hyper_email_mcp_0_readme_add_account_flow_outlook_285",
+      "target": "hyper_email_mcp_0_readme_codeblock_9"
     },
     {
       "relation": "contains",
@@ -21616,5 +21693,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "abf0cff0cc5df26f921c9648141716ae41b1b53a"
+  "built_at_commit": "f6281153f53a9d901a8f845a63d24f8cdc8cbfc4"
 }

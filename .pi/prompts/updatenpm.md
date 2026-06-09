@@ -15,4 +15,3 @@ Then, in order:
 
 3. **Publish to npm:** `npm publish`
    - The `prepublishOnly` script will run build + tests as a final safety check.
-   - If `--otp <code>` is needed (2FA), ask the user for the one-time password.
