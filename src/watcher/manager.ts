@@ -3,6 +3,7 @@ import type { Registry } from "../providers/registry.js";
 import type { WatchConfig } from "../config.js";
 import type { EmailFull } from "../providers/types.js";
 import { postWebhook } from "./webhook.js";
+import { runScript } from "./script.js";
 
 /**
  * Polls all accounts' inboxes on an interval, detects new emails via
@@ -93,5 +94,13 @@ export class WatcherManager {
 
   private async emit(full: EmailFull): Promise<void> {
     await postWebhook(full, this.config);
+    // Fire-and-forget — script execution must not block the poll loop.
+    runScript(full, this.config).catch((err: unknown) => {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[hypermail-watch] script unhandled error for ${full.id}:`,
+        err,
+      );
+    });
   }
 }
