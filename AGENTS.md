@@ -4,10 +4,10 @@ Unified email MCP server — operate any inbox (Outlook now, IMAP/Gmail later) b
 
 ## Purpose
 
-Provides 25 tools to pi for email operations via the Model Context Protocol:
+Provides 24 tools to pi for email operations via the Model Context Protocol:
 - `list_accounts` / `add_account` / `complete_add_account` / `remove_account` — account management
 - `list_emails` / `search_emails` / `read_email` / `read_attachment` — browse and read
-- `send_email` / `draft_email` / `edit_draft` / `send_draft` / `add_attachment_to_draft` — compose
+- `send_email` / `draft_email` / `edit_draft` / `send_draft` — compose (attachments via `attachments` param on send/draft, and `new_attachments`/`remove_attachments` on edit_draft)
 - `archive_email` / `trash_email` / `move_email` / `mark_read` / `mark_unread` — organize
 - `list_folders` / `create_folder` / `delete_folder` / `rename_folder` — folders
 

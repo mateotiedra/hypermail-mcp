@@ -4,98 +4,22 @@ import type { AccountRecord } from "../../store/account-store.js";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
 
 import type {
-  AddAccountInput,
-  AddAccountResult,
-  CompleteAddAccountResult,
-  CreateFolderInput,
   DraftUpdateInput,
-  FolderInfo,
   SendInput,
 } from "../types.js";
-import { ImapClientFactory, ImapTokens, isImapTokens } from "./client.js";
+import { ImapClientFactory } from "./client.js";
 import {
   decodeId,
   encodeId,
   ImapEnvelope,
   resolveFolder,
 } from "./helpers.js";
+import {
+  findAttachmentInMime,
+  removeMimePart,
+} from "./mime-utils.js";
 
 /** Write operations for IMAP — send, draft, move, mark, folders. */
-
-export async function addAccount(
-  clients: ImapClientFactory,
-  store: { upsertAccount(rec: AccountRecord): Promise<AccountRecord> },
-  input: AddAccountInput,
-): Promise<AddAccountResult> {
-  const cfg = input.config ?? {};
-  const host = String(cfg.host ?? "");
-  const port = Number(cfg.port ?? 993);
-  const secure = cfg.secure !== false;
-  const user = String(cfg.user ?? input.email ?? "");
-  const password = String(cfg.password ?? "");
-  const smtpHost = String(cfg.smtpHost ?? host);
-  const smtpPort = Number(cfg.smtpPort ?? 587);
-  const smtpSecure = cfg.smtpSecure === true;
-
-  if (!host || !user || !password) {
-    throw new Error(
-      "IMAP requires config: { host, port?, secure?, user, password, smtpHost?, smtpPort?, smtpSecure? }",
-    );
-  }
-
-  const tokens: ImapTokens = {
-    host,
-    port,
-    secure,
-    user,
-    password,
-    smtpHost: smtpHost || host,
-    smtpPort: smtpPort || 587,
-    smtpSecure,
-  };
-
-  // Validate by connecting briefly.
-  const client = clients.get({
-    email: user.toLowerCase(),
-    provider: "imap",
-    tokens: tokens as unknown as Record<string, unknown>,
-    addedAt: new Date().toISOString(),
-  } as AccountRecord);
-
-  try {
-    await client.getImap();
-  } finally {
-    clients.invalidate(user.toLowerCase());
-  }
-
-  // Optionally validate SMTP — best-effort.
-  try {
-    const t = client.getTransporter();
-    await t.verify();
-  } catch {
-    /* SMTP verification is optional */
-  }
-
-  const email = user.toLowerCase();
-  const rec: AccountRecord = {
-    email,
-    provider: "imap",
-    displayName: input.email ?? user,
-    tokens: tokens as unknown as Record<string, unknown>,
-    addedAt: new Date().toISOString(),
-  };
-  const saved = await store.upsertAccount(rec);
-  return { status: "ready", account: saved };
-}
-
-export function completeAddAccount(): CompleteAddAccountResult {
-  return {
-    status: "error",
-    error:
-      "IMAP accounts are set up synchronously — no polling needed. " +
-      "Call add_account with IMAP config to create the account directly.",
-  };
-}
 
 export async function sendEmail(
   clients: ImapClientFactory,
@@ -370,6 +294,45 @@ export async function addAttachmentToDraft(
   });
 }
 
+export async function removeAttachmentFromDraft(
+  clients: ImapClientFactory,
+  account: AccountRecord,
+  draftId: string,
+  attachmentId: string,
+): Promise<void> {
+  const client = clients.get(account);
+  const { folder, uid } = decodeId(draftId);
+
+  return client.withMailbox(folder, async (imap) => {
+    const existing = (await imap.fetchOne(
+      uid,
+      { source: true, structure: true },
+      { uid: true },
+    )) as { source?: string | ArrayBuffer; structure?: any };
+    if (!existing?.source) {
+      throw new Error(`draft not found: ${draftId}`);
+    }
+
+    const sourceStr =
+      typeof existing.source === "string"
+        ? existing.source
+        : Buffer.from(existing.source as ArrayBuffer).toString("utf-8");
+
+    // Parse MIME to find the attachment to remove
+    const targetInfo = findAttachmentInMime(existing.structure, attachmentId);
+    if (!targetInfo) {
+      throw new Error(`attachment not found: ${attachmentId}`);
+    }
+
+    // Remove the attachment from the MIME source
+    const modifiedSource = removeMimePart(sourceStr, targetInfo.filename, targetInfo.contentType);
+
+    // Delete old draft and append modified one
+    await imap.messageDelete(uid, { uid: true });
+    await imap.append(folder, modifiedSource, ["\\Draft"]);
+  });
+}
+
 export async function markRead(
   clients: ImapClientFactory,
   account: AccountRecord,
@@ -386,65 +349,6 @@ export async function markRead(
       await imap.messageFlagsRemove(uid, ["\\Seen"], { uid: true });
     }
   });
-}
-
-export async function createFolder(
-  clients: ImapClientFactory,
-  account: AccountRecord,
-  input: CreateFolderInput,
-): Promise<FolderInfo> {
-  const client = clients.get(account);
-  const imap = await client.getImap();
-
-  const path = input.parentFolderId
-    ? `${input.parentFolderId}/${input.displayName}`
-    : input.displayName;
-
-  const result = await imap.mailboxCreate(path);
-
-  return {
-    id: result.path,
-    displayName: result.path,
-    parentFolderId: input.parentFolderId,
-    childFolderCount: 0,
-    totalItemCount: 0,
-    unreadItemCount: 0,
-  };
-}
-
-export async function renameFolder(
-  clients: ImapClientFactory,
-  account: AccountRecord,
-  folderId: string,
-  newName: string,
-): Promise<FolderInfo> {
-  const client = clients.get(account);
-  const imap = await client.getImap();
-
-  const lastSep = folderId.lastIndexOf("/");
-  const newPath =
-    lastSep === -1 ? newName : folderId.slice(0, lastSep + 1) + newName;
-
-  const result = await imap.mailboxRename(folderId, newPath);
-
-  return {
-    id: result.path,
-    displayName: result.path,
-    parentFolderId: lastSep === -1 ? undefined : folderId.slice(0, lastSep),
-    childFolderCount: 0,
-    totalItemCount: 0,
-    unreadItemCount: 0,
-  };
-}
-
-export async function deleteFolder(
-  clients: ImapClientFactory,
-  account: AccountRecord,
-  folderId: string,
-): Promise<void> {
-  const client = clients.get(account);
-  const imap = await client.getImap();
-  await imap.mailboxDelete(folderId);
 }
 
 async function buildRawMessage(
@@ -476,6 +380,16 @@ async function buildRawMessage(
     mailOptions.bcc = msg.bcc
       .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
       .join(", ");
+  }
+
+  // Add file attachments from msg.attachments
+  if (msg.attachments && msg.attachments.length > 0) {
+    const fileAttachments = msg.attachments.map((att) => ({
+      filename: att.name,
+      content: Buffer.from(att.contentBytes, "base64"),
+      contentType: att.contentType,
+    }));
+    mailOptions.attachments = fileAttachments;
   }
 
   if (messageId) {

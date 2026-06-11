@@ -26,6 +26,32 @@ export function registerComposeTools(
 ): void {
   const { store, registry, tools } = ctx;
 
+  const MIME_TYPES: Record<string, string> = {
+    ".pdf": "application/pdf",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".txt": "text/plain",
+    ".html": "text/html",
+    ".css": "text/css",
+    ".csv": "text/csv",
+    ".json": "application/json",
+    ".xml": "application/xml",
+    ".zip": "application/zip",
+    ".gz": "application/gzip",
+    ".tar": "application/x-tar",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".xls": "application/vnd.ms-excel",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".mp3": "audio/mpeg",
+    ".mp4": "video/mp4",
+  };
+
   const sendEmailSchema = z.object({
     account: z.string().email(),
     to: z.array(emailAddrSchema).min(1),
@@ -69,6 +95,26 @@ export function registerComposeTools(
           "specified message, preserving the original content. " +
           "Mutually exclusive with `inReplyTo`.",
       ),
+    attachments: z
+      .array(
+        z.object({
+          filePath: z
+            .string()
+            .min(1)
+            .describe("Absolute path to a local file"),
+          name: z
+            .string()
+            .optional()
+            .describe(
+              "Attachment filename. Defaults to the file's basename.",
+            ),
+        }),
+      )
+      .optional()
+      .describe(
+        "File attachments to include. The server reads the files from " +
+          "disk and base64-encodes them automatically.",
+      ),
   });
 
   type SendEmailArgs = z.infer<typeof sendEmailSchema>;
@@ -103,6 +149,21 @@ export function registerComposeTools(
           "inReplyTo and forwardMessageId are mutually exclusive — use one or the other",
         );
       }
+
+      // Process file attachments: read + encode each file
+      let processedAttachments: SendInput["attachments"] = undefined;
+      if (args.attachments && args.attachments.length > 0) {
+        processedAttachments = args.attachments.map((att) => {
+          const fileData = readFileSync(att.filePath);
+          const ext = extname(att.filePath).toLowerCase();
+          return {
+            name: att.name ?? basename(att.filePath),
+            contentBytes: fileData.toString("base64"),
+            contentType: MIME_TYPES[ext] ?? "application/octet-stream",
+          };
+        });
+      }
+
       const res = await action(provider, account, {
         to: args.to,
         cc: args.cc,
@@ -113,6 +174,7 @@ export function registerComposeTools(
         inReplyTo: args.inReplyTo,
         replyAll: args.replyAll,
         forwardMessageId: args.forwardMessageId,
+        attachments: processedAttachments,
       });
       const result: Record<string, unknown> = { [resultKey]: true, ...res };
       if (toolName === "draft_email" && res.id) {
@@ -223,6 +285,33 @@ export function registerComposeTools(
           "Only meaningful when `body` is also provided. " +
           "Returns an error if true but no signature is configured for this account.",
       ),
+    new_attachments: z
+      .array(
+        z.object({
+          filePath: z
+            .string()
+            .min(1)
+            .describe("Absolute path to a local file"),
+          name: z
+            .string()
+            .optional()
+            .describe(
+              "Attachment filename. Defaults to the file's basename.",
+            ),
+        }),
+      )
+      .optional()
+      .describe(
+        "New file attachments to add to the draft. The server reads " +
+          "the files from disk and base64-encodes them automatically.",
+      ),
+    remove_attachments: z
+      .array(z.string().min(1))
+      .optional()
+      .describe(
+        "Attachment IDs to remove from the draft. Get attachment IDs " +
+          "from read_email.",
+      ),
   });
 
   type EditDraftArgs = z.infer<typeof editDraftSchema>;
@@ -301,11 +390,44 @@ export function registerComposeTools(
             body: bodyPayload,
             isHtml: isHtmlPayload,
           });
+
+          // Handle new attachments
+          const newAttachmentIds: string[] = [];
+          if (a.new_attachments && a.new_attachments.length > 0) {
+            for (const att of a.new_attachments) {
+              const fileData = readFileSync(att.filePath);
+              const ext = extname(att.filePath).toLowerCase();
+              const contentType =
+                MIME_TYPES[ext] ?? "application/octet-stream";
+              const attRes = await provider.addAttachmentToDraft(
+                account,
+                res.id,
+                att.name ?? basename(att.filePath),
+                fileData.toString("base64"),
+                contentType,
+              );
+              newAttachmentIds.push(attRes.attachment.id);
+            }
+          }
+
+          // Handle attachment removal
+          const removedIds: string[] = [];
+          if (a.remove_attachments && a.remove_attachments.length > 0) {
+            for (const attId of a.remove_attachments) {
+              await provider.removeAttachmentFromDraft(
+                account,
+                res.id,
+                attId,
+              );
+              removedIds.push(attId);
+            }
+          }
+
           const draft = await provider.readEmail(account, res.id);
-          const result: Record<string, unknown> = {
+          const result = {
             edited: true as const,
             id: res.id,
-            draftHtml: draft.bodyHtml,
+            draftHtml: draft.bodyHtml ?? "",
           };
           return ok(result, result);
         } catch (err) {
@@ -342,134 +464,6 @@ export function registerComposeTools(
           const res = await provider.sendDraft(account, args.id);
           const data = { sent: true as const, id: res.id };
           return ok(data, data);
-        } catch (err) {
-          return fail(errMsg(err));
-        }
-      },
-    );
-  }
-
-  // ---------- add_attachment_to_draft ----------
-
-  const MIME_TYPES: Record<string, string> = {
-    ".pdf": "application/pdf",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".webp": "image/webp",
-    ".txt": "text/plain",
-    ".html": "text/html",
-    ".css": "text/css",
-    ".csv": "text/csv",
-    ".json": "application/json",
-    ".xml": "application/xml",
-    ".zip": "application/zip",
-    ".gz": "application/gzip",
-    ".tar": "application/x-tar",
-    ".doc": "application/msword",
-    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xls": "application/vnd.ms-excel",
-    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    ".mp3": "audio/mpeg",
-    ".mp4": "video/mp4",
-  };
-
-  const addAttachmentOutputSchema = {
-    attached: z.literal(true),
-    id: z.string(),
-    attachment: z.object({
-      id: z.string(),
-      name: z.string(),
-      contentType: z.string().optional(),
-    }),
-  };
-
-  if (shouldRegister("add_attachment_to_draft", tools)) {
-    server.registerTool(
-      "add_attachment_to_draft",
-      {
-        description:
-          "Add a file attachment to an existing draft email by ID. " +
-          "Provide exactly one of `contentBytes` (base64-encoded content) " +
-          "or `filePath` (absolute path to a local file). When using `filePath`, " +
-          "the file is read from disk and base64-encoded automatically, and " +
-          "`name` defaults to the file's basename if not provided. " +
-          "`contentType` is the MIME type (e.g. 'application/pdf'); " +
-          "when using `filePath` it is inferred from the extension if omitted. " +
-          "Disabled in --read-only mode.",
-        inputSchema: z
-          .object({
-            account: z.string().email(),
-            id: z.string().min(1).describe("Draft message ID"),
-            name: z
-              .string()
-              .min(1)
-              .optional()
-              .describe(
-                "Attachment filename (e.g. 'report.pdf'). Defaults to the " +
-                  "file's basename when `filePath` is used.",
-              ),
-            contentBytes: z
-              .string()
-              .min(1)
-              .optional()
-              .describe("Base64-encoded file content. Mutually exclusive with `filePath`."),
-            filePath: z
-              .string()
-              .min(1)
-              .optional()
-              .describe(
-                "Absolute path to a local file. The file is read and base64-encoded " +
-                  "automatically. Mutually exclusive with `contentBytes`.",
-              ),
-            contentType: z
-              .string()
-              .optional()
-              .describe("MIME type (e.g. 'application/pdf'). Inferred from `filePath` extension if omitted."),
-          })
-          .refine(
-            (v) => Boolean(v.contentBytes) !== Boolean(v.filePath),
-            { message: "Provide exactly one of `contentBytes` or `filePath`." },
-          ),
-        outputSchema: addAttachmentOutputSchema,
-      },
-      async (args) => {
-        try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-
-          let contentBytes: string;
-          let name: string;
-          let contentType: string | undefined = args.contentType;
-
-          if (args.filePath) {
-            const fileData = readFileSync(args.filePath);
-            contentBytes = fileData.toString("base64");
-            name = args.name ?? basename(args.filePath);
-            if (!contentType) {
-              const ext = extname(args.filePath).toLowerCase();
-              contentType = MIME_TYPES[ext] ?? "application/octet-stream";
-            }
-          } else {
-            contentBytes = args.contentBytes!;
-            name = args.name!;
-          }
-
-          const res = await provider.addAttachmentToDraft(
-            account,
-            args.id,
-            name,
-            contentBytes,
-            contentType,
-          );
-          const data = {
-            attached: true as const,
-            id: res.id,
-            attachment: res.attachment,
-          };
-          return ok(data, data as unknown as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));
         }

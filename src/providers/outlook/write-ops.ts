@@ -1,0 +1,233 @@
+import type { Client } from "@microsoft/microsoft-graph-client";
+import type { AccountRecord } from "../../store/account-store.js";
+import type { DraftUpdateInput, SendInput } from "../types.js";
+import { convertInlineImages, type InlineAttachment, toRecipient } from "./helpers.js";
+
+/**
+ * Creates a draft from a reference message (forward or reply), prepends our
+ * composed body before the existing content, and attaches inline images.
+ * Returns the draft message ID.
+ */
+export async function buildDraftFromReference(
+  client: Client,
+  createEndpoint: string,
+  createPayload: Record<string, unknown>,
+  converted: { body: string; attachments: InlineAttachment[] },
+): Promise<string> {
+  const draft: { id: string } = await client
+    .api(createEndpoint)
+    .post(createPayload);
+
+  const draftMsg: { body?: { content?: string; contentType?: string } } =
+    await client.api(`/me/messages/${draft.id}`).select("body").get();
+
+  const draftBody = draftMsg.body?.content ?? "";
+  const draftContentType = draftMsg.body?.contentType ?? "HTML";
+  const spacer = '<div style="line-height:12px"><br></div>';
+  const prepend = converted.body + spacer;
+  const finalBody = draftBody.includes("<body")
+    ? draftBody.replace(/(<body[^>]*>)/i, `$1${prepend}`)
+    : prepend + draftBody;
+
+  await client.api(`/me/messages/${draft.id}`).patch({
+    body: { contentType: draftContentType, content: finalBody },
+  });
+
+  for (const att of converted.attachments) {
+    await client.api(`/me/messages/${draft.id}/attachments`).post(att);
+  }
+
+  return draft.id;
+}
+
+/**
+ * Shared backend for sendEmail and saveDraft — handles forward, reply, and
+ * new-message paths. The `mode` controls whether the message is sent
+ * immediately or saved as a draft.
+ */
+export async function sendOrSave(
+  client: Client,
+  account: AccountRecord,
+  msg: SendInput,
+  mode: "send" | "draft",
+): Promise<{ id: string }> {
+  const converted = convertInlineImages(msg.body);
+
+  const toRecipients = msg.to.map(toRecipient);
+  const ccRecipients = (msg.cc ?? []).map(toRecipient);
+  const bccRecipients = (msg.bcc ?? []).map(toRecipient);
+
+  // Forward — build a forward draft, then send if mode is "send".
+  if (msg.forwardMessageId) {
+    const draftId = await buildDraftFromReference(
+      client,
+      `/me/messages/${encodeURIComponent(msg.forwardMessageId)}/createForward`,
+      { message: { toRecipients, ccRecipients, bccRecipients }, comment: "" },
+      converted,
+    );
+    if (mode === "send") {
+      await client.api(`/me/messages/${draftId}/send`).post({});
+    }
+    return { id: draftId };
+  }
+
+  // Reply — build a reply draft, then send if mode is "send".
+  if (msg.inReplyTo) {
+    const createEndpoint = msg.replyAll
+      ? `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReplyAll`
+      : `/me/messages/${encodeURIComponent(msg.inReplyTo)}/createReply`;
+    const draftId = await buildDraftFromReference(
+      client, createEndpoint, {}, converted,
+    );
+    if (mode === "send") {
+      await client.api(`/me/messages/${draftId}/send`).post({});
+    }
+    return { id: draftId };
+  }
+
+  // New email — sendMail (mode=send) or POST /me/messages (mode=draft).
+  const messagePayload: Record<string, unknown> = {
+    subject: msg.subject,
+    body: {
+      contentType: msg.isHtml ? "HTML" : "Text",
+      content: converted.body,
+    },
+    toRecipients,
+    ccRecipients,
+    bccRecipients,
+  };
+
+  // Merge inline attachments (from HTML body) with file attachments
+  const allAttachments: unknown[] = [...converted.attachments];
+  if (msg.attachments && msg.attachments.length > 0) {
+    for (const att of msg.attachments) {
+      allAttachments.push({
+        "@odata.type": "#microsoft.graph.fileAttachment",
+        name: att.name,
+        contentBytes: att.contentBytes,
+        contentType: att.contentType ?? "application/octet-stream",
+      });
+    }
+  }
+  if (allAttachments.length > 0) {
+    messagePayload.attachments = allAttachments;
+  }
+
+  if (mode === "send") {
+    await client.api("/me/sendMail").post({
+      message: messagePayload,
+      saveToSentItems: true,
+    });
+    // Graph's sendMail returns 202 with no body; we don't have an id back.
+    return { id: "" };
+  }
+
+  const draft: { id: string } = await client
+    .api("/me/messages")
+    .post(messagePayload);
+  return { id: draft.id };
+}
+
+export async function updateDraft(
+  client: Client,
+  account: AccountRecord,
+  id: string,
+  update: DraftUpdateInput,
+): Promise<{ id: string }> {
+  const payload: Record<string, unknown> = {};
+
+  if (update.subject !== undefined) {
+    payload.subject = update.subject;
+  }
+  if (update.to !== undefined) {
+    payload.toRecipients = update.to.map(toRecipient);
+  }
+  if (update.cc !== undefined) {
+    payload.ccRecipients = update.cc.map(toRecipient);
+  }
+  if (update.bcc !== undefined) {
+    payload.bccRecipients = update.bcc.map(toRecipient);
+  }
+  if (update.body !== undefined) {
+    const converted = convertInlineImages(update.body);
+    payload.body = {
+      contentType: update.isHtml ? "HTML" : "Text",
+      content: converted.body,
+    };
+    if (converted.attachments.length > 0) {
+      // Patch existing inline attachments: Graph will replace all
+      // attachments on the message. We send only the new ones.
+      payload.attachments = converted.attachments;
+    }
+  }
+
+  await client
+    .api(`/me/messages/${encodeURIComponent(id)}`)
+    .patch(payload);
+
+  return { id };
+}
+
+export async function addAttachmentToDraft(
+  client: Client,
+  account: AccountRecord,
+  draftId: string,
+  name: string,
+  contentBytes: string,
+  contentType?: string,
+): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }> {
+  const att = (await client
+    .api(`/me/messages/${encodeURIComponent(draftId)}/attachments`)
+    .post({
+      "@odata.type": "#microsoft.graph.fileAttachment",
+      name,
+      contentType: contentType ?? "application/octet-stream",
+      contentBytes,
+    })) as { id: string; name: string; contentType?: string };
+  return {
+    id: draftId,
+    attachment: { id: att.id, name: att.name, contentType: att.contentType },
+  };
+}
+
+export async function removeAttachmentFromDraft(
+  client: Client,
+  account: AccountRecord,
+  draftId: string,
+  attachmentId: string,
+): Promise<void> {
+  await client
+    .api(`/me/messages/${encodeURIComponent(draftId)}/attachments/${encodeURIComponent(attachmentId)}`)
+    .delete();
+}
+
+export async function moveEmail(
+  client: Client,
+  account: AccountRecord,
+  id: string,
+  destinationId: string,
+): Promise<void> {
+  await client
+    .api(`/me/messages/${encodeURIComponent(id)}/move`)
+    .post({ destinationId });
+}
+
+export async function sendDraft(
+  client: Client,
+  account: AccountRecord,
+  id: string,
+): Promise<{ id: string }> {
+  await client.api(`/me/messages/${encodeURIComponent(id)}/send`).post({});
+  return { id };
+}
+
+export async function markRead(
+  client: Client,
+  account: AccountRecord,
+  id: string,
+  isRead: boolean,
+): Promise<void> {
+  await client
+    .api(`/me/messages/${encodeURIComponent(id)}`)
+    .patch({ isRead });
+}

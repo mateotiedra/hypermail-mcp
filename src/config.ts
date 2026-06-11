@@ -170,7 +170,6 @@ export const KNOWN_TOOLS = [
   "draft_email",
   "edit_draft",
   "send_draft",
-  "add_attachment_to_draft",
   "check_notifications",
 ] as const;
 

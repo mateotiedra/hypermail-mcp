@@ -13,10 +13,7 @@ inboxes through a single, unified tool surface.
 > the entire content — including the quoted thread. Now only the answer part
 > (above the spacer delimiter) is replaced.
 >
-> **v0.7.2** — `add_attachment_to_draft` now accepts `filePath` (absolute path to
-a local file) as an alternative to `contentBytes`. The file is read from disk and
-base64-encoded automatically, the MIME type is inferred from the extension, and
-`name` defaults to the file's basename.
+> <!-- attachments moved into send_email/draft_email/edit_draft per v0.7.x -->
 >> **v0.7.1** — Every config field is now settable via a dedicated
 > `HYPERMAIL_*` env var. Legacy env vars (`MS_CLIENT_ID`, `MS_TENANT_ID`,
 > `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) still work as fallbacks. See
@@ -237,11 +234,10 @@ account store.
 | `archive_email` | `account`, `id` | Move a message to the Archive folder. Disabled under `--read-only`. |
 | `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). Disabled under `--read-only`. |
 | `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. Disabled under `--read-only`. |
-| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
-| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?` | Save as draft instead of sending. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
-| `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?` | Edit an existing draft by ID. Only provided fields are updated. `format` only meaningful when `body` is provided. Returns the updated draft ID and HTML body (`draftHtml`). Disabled under `--read-only`. |
+| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. `attachments` is an optional array of `{filePath, name?}` — files are read from disk and encoded automatically. Disabled under `--read-only`. |
+| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
+| `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?`, `new_attachments?`, `remove_attachments?` | Edit an existing draft by ID. Only provided fields are updated. `new_attachments` adds files (`{filePath, name?}[]`); `remove_attachments` removes by attachment ID (`string[]`). Returns the updated draft ID, HTML body (`draftHtml`), and attachment metadata. Disabled under `--read-only`. |
 | `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. Disabled under `--read-only`. |
-| `add_attachment_to_draft` | `account`, `id`, `name?`, `contentBytes?`, `filePath?`, `contentType?` | Attach a file to an existing draft by ID. Provide `contentBytes` (base64) or `filePath` (absolute path — auto-encodes). Disabled under `--read-only`. |
 | `list_folders` | `account`, `parentFolderId?` | List available mail folders. Returns top-level folders by default, or children of `parentFolderId`. |
 | `create_folder` | `account`, `displayName`, `parentFolderId?` | Create a new mail folder under root (default) or the given parent. Disabled under `--read-only`. |
 | `delete_folder` | `account`, `folderId` | Delete a mail folder by ID. Disabled under `--read-only`. |

@@ -260,6 +260,19 @@ export async function buildRawMessage(
     }));
   }
 
+  // Add file attachments from msg.attachments
+  if (msg.attachments && msg.attachments.length > 0) {
+    const fileAttachments = msg.attachments.map((att) => ({
+      filename: att.name,
+      content: Buffer.from(att.contentBytes, "base64"),
+      contentType: att.contentType,
+    }));
+    mailOptions.attachments = [
+      ...(mailOptions.attachments || []),
+      ...fileAttachments,
+    ];
+  }
+
   if (messageId) {
     mailOptions.messageId = messageId;
   }

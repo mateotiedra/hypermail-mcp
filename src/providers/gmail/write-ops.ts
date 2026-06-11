@@ -278,6 +278,135 @@ export async function addAttachmentToDraft(
   };
 }
 
+export async function removeAttachmentFromDraft(
+  clients: GmailClientFactory,
+  account: AccountRecord,
+  draftId: string,
+  attachmentId: string,
+): Promise<void> {
+  const { gmail } = clients.get(account);
+
+  // Get the draft with full payload to find the attachment part
+  const fullDraft = await gmail.users.drafts.get({
+    userId: "me",
+    id: draftId,
+    format: "full",
+  });
+
+  const message = fullDraft.data.message;
+  if (!message?.payload) {
+    throw new Error(`draft not found: ${draftId}`);
+  }
+
+  // Walk the payload parts to find the attachment with matching attachmentId
+  let targetFilename: string | undefined;
+  let targetMimeType: string | undefined;
+
+  function findAttachment(parts: any[] | undefined): boolean {
+    if (!parts) return false;
+    for (const part of parts) {
+      if (part.body?.attachmentId === attachmentId) {
+        targetFilename = part.filename ?? undefined;
+        targetMimeType = part.mimeType ?? undefined;
+        return true;
+      }
+      if (part.parts && findAttachment(part.parts)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (!findAttachment(message.payload.parts)) {
+    throw new Error(`attachment not found: ${attachmentId}`);
+  }
+
+  // Get the raw message
+  const rawDraft = await gmail.users.drafts.get({
+    userId: "me",
+    id: draftId,
+    format: "raw",
+  });
+
+  const rawStr = Buffer.from(
+    rawDraft.data.message!.raw!.replace(/-/g, "+").replace(/_/g, "/"),
+    "base64",
+  ).toString("utf-8");
+
+  // Parse and remove the attachment from the MIME message
+  const newRawStr = removeMimeAttachment(rawStr, targetFilename, targetMimeType);
+
+  // Update the draft with the modified message
+  await gmail.users.drafts.update({
+    userId: "me",
+    id: draftId,
+    requestBody: {
+      message: {
+        raw: base64urlEncode(Buffer.from(newRawStr, "utf-8")),
+        threadId: message.threadId ?? undefined,
+      },
+    },
+  });
+}
+
+/**
+ * Remove a specific attachment from a raw MIME message.
+ * Uses boundary-based parsing to identify and remove the matching part.
+ */
+function removeMimeAttachment(
+  rawMime: string,
+  targetFilename: string | undefined,
+  targetMimeType: string | undefined,
+): string {
+  // Extract boundary from Content-Type header
+  const boundaryMatch = rawMime.match(/boundary="?([^";]+)"?/i);
+  if (!boundaryMatch) {
+    // Not a multipart message, can't remove attachment
+    return rawMime;
+  }
+
+  const boundary = boundaryMatch[1];
+  const delimiter = `--${boundary}`;
+
+  // Split by boundary
+  const parts = rawMime.split(delimiter);
+
+  // Filter out the part matching the target attachment
+  const filtered = parts.filter((part) => {
+    if (!part.trim() || part.trim() === "--") {
+      return true; // Keep preamble and closing delimiter
+    }
+
+    // Check if this part is the target attachment
+    const contentDispMatch = targetFilename &&
+      part.match(new RegExp(`Content-Disposition:.*?filename="?${escapeRegex(targetFilename)}"?`, "i"));
+
+    const contentTypeMatch = targetMimeType &&
+      part.match(new RegExp(`Content-Type:\s*${escapeRegex(targetMimeType)}`, "i"));
+
+    // If both filename and mime type are specified, both must match
+    // If only one is specified, that one must match
+    if (targetFilename && targetMimeType) {
+      return !(contentDispMatch && contentTypeMatch);
+    } else if (targetFilename) {
+      return !contentDispMatch;
+    } else if (targetMimeType) {
+      return !contentTypeMatch;
+    }
+
+    return true; // No target specified, keep all parts
+  });
+
+  return filtered.join(delimiter);
+}
+
+/**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function markRead(
   clients: GmailClientFactory,
   account: AccountRecord,

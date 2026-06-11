@@ -68,6 +68,13 @@ export interface SendInput {
    *  of the specified message, preserving the original content. Mutually
    *  exclusive with `inReplyTo`. */
   forwardMessageId?: string;
+  /** Optional file attachments to include with the message.
+   *  Each attachment must be base64-encoded. */
+  attachments?: Array<{
+    name: string;
+    contentBytes: string;
+    contentType?: string;
+  }>;
 }
 
 /**
@@ -116,6 +123,15 @@ export interface CompleteAddAccountResult {
   status: "pending" | "ready" | "expired" | "error";
   account?: AccountRecord;
   error?: string;
+}
+
+export interface AttachmentInput {
+  /** Filename for the attachment (e.g., 'report.pdf') */
+  name: string;
+  /** Base64-encoded file content */
+  contentBytes: string;
+  /** MIME type (e.g., 'application/pdf'). Inferred from file extension if omitted. */
+  contentType?: string;
 }
 
 export interface AttachmentContent {
@@ -205,6 +221,15 @@ export interface EmailProvider {
     contentBytes: string,
     contentType?: string,
   ): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }>;
+
+  /**
+   * Remove a file attachment from an existing draft message.
+   */
+  removeAttachmentFromDraft(
+    account: AccountRecord,
+    draftId: string,
+    attachmentId: string,
+  ): Promise<void>;
 
   /** Mark a message as read (isRead=true) or unread (isRead=false). */
   markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void>;

@@ -27,17 +27,22 @@ import {
 import {
   addAccount,
   completeAddAccount,
+} from "./account-ops.js";
+import {
   sendEmail,
   saveDraft,
   updateDraft,
   moveEmail,
   sendDraft,
   addAttachmentToDraft,
+  removeAttachmentFromDraft,
   markRead,
+} from "./write-ops.js";
+import {
   createFolder,
   renameFolder,
   deleteFolder,
-} from "./write-ops.js";
+} from "./folders.js";
 
 export class ImapProvider implements EmailProvider {
   readonly id = "imap" as const;
@@ -104,6 +109,14 @@ export class ImapProvider implements EmailProvider {
     contentType?: string,
   ): Promise<{ id: string; attachment: { id: string; name: string; contentType?: string } }> {
     return addAttachmentToDraft(this.clients, account, draftId, name, contentBytes, contentType);
+  }
+
+  async removeAttachmentFromDraft(
+    account: AccountRecord,
+    draftId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    return removeAttachmentFromDraft(this.clients, account, draftId, attachmentId);
   }
 
   // ---------- organize ----------

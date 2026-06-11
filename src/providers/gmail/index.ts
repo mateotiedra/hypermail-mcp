@@ -38,6 +38,7 @@ import {
   moveEmail,
   sendDraft,
   addAttachmentToDraft,
+  removeAttachmentFromDraft,
   markRead,
   createFolder,
   renameFolder,
@@ -248,6 +249,14 @@ export class GmailProvider implements EmailProvider {
       contentBytes,
       contentType,
     );
+  }
+
+  async removeAttachmentFromDraft(
+    account: AccountRecord,
+    draftId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    return removeAttachmentFromDraft(this.clients, account, draftId, attachmentId);
   }
 
   // ── organize ──
