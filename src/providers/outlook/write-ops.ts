@@ -3,6 +3,9 @@ import type { AccountRecord } from "../../store/account-store.js";
 import type { DraftUpdateInput, SendInput } from "../types.js";
 import { convertInlineImages, type InlineAttachment, toRecipient } from "./helpers.js";
 
+/** Hidden HTML comment placed at the thread boundary to survive Graph HTML normalization. */
+export const THREAD_MARKER = "<!-- hypermail-thread-boundary -->";
+
 /**
  * Creates a draft from a reference message (forward or reply), prepends our
  * composed body before the existing content, and attaches inline images.
@@ -24,7 +27,7 @@ export async function buildDraftFromReference(
   const draftBody = draftMsg.body?.content ?? "";
   const draftContentType = draftMsg.body?.contentType ?? "HTML";
   const spacer = '<div style="line-height:12px"><br></div>';
-  const prepend = converted.body + spacer;
+  const prepend = converted.body + spacer + THREAD_MARKER;
   const finalBody = draftBody.includes("<body")
     ? draftBody.replace(/(<body[^>]*>)/i, `$1${prepend}`)
     : prepend + draftBody;

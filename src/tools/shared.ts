@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ResolvedTools } from "../config.js";
 import { markdownToHtml } from "../markdown-to-html.js";
+import { THREAD_MARKER } from "../providers/outlook/write-ops.js";
 
 /** JSON-stringify a value into a single MCP text content block. */
 export function ok(
@@ -155,6 +156,52 @@ export function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/\n/g, "<br>");
+}
+
+// ── thread boundary detection ──
+
+/**
+ * Find the boundary between the user's answer and the quoted thread in a
+ * reply/forward draft. Uses three strategies in order:
+ * 1. THREAD_MARKER comment (reliable, survives Graph normalization)
+ * 2. Regex spacer match (flexible whitespace/tag variations)
+ * 3. Pattern fallback (blockquote, Outlook signature)
+ * Returns the boundary indices, or null if no thread content found.
+ */
+export function findThreadBoundary(
+  html: string,
+): { threadStart: number; answerEnd: number } | null {
+  // ── Tier 1: exact THREAD_MARKER comment ──
+  const markerIdx = html.indexOf(THREAD_MARKER);
+  if (markerIdx !== -1) {
+    // The spacer div sits just before the marker — find it so we replace
+    // everything up to the spacer (keeping spacer + marker + thread).
+    const before = html.slice(0, markerIdx);
+    let answerEnd = before.lastIndexOf(
+      '<div style="line-height:12px"><br></div>',
+    );
+    if (answerEnd === -1) {
+      const re = /<div\s+style=["'][^"']*line-height\s*:\s*12px[^"']*["']\s*>\s*<br\s*\/?>\s*<\/div>/gi;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(before)) !== null) answerEnd = m.index;
+    }
+    return { threadStart: markerIdx, answerEnd: Math.max(answerEnd, 0) };
+  }
+
+  // ── Tier 2: regex spacer with flexible whitespace/attribute variations ──
+  const spacerRe = /<div\s+style=["'][^"']*line-height\s*:\s*12px[^"']*["']\s*>\s*<br\s*\/?>\s*<\/div>/i;
+  const spacerMatch = spacerRe.exec(html);
+  if (spacerMatch) {
+    return { threadStart: spacerMatch.index, answerEnd: spacerMatch.index };
+  }
+
+  // ── Tier 3: common Outlook thread patterns ──
+  for (const re of [/id=["']?Signature["']?/i, /<blockquote/i]) {
+    const idx = html.search(re);
+    if (idx !== -1) return { threadStart: idx, answerEnd: idx };
+  }
+
+  return null;
 }
 
 // ── tool filtering ──
