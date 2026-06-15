@@ -109,7 +109,7 @@ export function beginDeviceCode(
   const clientId = clientIdOverride;
   if (!clientId) {
     throw new Error(
-      "GOOGLE_CLIENT_ID is required for Gmail OAuth — set it via HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID, GOOGLE_CLIENT_ID, or provider config",
+      "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is required for Gmail OAuth — set it via HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID or provider config",
     );
   }
   const clientSecret = clientSecretOverride || undefined;

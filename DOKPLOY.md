@@ -77,10 +77,10 @@ Set these in the **Environment** tab — only for providers you use:
 
 | Variable | Provider |
 |----------|----------|
-| `MS_CLIENT_ID` | Outlook |
-| `MS_TENANT_ID` | Outlook |
-| `GOOGLE_CLIENT_ID` | Gmail |
-| `GOOGLE_CLIENT_SECRET` | Gmail |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | Outlook |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | Outlook |
+| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` | Gmail |
+| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` | Gmail |
 
 ## What's in the Dockerfile
 

@@ -1,3 +1,5 @@
+import type { BodyNode } from "./helpers.js";
+
 /**
  * MIME parsing utilities for attachment manipulation.
  */
@@ -11,7 +13,7 @@ export interface AttachmentInfo {
  * Recursively search MIME structure to find an attachment by ID.
  */
 export function findAttachmentInMime(
-  structure: any,
+  structure: BodyNode | BodyNode[] | undefined,
   attachmentId: string,
 ): AttachmentInfo | null {
   if (!structure) return null;
@@ -26,16 +28,19 @@ export function findAttachmentInMime(
   }
 
   // Check if this part is the target attachment
-  if (structure.id === attachmentId || structure.partId === attachmentId) {
+  if (structure.part === attachmentId) {
     return {
-      filename: structure.disposition?.filename || structure.filename || "attachment",
-      contentType: `${structure.type}/${structure.subtype}`,
+      filename:
+        structure.dispositionParameters?.filename ??
+        structure.parameters?.name ??
+        "attachment",
+      contentType: structure.type ?? "application/octet-stream",
     };
   }
 
   // Recurse into nested parts
-  if (structure.parts) {
-    return findAttachmentInMime(structure.parts, attachmentId);
+  if (structure.childNodes) {
+    return findAttachmentInMime(structure.childNodes, attachmentId);
   }
 
   return null;
@@ -54,8 +59,7 @@ export function removeMimePart(
   let skip = false;
   let inTargetPart = false;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     const lowerLine = line.toLowerCase();
 
     // Check for boundary

@@ -14,6 +14,7 @@ import {
   ImapEnvelope,
   resolveFolder,
 } from "./helpers.js";
+import type { BodyNode } from "./helpers.js";
 import {
   findAttachmentInMime,
   removeMimePart,
@@ -306,9 +307,9 @@ export async function removeAttachmentFromDraft(
   return client.withMailbox(folder, async (imap) => {
     const existing = (await imap.fetchOne(
       uid,
-      { source: true, structure: true },
+      { source: true, bodyStructure: true },
       { uid: true },
-    )) as { source?: string | ArrayBuffer; structure?: any };
+    )) as { source?: string | ArrayBuffer; bodyStructure?: BodyNode };
     if (!existing?.source) {
       throw new Error(`draft not found: ${draftId}`);
     }
@@ -319,7 +320,7 @@ export async function removeAttachmentFromDraft(
         : Buffer.from(existing.source as ArrayBuffer).toString("utf-8");
 
     // Parse MIME to find the attachment to remove
-    const targetInfo = findAttachmentInMime(existing.structure, attachmentId);
+    const targetInfo = findAttachmentInMime(existing.bodyStructure, attachmentId);
     if (!targetInfo) {
       throw new Error(`attachment not found: ${attachmentId}`);
     }

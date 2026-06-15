@@ -66,6 +66,17 @@ export function mapHeaderAddr(
 type GmailMessage = gmail_v1.Schema$Message;
 type GmailMessagePart = gmail_v1.Schema$MessagePart;
 
+interface ComposerAttachment {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+  cid?: string;
+}
+
+interface ComposerOptions extends Record<string, unknown> {
+  attachments?: ComposerAttachment[];
+}
+
 export function findHeader(
   headers: GmailMessagePart["headers"],
   name: string,
@@ -225,7 +236,7 @@ export async function buildRawMessage(
 ): Promise<{ raw: string; threadId?: string }> {
   const { body: transformed, images } = parseInlineImages(msg.body);
 
-  const mailOptions: Record<string, unknown> = {
+  const mailOptions: ComposerOptions = {
     from: `${account.displayName ?? ""} <${account.email}>`,
     to: msg.to
       .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
@@ -268,7 +279,7 @@ export async function buildRawMessage(
       contentType: att.contentType,
     }));
     mailOptions.attachments = [
-      ...(mailOptions.attachments || []),
+      ...(mailOptions.attachments ?? []),
       ...fileAttachments,
     ];
   }

@@ -15,7 +15,6 @@ import { KNOWN_TOOLS, rawConfigSchema } from "../config.js";
 // ── Env var names ──
 
 // Dedicated HYPERMAIL_* env vars — one per config field.
-// Also keep legacy names (MS_CLIENT_ID, etc.) for backward compat.
 
 const ENV_HTTP_ENABLED = "HYPERMAIL_HTTP_ENABLED";
 const ENV_HTTP_PORT = "HYPERMAIL_HTTP_PORT";
@@ -35,12 +34,6 @@ const ENV_WATCH_SCRIPT_PATH = "HYPERMAIL_WATCH_SCRIPT_PATH";
 const ENV_WATCH_SCRIPT_TIMEOUT_MS = "HYPERMAIL_WATCH_SCRIPT_TIMEOUT_MS";
 const ENV_WATCH_SCRIPT_RETRY_MAX_ATTEMPTS = "HYPERMAIL_WATCH_SCRIPT_RETRY_MAX_ATTEMPTS";
 const ENV_WATCH_SCRIPT_RETRY_BASE_DELAY = "HYPERMAIL_WATCH_SCRIPT_RETRY_BASE_DELAY_MS";
-
-// Legacy env var names (backward compat — read only if dedicated var is unset)
-const LEGACY_MS_CLIENT_ID = "MS_CLIENT_ID";
-const LEGACY_MS_TENANT_ID = "MS_TENANT_ID";
-const LEGACY_GOOGLE_CLIENT_ID = "GOOGLE_CLIENT_ID";
-const LEGACY_GOOGLE_CLIENT_SECRET = "GOOGLE_CLIENT_SECRET";
 
 // ── ${VAR} resolution ──
 
@@ -203,25 +196,21 @@ export function loadConfig(
 
   // -- Providers --
 
-  // Outlook: dedicated env var first, then legacy name for backward compat
+  // Outlook: only dedicated HYPERMAIL_* env vars are accepted.
   const outlookClientId =
     parsed.providers?.outlook?.clientId ??
-    process.env[ENV_OUTLOOK_CLIENT_ID] ??
-    process.env[LEGACY_MS_CLIENT_ID];
+    process.env[ENV_OUTLOOK_CLIENT_ID];
   const outlookTenantId =
     parsed.providers?.outlook?.tenantId ??
-    process.env[ENV_OUTLOOK_TENANT_ID] ??
-    process.env[LEGACY_MS_TENANT_ID];
+    process.env[ENV_OUTLOOK_TENANT_ID];
 
-  // Gmail: dedicated env var first, then legacy name for backward compat
+  // Gmail: only dedicated HYPERMAIL_* env vars are accepted.
   const gmailClientId =
     parsed.providers?.gmail?.clientId ??
-    process.env[ENV_GMAIL_CLIENT_ID] ??
-    process.env[LEGACY_GOOGLE_CLIENT_ID];
+    process.env[ENV_GMAIL_CLIENT_ID];
   const gmailClientSecret =
     parsed.providers?.gmail?.clientSecret ??
-    process.env[ENV_GMAIL_CLIENT_SECRET] ??
-    process.env[LEGACY_GOOGLE_CLIENT_SECRET];
+    process.env[ENV_GMAIL_CLIENT_SECRET];
 
   let providers: ProvidersConfig | undefined;
   if (outlookClientId || outlookTenantId || gmailClientId || gmailClientSecret) {

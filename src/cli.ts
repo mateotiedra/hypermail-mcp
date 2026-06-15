@@ -89,9 +89,6 @@ Configuration:
   HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS Retry base delay ms (number)
   HYPERMAIL_MCP_KEY                   Encryption master key (hex or base64)
 
-  Legacy env vars (still supported):
-  MS_CLIENT_ID, MS_TENANT_ID, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-
   Priority: CLI flags > config file > env vars > defaults.
 
   Example (env-only, no config file):
@@ -108,8 +105,14 @@ Configuration:
       "http": { "enabled": false },
       "tools": { "disabled": ["send_email"] },
       "providers": {
-        "outlook": { "clientId": "\${MS_CLIENT_ID}", "tenantId": "\${MS_TENANT_ID}" },
-        "gmail": { "clientId": "\${GOOGLE_CLIENT_ID}", "clientSecret": "\${GOOGLE_CLIENT_SECRET}" }
+        "outlook": {
+          "clientId": "\${HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID}",
+          "tenantId": "\${HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID}"
+        },
+        "gmail": {
+          "clientId": "\${HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID}",
+          "clientSecret": "\${HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET}"
+        }
       }
     }
 `;

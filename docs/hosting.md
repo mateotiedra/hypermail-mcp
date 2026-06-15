@@ -8,7 +8,7 @@ hosted HTTP service. This doc covers the HTTP case.
 ```bash
 HYPERMAIL_MCP_KEY=$(openssl rand -base64 32) \
 HYPERMAIL_MCP_DATA_DIR=/var/lib/hypermail-mcp \
-MS_CLIENT_ID=<your-entra-app-id> \
+HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID=<your-entra-app-id> \
 hypermail-mcp --http --host 0.0.0.0 --port 3000
 ```
 
@@ -25,7 +25,7 @@ session is closed.
   Losing this key makes the existing accounts file unreadable.
 - `HYPERMAIL_MCP_DATA_DIR` — a persistent, writable directory. The encrypted
   accounts blob lives at `${DIR}/accounts.json.enc`.
-- `MS_CLIENT_ID` — register your own Entra public client (Mobile & desktop
+- `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` — register your own Entra public client (Mobile & desktop
   application) with redirect URI `https://login.microsoftonline.com/common/oauth2/nativeclient`
   and these delegated scopes:
   - `offline_access`
@@ -47,7 +47,7 @@ CMD ["hypermail-mcp", "--http", "--host", "0.0.0.0", "--port", "3000"]
 ```bash
 docker run -d -p 3000:3000 \
   -e HYPERMAIL_MCP_KEY=... \
-  -e MS_CLIENT_ID=... \
+  -e HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID=... \
   -v hypermail-data:/data \
   hypermail-mcp
 ```

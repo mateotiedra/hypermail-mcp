@@ -9,12 +9,12 @@ import {
  * Public client app id. Default is the well-known `ms-365` client id used by
  * the softeria/ms-365-mcp-server project — it's a public client registered
  * for personal MSA + multi-tenant work/school. Users can override via
- * MS_CLIENT_ID for their own Entra app registrations.
+ * HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID for their own Entra app registrations.
  */
 const DEFAULT_CLIENT_ID = "084a3e9f-a9f4-43f7-89f9-d229cf97853e";
 // ^ Pre-registered public client app (same one used by softeria/ms-365-mcp-server).
 //   Supports personal MSA + multi-tenant work/school via device-code flow.
-//   Operators should set MS_CLIENT_ID to a client they control for production.
+//   Operators should set HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID to a client they control for production.
 
 const DEFAULT_SCOPES = [
   "offline_access",
@@ -124,7 +124,7 @@ export function beginDeviceCode(
             reject(
               new Error(
                 "Microsoft device-code endpoint returned no code. " +
-                  "Check MS_CLIENT_ID is a valid Azure Entra public-client application.",
+                  "Check HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID is a valid Azure Entra public-client application.",
               ),
             );
             return;

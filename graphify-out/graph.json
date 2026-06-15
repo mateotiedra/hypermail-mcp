@@ -1407,7 +1407,7 @@
       "id": "mcp_command_node"
     },
     {
-      "label": "MS_CLIENT_ID",
+      "label": "HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID",
       "file_type": "code",
       "source_file": ".mcp.json",
       "source_location": "L1",
@@ -1419,7 +1419,7 @@
       "id": "env_var_ms_client_id"
     },
     {
-      "label": "MS_TENANT_ID",
+      "label": "HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID",
       "file_type": "code",
       "source_file": ".mcp.json",
       "source_location": "L1",
@@ -6462,7 +6462,7 @@
       "id": "hostingmd_encryption_key_management"
     },
     {
-      "label": "Entra ID App Registration (MS_CLIENT_ID)",
+      "label": "Entra ID App Registration (HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID)",
       "file_type": "document",
       "source_file": "docs/hosting.md",
       "source_location": null,
