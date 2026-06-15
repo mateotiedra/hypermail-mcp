@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.6** — Strict provider env var enforcement. Legacy env vars
+> (`MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`,
+> `GOOGLE_CLIENT_SECRET`) are unconditionally ignored; only the dedicated
+> `HYPERMAIL_PROVIDERS_*` names are resolved.
+>
 > **v0.7.5** — Attachments via file path on `send_email`/`draft_email`
 > (`attachments` param). `edit_draft` gains `new_attachments` and
 > `remove_attachments` — `add_attachment_to_draft` is removed (23 tools now).
