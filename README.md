@@ -3,6 +3,13 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.5** — Attachments via file path on `send_email`/`draft_email`
+> (`attachments` param). `edit_draft` gains `new_attachments` and
+> `remove_attachments` — `add_attachment_to_draft` is removed (23 tools now).
+> Draft editing uses multi-strategy thread boundary detection for more reliable
+> quoted-thread preservation. Watcher now supports script emission (`runScript`)
+> alongside webhook delivery.
+>
 > **v0.7.4** — `inReplyTo` is now a required parameter on `send_email` and
 > `draft_email` (was optional). Set it to `false` for a new email, or pass a
 > message ID to thread a reply. This forces the agent to make an explicit choice
@@ -13,8 +20,7 @@ inboxes through a single, unified tool surface.
 > the entire content — including the quoted thread. Now only the answer part
 > (above the spacer delimiter) is replaced.
 >
-> <!-- attachments moved into send_email/draft_email/edit_draft per v0.7.x -->
->> **v0.7.1** — Every config field is now settable via a dedicated
+> **v0.7.1** — Every config field is now settable via a dedicated
 > `HYPERMAIL_*` env var. Legacy provider env vars are no longer accepted. See
 > [Environment Variables](#environment-variables) for the full reference.
 >
@@ -210,6 +216,10 @@ below.
 | `HYPERMAIL_WATCH_WEBHOOK_URL` | `watch.webhook.url` | `string` |
 | `HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS` | `watch.webhook.retry.maxAttempts` | `int` |
 | `HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS` | `watch.webhook.retry.baseDelayMs` | `int` |
+| `HYPERMAIL_WATCH_SCRIPT_COMMAND` | `watch.script.command` | `string` |
+| `HYPERMAIL_WATCH_SCRIPT_TIMEOUT_MS` | `watch.script.timeoutMs` | `int` |
+| `HYPERMAIL_WATCH_SCRIPT_RETRY_MAX_ATTEMPTS` | `watch.script.retry.maxAttempts` | `int` |
+| `HYPERMAIL_WATCH_SCRIPT_RETRY_BASE_DELAY_MS` | `watch.script.retry.baseDelayMs` | `int` |
 
 **Priority order:** CLI flags > config file > `HYPERMAIL_*` env var > hardcoded default.
 
@@ -248,9 +258,9 @@ account store.
 ## Email Watch
 
 When enabled, hypermail-mcp runs a background poll loop that scans inboxes for
-new messages and POSTs each one to a configurable webhook URL. Intended for
-push-based email triage — downstream agents (e.g. Mastra) receive full email
-content without polling.
+new messages and delivers each one via webhook POST and/or script execution.
+Intended for push-based email triage — downstream agents (e.g. Mastra) receive
+full email content without polling.
 
 ```jsonc
 {
@@ -260,6 +270,11 @@ content without polling.
     "webhook": {
       "url": "http://localhost:3000/api/email-webhook",
       "retry": { "maxAttempts": 5, "baseDelayMs": 1000 }
+    },
+    "script": {
+      "command": "node /path/to/email-handler.js",
+      "timeoutMs": 30000,
+      "retry": { "maxAttempts": 3, "baseDelayMs": 1000 }
     }
   }
 }
@@ -272,16 +287,25 @@ content without polling.
 | `watch.webhook.url` | — | Endpoint that receives `POST` with `EmailFull` JSON |
 | `watch.webhook.retry.maxAttempts` | `5` | Max delivery attempts (1–10) |
 | `watch.webhook.retry.baseDelayMs` | `1000` | Base backoff delay (× 2^attempt) |
+| `watch.script.command` | — | Shell command spawned with email JSON on stdin |
+| `watch.script.timeoutMs` | `30000` | Max script runtime before SIGKILL |
+| `watch.script.retry.maxAttempts` | `3` | Max script delivery attempts |
+| `watch.script.retry.baseDelayMs` | `1000` | Base backoff delay (× 2^attempt) |
 
 **Behavior:**
 - Polls **all accounts** in the store, **inbox only**.
 - Detects new emails via `lastSeenIds` (capped at 200) stored in the encrypted
   account file — no duplicate emits across restarts.
-- One `POST` per email (full body: subject, sender, text, HTML, attachments
-  metadata, thread ID via `EmailFull`).
-- Delivery uses exponential backoff (`baseDelay × 2^attempt`). Retries on
-  non-2xx responses and connection errors. Logs and moves on after
-  `maxAttempts` exhausted — never blocks the poll loop.
+- Two delivery modes (can be used together):
+  - **Webhook:** One `POST` per email (full body as `EmailFull` JSON).
+  - **Script:** Spawns a shell command with the `EmailFull` JSON piped to
+    stdin. The script receives `conversationId`, `subject`, `from`, `toRecipients`,
+    `body`, `isRead`, `sentDateTime`, `attachments`, plus an `account` field.
+- Both modes use exponential backoff (`baseDelay × 2^attempt`). Retries on
+  failures (non-2xx for webhook, non-zero exit for script). Logs and moves on
+  after `maxAttempts` exhausted — never blocks the poll loop.
+- Each delivery mode is fire-and-forget — the poll loop continues while
+  delivery runs in the background.
 - Works in both **stdio** and **HTTP** transport modes — the poll interval
   fires normally alongside MCP message handling.
 
