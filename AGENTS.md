@@ -62,8 +62,10 @@ pnpm start        # Run dist/cli.js directly
 ### Environment
 
 Required env vars (set in `.mcp.json`):
-- `MS_CLIENT_ID` — Azure/Entra ID app registration client ID
-- `MS_TENANT_ID` — Azure/Entra ID tenant ID
+- `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` — Azure/Entra ID app registration client ID
+- `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` — Azure/Entra ID tenant ID
+- `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` — Google OAuth client ID
+- `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` — Google OAuth client secret, if issued
 - `HYPERMAIL_MCP_DATA_DIR` — directory for token/account storage
 
 ## Key Dependencies

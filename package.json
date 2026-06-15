@@ -18,9 +18,10 @@
     "dev:http": "tsup && node dist/cli.js --http --config hypermail-config.http.json",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
+    "check": "pnpm test && pnpm typecheck && pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm build && pnpm test"
+    "prepublishOnly": "pnpm check"
   },
   "engines": {
     "node": ">=20"

@@ -12,8 +12,8 @@
   },
   "providers": {
     "outlook": {
-      "clientId": "${MS_CLIENT_ID}",
-      "tenantId": "${MS_TENANT_ID}"
+      "clientId": "${HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID}",
+      "tenantId": "${HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID}"
     }
   }
 }

@@ -137,7 +137,7 @@ Nodes (5): Docker Deployment, Reverse Proxy Compatibility, Session Management (M
 
 ### Community 13 - "Community 13"
 Cohesion: 0.40
-Nodes (4): MS_CLIENT_ID, MS_TENANT_ID, hypermail, node
+Nodes (4): HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID, HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID, hypermail, node
 
 ### Community 14 - "Community 14"
 Cohesion: 0.67

@@ -160,23 +160,28 @@ describe("loadConfig — env var resolution", () => {
     expect(cfg.providers?.gmail?.clientSecret).toBe("gsec");
   });
 
-  it("falls back to MS_CLIENT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID is unset", () => {
+  it("ignores legacy MS_CLIENT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID is unset", () => {
     process.env.MS_CLIENT_ID = "legacy-ms-cid";
     const cfg = loadConfig(undefined);
-    expect(cfg.providers?.outlook?.clientId).toBe("legacy-ms-cid");
+    expect(cfg.providers?.outlook).toBeUndefined();
   });
 
-  it("prefers HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID over MS_CLIENT_ID", () => {
-    process.env.HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID = "new-cid";
-    process.env.MS_CLIENT_ID = "old-cid";
+  it("ignores legacy MS_TENANT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID is unset", () => {
+    process.env.MS_TENANT_ID = "legacy-ms-tenant";
     const cfg = loadConfig(undefined);
-    expect(cfg.providers?.outlook?.clientId).toBe("new-cid");
+    expect(cfg.providers?.outlook).toBeUndefined();
   });
 
-  it("falls back to GOOGLE_CLIENT_ID when HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is unset", () => {
+  it("ignores legacy GOOGLE_CLIENT_ID when HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is unset", () => {
     process.env.GOOGLE_CLIENT_ID = "legacy-g-cid";
     const cfg = loadConfig(undefined);
-    expect(cfg.providers?.gmail?.clientId).toBe("legacy-g-cid");
+    expect(cfg.providers?.gmail).toBeUndefined();
+  });
+
+  it("ignores legacy GOOGLE_CLIENT_SECRET when HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET is unset", () => {
+    process.env.GOOGLE_CLIENT_SECRET = "legacy-g-secret";
+    const cfg = loadConfig(undefined);
+    expect(cfg.providers?.gmail).toBeUndefined();
   });
 
   // ── Watch via env ──

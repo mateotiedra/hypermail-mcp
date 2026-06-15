@@ -15,8 +15,7 @@ inboxes through a single, unified tool surface.
 >
 > <!-- attachments moved into send_email/draft_email/edit_draft per v0.7.x -->
 >> **v0.7.1** — Every config field is now settable via a dedicated
-> `HYPERMAIL_*` env var. Legacy env vars (`MS_CLIENT_ID`, `MS_TENANT_ID`,
-> `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) still work as fallbacks. See
+> `HYPERMAIL_*` env var. Legacy provider env vars are no longer accepted. See
 > [Environment Variables](#environment-variables) for the full reference.
 >
 > **v0.7.0** — Email watch mode: background poll loop detects new inbox
@@ -114,8 +113,8 @@ docker run -d \
   --name hypermail-mcp \
   -p 3000:3000 \
   -e HYPERMAIL_MCP_KEY=<32-byte-key> \
-  -e MS_CLIENT_ID=<your-client-id> \
-  -e MS_TENANT_ID=<your-tenant-id> \
+  -e HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID=<your-client-id> \
+  -e HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID=<your-tenant-id> \
   -v hypermail-data:/data \
   hypermail-mcp
 ```
@@ -145,8 +144,8 @@ The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
 | --- | --- | --- |
 | `HYPERMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hypermail-mcp` |
 | `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. Auto-generated for stdio. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
-| `MS_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
-| `MS_TENANT_ID` | Tenant for the authority URL | `common` |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
+| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | Tenant for the authority URL | `common` |
 
 CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--read-only`, `--help`.
 
@@ -190,9 +189,10 @@ and read emails.
 
 Every config field can be set via a dedicated `HYPERMAIL_*` env var, following
 a dotted-path naming convention (`HYPERMAIL_HTTP_PORT`,
-`HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID`, etc.). Legacy env vars
-(`MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
-still work as fallbacks for backward compatibility.
+`HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID`, etc.). Legacy provider env vars such
+as `MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`, and
+`GOOGLE_CLIENT_SECRET` are ignored; use the `HYPERMAIL_PROVIDERS_*` names
+below.
 
 | Env var | Config path | Type |
 | --- | --- | --- |
