@@ -217,6 +217,7 @@ below.
 | `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | `providers.outlook.tenantId` | `string` |
 | `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` | `providers.gmail.clientId` | `string` |
 | `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` | `providers.gmail.clientSecret` | `string` |
+| `HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI` | `providers.gmail.redirectUri` | `string` |
 | `HYPERMAIL_WATCH_ENABLED` | `watch.enabled` | `bool` |
 | `HYPERMAIL_WATCH_POLL_INTERVAL` | `watch.pollIntervalSeconds` | `int` |
 | `HYPERMAIL_WATCH_WEBHOOK_URL` | `watch.webhook.url` | `string` |
@@ -344,14 +345,27 @@ Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
 
 ### Gmail
 
-Gmail uses a Google OAuth authorization-code URL instead of device code because
-Google's device-code endpoint rejects Gmail API scopes. This flow is safe for
-remote MCP servers: the user may open the URL on a different machine and paste
-the final redirected URL back to the agent.
+Gmail uses Google OAuth 2.0, matching the official Gmail MCP model. Google's
+device-code endpoint rejects Gmail API scopes, so Hypermail uses an authorization
+URL with a real callback. Service accounts are only suitable for Google
+Workspace domain-wide delegation; they don't grant server-to-server access to
+consumer `@gmail.com` inboxes.
+
+For local stdio/Desktop OAuth clients, Hypermail starts a temporary
+`127.0.0.1` loopback callback server automatically. For hosted HTTP deployments,
+configure `providers.gmail.redirectUri` (or
+`HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI`) and register the exact URI in Google
+Auth Platform, for example:
+
+```bash
+HYPERMAIL_HTTP_ENABLED=true
+HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI=https://mail.example.com/oauth/gmail/callback
+```
 
 1. Configure `providers.gmail.clientId` and `providers.gmail.clientSecret` (or
    the matching `HYPERMAIL_PROVIDERS_GMAIL_*` env vars) from a Google OAuth
-   installed/desktop client with Gmail API enabled.
+   client with Gmail API enabled. Use a Desktop client for local loopback, or a
+   Web client for hosted HTTP callbacks.
 2. Agent calls `add_account({ provider: "gmail" })`.
 3. Server returns an OAuth URL:
    ```json
@@ -367,11 +381,11 @@ the final redirected URL back to the agent.
      }
    }
    ```
-4. The user opens `verificationUri`, grants access, and copies the final
-   redirected URL from the browser address bar. On a VPS this page may fail to
-   load at `127.0.0.1`; that is expected — the URL still contains the OAuth
-   `code` and `state` query parameters.
-5. Agent calls:
+4. The user opens `verificationUri` and grants access. If the configured
+   callback is reachable, the browser shows a small success page and the agent
+   can poll `complete_add_account({ provider: "gmail", handle })` until ready.
+5. If the browser cannot reach the callback, the manual fallback still works:
+   copy the final redirected URL from the browser address bar and call:
    ```json
    {
      "provider": "gmail",

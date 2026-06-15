@@ -21,6 +21,7 @@ const outlookProviderSchema = z.object({
 const gmailProviderSchema = z.object({
   clientId: z.string().optional(),
   clientSecret: z.string().optional(),
+  redirectUri: z.string().optional(),
 });
 
 const providersConfigSchema = z.object({
@@ -80,6 +81,7 @@ export interface OutlookProviderConfig {
 export interface GmailProviderConfig {
   clientId?: string;
   clientSecret?: string;
+  redirectUri?: string;
 }
 
 export interface ProvidersConfig {

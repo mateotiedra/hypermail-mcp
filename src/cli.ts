@@ -82,6 +82,7 @@ Configuration:
   HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID   Outlook tenant ID (string)
   HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID     Gmail OAuth client ID (string)
   HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET Gmail OAuth client secret (string)
+  HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI  Gmail OAuth callback URI (string)
   HYPERMAIL_WATCH_ENABLED             Enable inbox polling (bool)
   HYPERMAIL_WATCH_POLL_INTERVAL       Poll interval in seconds (number)
   HYPERMAIL_WATCH_WEBHOOK_URL         Webhook URL for new-email events (string)
@@ -111,7 +112,8 @@ Configuration:
         },
         "gmail": {
           "clientId": "\${HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID}",
-          "clientSecret": "\${HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET}"
+          "clientSecret": "\${HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET}",
+          "redirectUri": "\${HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI}"
         }
       }
     }

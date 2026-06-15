@@ -1,11 +1,10 @@
 {
   "mcpServers": {
     "hypermail": {
-      "command": "node",
+      "command": "sh",
       "args": [
-        "dist/cli.js",
-        "--config",
-        "hypermail-config.json"
+        "-c",
+        "set -a; [ -f .env ] && . ./.env; set +a; exec node dist/cli.js --config hypermail-config.json"
       ],
       "cwd": ".",
       "lifecycle": "lazy",

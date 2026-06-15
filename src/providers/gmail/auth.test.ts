@@ -10,8 +10,12 @@ afterEach(() => {
 });
 
 describe("Gmail authorization-code OAuth", () => {
-  it("builds a Gmail OAuth URL with PKCE, state, and the Gmail modify scope", () => {
-    const flow = beginAuthorizationCode(undefined, "client-id", "client-secret");
+  it("builds a Gmail OAuth URL with PKCE, state, and a configured redirect URI", async () => {
+    const flow = await beginAuthorizationCode({
+      clientId: "client-id",
+      clientSecret: "client-secret",
+      redirectUri: "https://mail.example.com/oauth/gmail/callback",
+    });
     const url = new URL(flow.verificationUri);
 
     expect(url.origin + url.pathname).toBe("https://accounts.google.com/o/oauth2/v2/auth");
@@ -23,13 +27,41 @@ describe("Gmail authorization-code OAuth", () => {
     expect(url.searchParams.get("code_challenge_method")).toBe("S256");
     expect(url.searchParams.get("code_challenge")).toBeTruthy();
     expect(url.searchParams.get("state")).toBe(flow.state);
-    expect(url.searchParams.get("redirect_uri")).toBe(flow.redirectUri);
+    expect(url.searchParams.get("redirect_uri")).toBe("https://mail.example.com/oauth/gmail/callback");
+    expect(flow.redirectUri).toBe("https://mail.example.com/oauth/gmail/callback");
     expect(flow.userCode).toBe("");
-    expect(flow.message).toContain("paste the final redirected URL");
+    expect(flow.message).toContain("complete automatically");
+    expect(flow.consumeAuthorizationResponse()).toBeUndefined();
+  });
+
+  it("starts a loopback callback server when redirectUri is not configured", async () => {
+    const flow = await beginAuthorizationCode({ clientId: "client-id" });
+    const url = new URL(flow.verificationUri);
+    const redirectUri = url.searchParams.get("redirect_uri");
+
+    expect(redirectUri).toBe(flow.redirectUri);
+    expect(redirectUri).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/oauth2callback$/);
+
+    const callback = `${flow.redirectUri}?code=auth-code&state=${flow.state}`;
+    const res = await fetch(callback);
+    expect(res.status).toBe(200);
+
+    const captured = flow.consumeAuthorizationResponse();
+    expect(captured?.authorizationResponse).toBeTruthy();
+    const capturedUrl = new URL(captured?.authorizationResponse ?? "");
+    expect(capturedUrl.searchParams.get("code")).toBe("auth-code");
+    expect(capturedUrl.searchParams.get("state")).toBe(flow.state);
+    expect(flow.consumeAuthorizationResponse()).toBeUndefined();
+
+    flow.cancel();
   });
 
   it("exchanges a pasted redirect URL for tokens after validating state", async () => {
-    const flow = beginAuthorizationCode(undefined, "client-id", "client-secret");
+    const flow = await beginAuthorizationCode({
+      clientId: "client-id",
+      clientSecret: "client-secret",
+      redirectUri: "http://127.0.0.1/oauth2callback",
+    });
     const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const href = String(url);
       if (href === "https://oauth2.googleapis.com/token") {
@@ -67,7 +99,10 @@ describe("Gmail authorization-code OAuth", () => {
   });
 
   it("rejects pasted redirect URLs with a mismatched state", async () => {
-    const flow = beginAuthorizationCode(undefined, "client-id");
+    const flow = await beginAuthorizationCode({
+      clientId: "client-id",
+      redirectUri: "http://127.0.0.1/oauth2callback",
+    });
 
     await expect(
       completeAuthorizationCode(flow, {

@@ -25,6 +25,7 @@ const ENV_OUTLOOK_CLIENT_ID = "HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID";
 const ENV_OUTLOOK_TENANT_ID = "HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID";
 const ENV_GMAIL_CLIENT_ID = "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID";
 const ENV_GMAIL_CLIENT_SECRET = "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET";
+const ENV_GMAIL_REDIRECT_URI = "HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI";
 const ENV_WATCH_ENABLED = "HYPERMAIL_WATCH_ENABLED";
 const ENV_WATCH_POLL_INTERVAL = "HYPERMAIL_WATCH_POLL_INTERVAL";
 const ENV_WATCH_WEBHOOK_URL = "HYPERMAIL_WATCH_WEBHOOK_URL";
@@ -211,19 +212,23 @@ export function loadConfig(
   const gmailClientSecret =
     parsed.providers?.gmail?.clientSecret ??
     process.env[ENV_GMAIL_CLIENT_SECRET];
+  const gmailRedirectUri =
+    parsed.providers?.gmail?.redirectUri ??
+    process.env[ENV_GMAIL_REDIRECT_URI];
 
   let providers: ProvidersConfig | undefined;
-  if (outlookClientId || outlookTenantId || gmailClientId || gmailClientSecret) {
+  if (outlookClientId || outlookTenantId || gmailClientId || gmailClientSecret || gmailRedirectUri) {
     providers = {};
     if (outlookClientId || outlookTenantId) {
       providers.outlook = {};
       if (outlookClientId) providers.outlook.clientId = outlookClientId;
       if (outlookTenantId) providers.outlook.tenantId = outlookTenantId;
     }
-    if (gmailClientId || gmailClientSecret) {
+    if (gmailClientId || gmailClientSecret || gmailRedirectUri) {
       providers.gmail = {};
       if (gmailClientId) providers.gmail.clientId = gmailClientId;
       if (gmailClientSecret) providers.gmail.clientSecret = gmailClientSecret;
+      if (gmailRedirectUri) providers.gmail.redirectUri = gmailRedirectUri;
     }
   }
 

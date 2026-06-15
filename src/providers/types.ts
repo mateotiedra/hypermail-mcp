@@ -181,6 +181,10 @@ export interface EmailProvider {
     handle: string,
     input?: CompleteAddAccountInput,
   ): Promise<CompleteAddAccountResult>;
+  /** Optional — providers with HTTP OAuth callbacks can complete by redirected URL. */
+  completeAddAccountFromRedirect?(
+    authorizationResponse: string,
+  ): Promise<CompleteAddAccountResult>;
 
   listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<ListEmailsResult>;
   searchEmails(

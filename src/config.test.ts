@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { loadConfig, resolveTools } from "./config.js";
 
@@ -14,6 +18,7 @@ const MANAGED_KEYS = [
   "HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID",
   "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID",
   "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET",
+  "HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI",
   "HYPERMAIL_WATCH_ENABLED",
   "HYPERMAIL_WATCH_POLL_INTERVAL",
   "HYPERMAIL_WATCH_WEBHOOK_URL",
@@ -155,9 +160,29 @@ describe("loadConfig — env var resolution", () => {
   it("resolves Gmail provider from HYPERMAIL_PROVIDERS_GMAIL_* env vars", () => {
     process.env.HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID = "gcid";
     process.env.HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET = "gsec";
+    process.env.HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI = "https://example.com/oauth/gmail/callback";
     const cfg = loadConfig(undefined);
     expect(cfg.providers?.gmail?.clientId).toBe("gcid");
     expect(cfg.providers?.gmail?.clientSecret).toBe("gsec");
+    expect(cfg.providers?.gmail?.redirectUri).toBe("https://example.com/oauth/gmail/callback");
+  });
+
+  it("resolves Gmail redirectUri from config file", () => {
+    const dir = mkdtempSync(join(tmpdir(), "hypermail-config-test-"));
+    try {
+      const file = join(dir, "hypermail-config.json");
+      writeFileSync(file, JSON.stringify({
+        providers: {
+          gmail: {
+            redirectUri: "https://mail.example.com/oauth/gmail/callback",
+          },
+        },
+      }));
+      const cfg = loadConfig(file);
+      expect(cfg.providers?.gmail?.redirectUri).toBe("https://mail.example.com/oauth/gmail/callback");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("ignores legacy MS_CLIENT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID is unset", () => {

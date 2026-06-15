@@ -30,6 +30,7 @@ export function buildRegistry(opts: BuildRegistryOptions): Registry {
     store: opts.store,
     clientId: gmailCfg?.clientId,
     clientSecret: gmailCfg?.clientSecret,
+    redirectUri: gmailCfg?.redirectUri,
   }));
 
   function get(id: ProviderId): EmailProvider {

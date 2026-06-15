@@ -64,6 +64,7 @@ export interface GmailProviderOptions {
   store: AccountStore;
   clientId?: string;
   clientSecret?: string;
+  redirectUri?: string;
 }
 
 export class GmailProvider implements EmailProvider {
@@ -72,10 +73,12 @@ export class GmailProvider implements EmailProvider {
   private readonly pending = new Map<string, PendingFlow>();
   private readonly clientId?: string;
   private readonly clientSecret?: string;
+  private readonly redirectUri?: string;
 
   constructor(private readonly opts: GmailProviderOptions) {
     this.clientId = opts.clientId;
     this.clientSecret = opts.clientSecret;
+    this.redirectUri = opts.redirectUri;
     this.clients = new GmailClientFactory(
       opts.store,
       opts.clientId,
@@ -86,11 +89,11 @@ export class GmailProvider implements EmailProvider {
   // ── account lifecycle ──
 
   async addAccount(input: AddAccountInput): Promise<AddAccountResult> {
-    const begin = beginAuthorizationCode(
-      undefined,
-      this.clientId,
-      this.clientSecret,
-    );
+    const begin = await beginAuthorizationCode({
+      clientId: this.clientId,
+      clientSecret: this.clientSecret,
+      redirectUri: this.redirectUri,
+    });
 
     const handle = randomUUID();
     const flow: PendingFlow = {
@@ -129,23 +132,29 @@ export class GmailProvider implements EmailProvider {
     }
     if (flow.settled === "ready" && flow.account) {
       this.pending.delete(handle);
+      flow.begin.cancel();
       return { status: "ready", account: flow.account };
     }
     if (flow.settled === "error") {
       this.pending.delete(handle);
+      flow.begin.cancel();
       return { status: "error", error: flow.error ?? "unknown error" };
     }
     if (flow.settled === "expired") {
       this.pending.delete(handle);
+      flow.begin.cancel();
       return { status: "expired" };
     }
 
-    if (!input.authorizationResponse && !input.code) {
-      return { status: "pending" };
+    let completionInput = input;
+    if (!completionInput.authorizationResponse && !completionInput.code) {
+      const captured = flow.begin.consumeAuthorizationResponse();
+      if (!captured) return { status: "pending" };
+      completionInput = captured;
     }
 
     try {
-      const { tokens, email } = await completeAuthorizationCode(flow.begin, input);
+      const { tokens, email } = await completeAuthorizationCode(flow.begin, completionInput);
       const resolvedEmail = (email || flow.emailHint || "").toLowerCase();
       if (!resolvedEmail) {
         throw new Error("no email returned from Google account");
@@ -159,14 +168,37 @@ export class GmailProvider implements EmailProvider {
       };
       const saved = await this.opts.store.upsertAccount(rec);
       this.pending.delete(handle);
+      flow.begin.cancel();
       return { status: "ready", account: saved };
     } catch (err) {
       this.pending.delete(handle);
+      flow.begin.cancel();
       return {
         status: "error",
         error: err instanceof Error ? err.message : String(err),
       };
     }
+  }
+
+  async completeAddAccountFromRedirect(
+    authorizationResponse: string,
+  ): Promise<CompleteAddAccountResult> {
+    let state: string | null;
+    try {
+      state = new URL(authorizationResponse).searchParams.get("state");
+    } catch {
+      return { status: "error", error: "authorizationResponse must be a full redirected URL" };
+    }
+    if (!state) {
+      return { status: "error", error: "authorizationResponse is missing OAuth state" };
+    }
+
+    for (const [handle, flow] of this.pending) {
+      if (flow.begin.state === state) {
+        return this.completeAddAccount(handle, { authorizationResponse });
+      }
+    }
+    return { status: "error", error: "unknown OAuth state — restart Gmail account setup" };
   }
 
   // ── browse ──
