@@ -5,6 +5,7 @@ import type {
   AddAccountInput,
   AddAccountResult,
   AttachmentContent,
+  CompleteAddAccountInput,
   CompleteAddAccountResult,
   CreateFolderInput,
   DraftUpdateInput,
@@ -19,8 +20,9 @@ import type {
   SendInput,
 } from "../types.js";
 import {
-  awaitDeviceCodeReady,
-  beginDeviceCode,
+  beginAuthorizationCode,
+  completeAuthorizationCode,
+  type AuthorizationCodeBegin,
   type SerializedGmailTokens,
 } from "./auth.js";
 import { GmailClientFactory } from "./client.js";
@@ -48,7 +50,7 @@ import {
 // ── pending flow (mirrors Outlook's PendingFlow pattern) ──
 
 interface PendingFlow {
-  begin: ReturnType<typeof beginDeviceCode>;
+  begin: AuthorizationCodeBegin;
   emailHint?: string;
   startedAt: number;
   settled: "pending" | "ready" | "error" | "expired";
@@ -84,12 +86,11 @@ export class GmailProvider implements EmailProvider {
   // ── account lifecycle ──
 
   async addAccount(input: AddAccountInput): Promise<AddAccountResult> {
-    const begin = beginDeviceCode(
+    const begin = beginAuthorizationCode(
       undefined,
       this.clientId,
       this.clientSecret,
     );
-    await awaitDeviceCodeReady(begin);
 
     const handle = randomUUID();
     const flow: PendingFlow = {
@@ -100,34 +101,11 @@ export class GmailProvider implements EmailProvider {
     };
     this.pending.set(handle, flow);
 
-    begin.result
-      .then(async ({ tokens, email }) => {
-        const resolvedEmail = (email || input.email || "").toLowerCase();
-        if (!resolvedEmail) {
-          flow.settled = "error";
-          flow.error = "no email returned from Google account";
-          return;
-        }
-        const rec: AccountRecord = {
-          email: resolvedEmail,
-          provider: "gmail",
-          displayName: resolvedEmail,
-          tokens: tokens as unknown as Record<string, unknown>,
-          addedAt: new Date().toISOString(),
-        };
-        const saved = await this.opts.store.upsertAccount(rec);
-        flow.account = saved;
-        flow.settled = "ready";
-      })
-      .catch((err: unknown) => {
-        flow.settled = "error";
-        flow.error = err instanceof Error ? err.message : String(err);
-      });
-
     return {
       status: "pending",
       handle,
       verification: {
+        type: "oauth_url",
         userCode: begin.userCode,
         verificationUri: begin.verificationUri,
         expiresAt: begin.expiresAt,
@@ -138,6 +116,7 @@ export class GmailProvider implements EmailProvider {
 
   async completeAddAccount(
     handle: string,
+    input: CompleteAddAccountInput = {},
   ): Promise<CompleteAddAccountResult> {
     const flow = this.pending.get(handle);
     if (!flow) return { status: "error", error: "unknown handle" };
@@ -160,7 +139,34 @@ export class GmailProvider implements EmailProvider {
       this.pending.delete(handle);
       return { status: "expired" };
     }
-    return { status: "pending" };
+
+    if (!input.authorizationResponse && !input.code) {
+      return { status: "pending" };
+    }
+
+    try {
+      const { tokens, email } = await completeAuthorizationCode(flow.begin, input);
+      const resolvedEmail = (email || flow.emailHint || "").toLowerCase();
+      if (!resolvedEmail) {
+        throw new Error("no email returned from Google account");
+      }
+      const rec: AccountRecord = {
+        email: resolvedEmail,
+        provider: "gmail",
+        displayName: resolvedEmail,
+        tokens: tokens as unknown as Record<string, unknown>,
+        addedAt: new Date().toISOString(),
+      };
+      const saved = await this.opts.store.upsertAccount(rec);
+      this.pending.delete(handle);
+      return { status: "ready", account: saved };
+    } catch (err) {
+      this.pending.delete(handle);
+      return {
+        status: "error",
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   // ── browse ──

@@ -68,6 +68,7 @@ export function registerAccountTools(
       handle: z.string().optional(),
       verification: z
         .object({
+          type: z.enum(["device_code", "oauth_url"]).optional(),
           userCode: z.string(),
           verificationUri: z.string(),
           expiresAt: z.string(),
@@ -136,6 +137,24 @@ export function registerAccountTools(
         inputSchema: z.object({
           provider: providerIdEnum,
           handle: z.string().min(1),
+          authorizationResponse: z
+            .string()
+            .optional()
+            .describe(
+              "For OAuth providers such as Gmail: paste the full final redirected URL from the browser after consent.",
+            ),
+          code: z
+            .string()
+            .optional()
+            .describe(
+              "For OAuth providers such as Gmail: raw authorization code if the client extracted it from the redirect URL.",
+            ),
+          state: z
+            .string()
+            .optional()
+            .describe(
+              "For OAuth providers such as Gmail: OAuth state returned with a raw authorization code.",
+            ),
         }),
         outputSchema: completeAddAccountOutputSchema,
       },
@@ -147,7 +166,11 @@ export function registerAccountTools(
           );
         }
         try {
-          const res = await provider.completeAddAccount(args.handle);
+          const res = await provider.completeAddAccount(args.handle, {
+            authorizationResponse: args.authorizationResponse,
+            code: args.code,
+            state: args.state,
+          });
           return ok(res, res as unknown as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));

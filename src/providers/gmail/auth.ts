@@ -1,6 +1,8 @@
+import { createHash, randomBytes, randomInt } from "node:crypto";
+
 import { OAuth2Client } from "google-auth-library";
 
-const GOOGLE_DEVICE_CODE_URL = "https://oauth2.googleapis.com/device/code";
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_OAUTH2_REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
@@ -8,21 +10,35 @@ const DEFAULT_SCOPES = [
   "https://www.googleapis.com/auth/gmail.modify",
 ];
 
-export interface DeviceCodeBegin {
+const DEFAULT_FLOW_TTL_MS = 20 * 60_000;
+
+export interface AuthorizationCodeBegin {
   userCode: string;
   verificationUri: string;
   message: string;
   expiresAt: string; // ISO
-  /** Resolves with the tokens and email once the user completes the flow. */
-  result: Promise<{ tokens: SerializedGmailTokens; email: string }>;
-  /** Aborts the in-flight polling promise. */
+  state: string;
+  codeVerifier: string;
+  redirectUri: string;
+  scopes: string[];
+  clientId: string;
+  clientSecret?: string;
   cancel(): void;
+}
+
+export interface AuthorizationCodeCompletionInput {
+  /** Full redirected URL copied from the browser after Google consent. */
+  authorizationResponse?: string;
+  /** Raw authorization code, for clients that extract it themselves. */
+  code?: string;
+  /** OAuth state returned alongside the raw authorization code. */
+  state?: string;
 }
 
 export interface SerializedGmailTokens {
   /** Client ID used to authenticate this account. */
   clientId: string;
-  /** Client secret, if any (optional for installed/TV apps). */
+  /** Client secret, if any. */
   clientSecret?: string;
   /** Current access token. */
   accessToken: string;
@@ -75,6 +91,29 @@ export function buildOAuth2Client(
   return client;
 }
 
+function base64Url(buf: Buffer): string {
+  return buf
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function randomBase64Url(bytes = 32): string {
+  return base64Url(randomBytes(bytes));
+}
+
+function codeChallenge(verifier: string): string {
+  return base64Url(createHash("sha256").update(verifier).digest());
+}
+
+function defaultRedirectUri(): string {
+  // A loopback URI is valid for Google installed-app OAuth clients. Hypermail
+  // does not need to receive the callback for remote/headless MCP use: the user
+  // can copy the final redirected URL and pass it to complete_add_account.
+  return `http://127.0.0.1:${randomInt(49152, 65536)}/oauth2callback`;
+}
+
 /** Fetch the email address associated with an access token via the Gmail profile endpoint. */
 async function getEmailFromToken(accessToken: string): Promise<string> {
   const res = await fetch(
@@ -96,182 +135,148 @@ async function getEmailFromToken(accessToken: string): Promise<string> {
 }
 
 /**
- * Start a Google OAuth 2.0 device-authorisation flow.
+ * Start a Google OAuth 2.0 authorization-code flow for Gmail.
  *
- * The returned `result` promise resolves once the user has entered the code
- * and consented; callers should poll it (or await it) via `complete_add_account`.
+ * Google rejects Gmail API scopes on the device-code endpoint, so Gmail uses a
+ * browser URL plus manual completion. This works even when the MCP server is on
+ * a VPS: users can approve the URL on any machine and paste the final redirected
+ * URL back to the agent/client.
  */
-export function beginDeviceCode(
+export function beginAuthorizationCode(
   scopes: string[] = DEFAULT_SCOPES,
   clientIdOverride?: string,
   clientSecretOverride?: string,
-): DeviceCodeBegin {
+): AuthorizationCodeBegin {
   const clientId = clientIdOverride;
   if (!clientId) {
     throw new Error(
       "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is required for Gmail OAuth — set it via HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID or provider config",
     );
   }
-  const clientSecret = clientSecretOverride || undefined;
 
-  let resolve!: (v: { tokens: SerializedGmailTokens; email: string }) => void;
-  let reject!: (err: unknown) => void;
-  const result = new Promise<{ tokens: SerializedGmailTokens; email: string }>(
-    (res, rej) => {
-      resolve = res;
-      reject = rej;
-    },
-  );
+  const state = randomBase64Url(24);
+  const codeVerifier = randomBase64Url(64);
+  const redirectUri = defaultRedirectUri();
+  const expiresAt = new Date(Date.now() + DEFAULT_FLOW_TTL_MS).toISOString();
 
-  // Placeholders populated once the device-code HTTP call completes.
-  let userCode = "";
-  let verificationUri = "";
-  let message = "";
-  let expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
-  let aborted = false;
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: scopes.join(" "),
+    access_type: "offline",
+    prompt: "consent",
+    state,
+    code_challenge: codeChallenge(codeVerifier),
+    code_challenge_method: "S256",
+  });
 
-  const ready = (async () => {
-    try {
-      // ── Step 1: request device code ──
-      const dcParams = new URLSearchParams();
-      dcParams.set("client_id", clientId);
-      if (clientSecret) dcParams.set("client_secret", clientSecret);
-      dcParams.set("scope", scopes.join(" "));
-
-      const dcRes = await fetch(GOOGLE_DEVICE_CODE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: dcParams.toString(),
-      });
-
-      if (!dcRes.ok) {
-        const errBody = (await dcRes.json().catch(() => ({}))) as {
-          error?: string;
-          error_description?: string;
-        };
-        throw new Error(
-          `Google device-code request failed: ` +
-            `${errBody.error_description ?? errBody.error ?? dcRes.statusText}`,
-        );
-      }
-
-      const dcData = (await dcRes.json()) as {
-        device_code: string;
-        user_code: string;
-        verification_url: string;
-        expires_in: number;
-        interval?: number;
-      };
-
-      userCode = dcData.user_code;
-      verificationUri = dcData.verification_url;
-      const deviceCode = dcData.device_code;
-      let interval = dcData.interval ?? 5;
-      if (dcData.expires_in) {
-        expiresAt = new Date(
-          Date.now() + dcData.expires_in * 1000,
-        ).toISOString();
-      }
-      message = `Go to ${verificationUri} and enter code: ${userCode}`;
-
-      // ── Step 2: poll for tokens ──
-      const tokenParams = new URLSearchParams();
-      tokenParams.set("client_id", clientId);
-      if (clientSecret) tokenParams.set("client_secret", clientSecret);
-      tokenParams.set("device_code", deviceCode);
-      tokenParams.set(
-        "grant_type",
-        "urn:ietf:params:oauth:grant-type:device_code",
-      );
-
-      const deadline = Date.now() + (dcData.expires_in * 1000);
-      while (Date.now() < deadline && !aborted) {
-        await new Promise((r) => setTimeout(r, interval * 1000));
-        if (aborted) return;
-
-        const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: tokenParams.toString(),
-        });
-
-        const tokenData = (await tokenRes.json()) as {
-          access_token?: string;
-          refresh_token?: string;
-          expires_in?: number;
-          scope?: string;
-          error?: string;
-        };
-
-        if (tokenData.access_token) {
-          const email = await getEmailFromToken(tokenData.access_token);
-          const tokens: SerializedGmailTokens = {
-            clientId,
-            clientSecret,
-            accessToken: tokenData.access_token,
-            refreshToken: tokenData.refresh_token ?? "",
-            expiryDate: tokenData.expires_in
-              ? Date.now() + tokenData.expires_in * 1000
-              : Date.now() + 3600_000,
-            scopes: tokenData.scope
-              ? tokenData.scope.split(" ")
-              : scopes,
-            email,
-          };
-          resolve({ tokens, email });
-          return;
-        }
-
-        switch (tokenData.error) {
-          case "authorization_pending":
-            break; // keep polling
-          case "slow_down":
-            interval += 1; // Google says to back off
-            break;
-          case "expired_token":
-            throw new Error("Device code expired — please try again");
-          case "access_denied":
-            throw new Error("User denied access");
-          default:
-            throw new Error(
-              `Token request failed: ${tokenData.error ?? "unknown error"}`,
-            );
-        }
-      }
-
-      if (!aborted) {
-        throw new Error("Device code expired — please try again");
-      }
-    } catch (err) {
-      if (!aborted) reject(err);
-    }
-  })();
-
+  const verificationUri = `${GOOGLE_AUTH_URL}?${params.toString()}`;
   return {
-    get userCode() {
-      return userCode;
-    },
-    get verificationUri() {
-      return verificationUri;
-    },
-    get message() {
-      return message;
-    },
-    get expiresAt() {
-      return expiresAt;
-    },
-    result,
+    userCode: "",
+    verificationUri,
+    message:
+      "Open this URL in a browser to authorize Gmail access. After approval, " +
+      "paste the final redirected URL back to the agent so it can complete the account setup.",
+    expiresAt,
+    state,
+    codeVerifier,
+    redirectUri,
+    scopes,
+    clientId,
+    clientSecret: clientSecretOverride || undefined,
     cancel() {
-      aborted = true;
+      // Nothing asynchronous is running in the manual OAuth flow.
     },
-    ...({ _ready: ready } as Record<string, unknown>),
-  } as DeviceCodeBegin;
+  };
 }
 
-/** Await `_ready` so the user-code fields are populated. */
-export async function awaitDeviceCodeReady(b: DeviceCodeBegin): Promise<void> {
-  const r = (b as unknown as { _ready: Promise<void> })._ready;
-  await r;
+function parseAuthorizationCompletion(
+  flow: AuthorizationCodeBegin,
+  input: AuthorizationCodeCompletionInput,
+): { code: string; state?: string } {
+  if (input.authorizationResponse) {
+    let url: URL;
+    try {
+      url = new URL(input.authorizationResponse);
+    } catch {
+      throw new Error("authorizationResponse must be a full redirected URL");
+    }
+    const error = url.searchParams.get("error");
+    if (error) {
+      const description = url.searchParams.get("error_description");
+      throw new Error(
+        `Google OAuth failed: ${description || error}`,
+      );
+    }
+    const code = url.searchParams.get("code");
+    if (!code) {
+      throw new Error("authorizationResponse is missing the OAuth code");
+    }
+    return { code, state: url.searchParams.get("state") ?? undefined };
+  }
+
+  if (input.code) {
+    return { code: input.code, state: input.state };
+  }
+
+  throw new Error(
+    "Paste the final redirected URL from Google as authorizationResponse, or provide code and state",
+  );
+}
+
+export async function completeAuthorizationCode(
+  flow: AuthorizationCodeBegin,
+  input: AuthorizationCodeCompletionInput,
+): Promise<{ tokens: SerializedGmailTokens; email: string }> {
+  const { code, state } = parseAuthorizationCompletion(flow, input);
+  if (state !== undefined && state !== flow.state) {
+    throw new Error("OAuth state mismatch — restart Gmail account setup");
+  }
+
+  const tokenParams = new URLSearchParams();
+  tokenParams.set("client_id", flow.clientId);
+  if (flow.clientSecret) tokenParams.set("client_secret", flow.clientSecret);
+  tokenParams.set("code", code);
+  tokenParams.set("redirect_uri", flow.redirectUri);
+  tokenParams.set("grant_type", "authorization_code");
+  tokenParams.set("code_verifier", flow.codeVerifier);
+
+  const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: tokenParams,
+  });
+
+  const tokenData = (await tokenRes.json().catch(() => ({}))) as {
+    access_token?: string;
+    refresh_token?: string;
+    expires_in?: number;
+    scope?: string;
+    error?: string;
+    error_description?: string;
+  };
+
+  if (!tokenRes.ok || !tokenData.access_token) {
+    throw new Error(
+      "Token request failed: " +
+        (tokenData.error_description ?? tokenData.error ?? tokenRes.statusText),
+    );
+  }
+
+  const email = await getEmailFromToken(tokenData.access_token);
+  const tokens: SerializedGmailTokens = {
+    clientId: flow.clientId,
+    clientSecret: flow.clientSecret,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token ?? "",
+    expiryDate: tokenData.expires_in
+      ? Date.now() + tokenData.expires_in * 1000
+      : Date.now() + 3600_000,
+    scopes: tokenData.scope ? tokenData.scope.split(" ") : flow.scopes,
+    email,
+  };
+  return { tokens, email };
 }
 
 /**

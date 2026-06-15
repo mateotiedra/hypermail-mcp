@@ -104,6 +104,7 @@ export type AddAccountResult =
       status: "pending";
       handle: string;
       verification: {
+        type?: "device_code" | "oauth_url";
         userCode: string;
         verificationUri: string;
         expiresAt: string; // ISO
@@ -117,6 +118,15 @@ export interface AddAccountInput {
   email?: string;
   /** Provider-specific extras (e.g. IMAP host/port/password) */
   config?: Record<string, unknown>;
+}
+
+export interface CompleteAddAccountInput {
+  /** Full redirected URL copied from the browser after OAuth consent. */
+  authorizationResponse?: string;
+  /** Raw authorization code, for clients that extract it themselves. */
+  code?: string;
+  /** OAuth state returned alongside the raw authorization code. */
+  state?: string;
 }
 
 export interface CompleteAddAccountResult {
@@ -166,8 +176,11 @@ export interface EmailProvider {
   readonly id: ProviderId;
 
   addAccount(input: AddAccountInput): Promise<AddAccountResult>;
-  /** Optional — only providers with async flows (device code) need this. */
-  completeAddAccount?(handle: string): Promise<CompleteAddAccountResult>;
+  /** Optional — only providers with async/manual flows need this. */
+  completeAddAccount?(
+    handle: string,
+    input?: CompleteAddAccountInput,
+  ): Promise<CompleteAddAccountResult>;
 
   listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<ListEmailsResult>;
   searchEmails(

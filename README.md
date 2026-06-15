@@ -59,7 +59,7 @@ address as the `account` argument. The server routes to the right backend.
 
 **v1 status:** Outlook / Microsoft 365 (personal + work) fully supported via
 Microsoft Graph. IMAP (any IMAP server) supported via `imapflow` + `nodemailer`.
-Gmail supported via Google OAuth device-code flow.
+Gmail supported via Google OAuth authorization-code flow with remote-safe manual completion.
 
 ## Why
 
@@ -144,7 +144,7 @@ The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
 `.pi/mcp.json` config (read by `pi-mcp-adapter`). Tools appear as
 `hypermail_http_*`.
 
-## Add-account flow (Outlook)
+## Runtime and provider configuration
 
 | Env var | Purpose | Default |
 | --- | --- | --- |
@@ -174,7 +174,8 @@ looks for it in the same directory as `cli.js`.
     // "disabled": ["add_account", "remove_account"]
   },
   "providers": {
-    "outlook": { "clientId": "...", "tenantId": "..." }
+    "outlook": { "clientId": "...", "tenantId": "..." },
+    "gmail": { "clientId": "...", "clientSecret": "..." }
   },
   "watch": {
     "enabled": true,
@@ -232,8 +233,8 @@ account store.
 | Tool | Inputs | Notes |
 | --- | --- | --- |
 | `list_accounts` | — | Returns registered emails + provider, no secrets. |
-| `add_account` | `provider`, `email?`, `config?` | Starts device-code (Outlook). Returns `{handle, verification:{userCode, verificationUri, expiresAt}}`. |
-| `complete_add_account` | `provider`, `handle` | Returns `pending` / `ready` / `expired` / `error`. |
+| `add_account` | `provider`, `email?`, `config?` | Starts the provider add flow. Outlook returns a device code; Gmail returns an OAuth URL. Returns `{handle, verification:{type, userCode, verificationUri, expiresAt, message}}`. |
+| `complete_add_account` | `provider`, `handle`, `authorizationResponse?`, `code?`, `state?` | Returns `pending` / `ready` / `expired` / `error`. Gmail accepts a pasted final redirected URL or raw code/state for remote-safe completion. |
 | `get_account_settings` | `account` | Get signature (HTML) and style preferences for an account. |
 | `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. Disabled under `--read-only`. |
 | `remove_account` | `email` | Deletes tokens for the account. |
@@ -312,7 +313,9 @@ full email content without polling.
 **Rate limits:** Polling every 10s on a single inbox = 6 req/min = 0.6% of
 Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
 
-## Add-account flow (Outlook)
+## Add-account flows
+
+### Outlook
 
 1. Agent calls `add_account({ provider: "outlook" })`.
 2. Server returns:
@@ -321,6 +324,7 @@ Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
      "status": "pending",
      "handle": "…uuid…",
      "verification": {
+       "type": "device_code",
        "userCode": "ABCD-EFGH",
        "verificationUri": "https://microsoft.com/devicelogin",
        "expiresAt": "2025-…",
@@ -332,6 +336,46 @@ Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
 4. Agent polls `complete_add_account({ provider: "outlook", handle })` until
    it returns `{ "status": "ready", "account": {...} }`.
 5. From then on, any tool can be called with `account: "<that-email>"`.
+
+### Gmail
+
+Gmail uses a Google OAuth authorization-code URL instead of device code because
+Google's device-code endpoint rejects Gmail API scopes. This flow is safe for
+remote MCP servers: the user may open the URL on a different machine and paste
+the final redirected URL back to the agent.
+
+1. Configure `providers.gmail.clientId` and `providers.gmail.clientSecret` (or
+   the matching `HYPERMAIL_PROVIDERS_GMAIL_*` env vars) from a Google OAuth
+   installed/desktop client with Gmail API enabled.
+2. Agent calls `add_account({ provider: "gmail" })`.
+3. Server returns an OAuth URL:
+   ```json
+   {
+     "status": "pending",
+     "handle": "…uuid…",
+     "verification": {
+       "type": "oauth_url",
+       "userCode": "",
+       "verificationUri": "https://accounts.google.com/o/oauth2/v2/auth?...",
+       "expiresAt": "2025-…",
+       "message": "Open this URL in a browser to authorize Gmail access..."
+     }
+   }
+   ```
+4. The user opens `verificationUri`, grants access, and copies the final
+   redirected URL from the browser address bar. On a VPS this page may fail to
+   load at `127.0.0.1`; that is expected — the URL still contains the OAuth
+   `code` and `state` query parameters.
+5. Agent calls:
+   ```json
+   {
+     "provider": "gmail",
+     "handle": "…uuid…",
+     "authorizationResponse": "http://127.0.0.1:54321/oauth2callback?code=...&state=..."
+   }
+   ```
+6. `complete_add_account` validates state, exchanges the code for tokens, stores
+   the account, and returns `{ "status": "ready", "account": {...} }`.
 
 ## Roadmap
 
@@ -358,7 +402,7 @@ src/
       index.ts                 # OutlookProvider implementation
     imap/index.ts              # IMAP provider (imapflow + nodemailer)
     gmail/
-      auth.ts                  # Google OAuth device-code flow
+      auth.ts                  # Google OAuth authorization-code flow
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
     shared/                    # shared utilities across providers
