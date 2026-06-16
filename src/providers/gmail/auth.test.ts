@@ -44,7 +44,7 @@ describe("Gmail authorization-code OAuth", () => {
     const redirectUri = url.searchParams.get("redirect_uri");
 
     expect(redirectUri).toBe(flow.redirectUri);
-    expect(redirectUri).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/oauth2callback$/);
+    expect(redirectUri).toBe("http://127.0.0.1:33333/callback");
 
     const callback = `${flow.redirectUri}?code=auth-code&state=${flow.state}`;
     const res = await fetch(callback);

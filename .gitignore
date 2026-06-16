@@ -10,3 +10,4 @@ coverage/
 .vitest-cache/
 ~/.hypermail-mcp/
 ~/.hypermail-mcp-dev/
+.data/

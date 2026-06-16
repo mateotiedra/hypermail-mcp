@@ -151,7 +151,7 @@ async function startLocalCallbackServer(): Promise<LocalCallback> {
     }
 
     const callbackUrl = new URL(req.url, redirectUri);
-    if (callbackUrl.pathname !== "/oauth2callback") {
+    if (callbackUrl.pathname !== "/callback") {
       sendHtml(res, 404, "Not found", "This local callback server only handles Gmail OAuth redirects.");
       return;
     }
@@ -168,7 +168,7 @@ async function startLocalCallbackServer(): Promise<LocalCallback> {
 
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => {
+    server.listen(33333, "127.0.0.1", () => {
       server.off("error", reject);
       resolve();
     });
@@ -179,7 +179,7 @@ async function startLocalCallbackServer(): Promise<LocalCallback> {
     closeServer();
     throw new Error("Failed to start local Gmail OAuth callback server");
   }
-  redirectUri = `http://127.0.0.1:${address.port}/oauth2callback`;
+  redirectUri = "http://127.0.0.1:33333/callback";
 
   function closeServer(): void {
     if (closed) return;
