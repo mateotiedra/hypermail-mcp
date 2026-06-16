@@ -3,16 +3,24 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
-> **Unreleased** — Env-only configuration. Runtime config now comes from flat
+> **v0.7.7** — Env-only configuration. Runtime config now comes from flat
 > `HYPERMAIL_*` environment variables plus selected CLI overrides. Config files
-> and legacy provider env names are no longer read.
+> and legacy provider env names are no longer read. Hosted Gmail OAuth callbacks
+> are supported via `HYPERMAIL_GMAIL_REDIRECT_URI`; local loopback and manual
+> completion still work.
+>
+> **v0.7.6** — Gmail setup uses OAuth authorization URLs instead of Google's
+> rejected device-code flow for Gmail API scopes. `complete_add_account` accepts
+> a final redirected URL or raw `code`/`state`, and provider credentials use
+> dedicated `HYPERMAIL_GMAIL_*` / `HYPERMAIL_OUTLOOK_*` env vars.
 >
 > **v0.7.5** — Attachments via file path on `send_email`/`draft_email`
 > (`attachments` param). `edit_draft` gains `new_attachments` and
 > `remove_attachments` — `add_attachment_to_draft` is removed (23 tools now).
 > Draft editing uses multi-strategy thread boundary detection for more reliable
 > quoted-thread preservation. Watcher now supports shell-command notification
-> alongside webhook delivery.
+> alongside webhook delivery. Published CLI installs the MCP SDK dependency so
+> global/npx runs do not fail on a missing SDK module.
 >
 > **v0.7.4** — `inReplyTo` is now a required parameter on `send_email` and
 > `draft_email` (was optional). Set it to `false` for a new email, or pass a
@@ -57,13 +65,14 @@ inboxes through a single, unified tool surface.
 > union output schemas that caused `validateToolOutput` crashes.
 
 The agent doesn't care whether an address is a work Outlook account, a personal
-Microsoft account, or (soon) a personal IMAP mailbox — it just calls
+Microsoft account, a personal IMAP mailbox, or Gmail — it just calls
 `list_emails`, `search_emails`, `read_email`, `send_email` and passes the email
 address as the `account` argument. The server routes to the right backend.
 
 **v1 status:** Outlook / Microsoft 365 (personal + work) fully supported via
 Microsoft Graph. IMAP (any IMAP server) supported via `imapflow` + `nodemailer`.
-Gmail supported via Google OAuth authorization-code flow with remote-safe manual completion.
+Gmail supported via Google OAuth authorization-code flow with local loopback or
+hosted callbacks plus remote-safe manual completion.
 
 ## Why
 
@@ -230,25 +239,25 @@ account store.
 | `add_account` | `provider`, `email?`, `config?` | Starts the provider add flow. Outlook returns a device code; Gmail returns an OAuth URL. Returns `{handle, verification:{type, userCode, verificationUri, expiresAt, message}}`. |
 | `complete_add_account` | `provider`, `handle`, `authorizationResponse?`, `code?`, `state?` | Returns `pending` / `ready` / `expired` / `error`. Gmail accepts a pasted final redirected URL or raw code/state for remote-safe completion. |
 | `get_account_settings` | `account` | Get signature (HTML) and style preferences for an account. |
-| `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. Disabled under `--read-only`. |
+| `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. |
 | `remove_account` | `email` | Deletes tokens for the account. |
 | `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. |
 | `search_emails` | `account`, `query`, `limit?` | KQL on Outlook. |
 | `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. |
 | `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
-| `archive_email` | `account`, `id` | Move a message to the Archive folder. Disabled under `--read-only`. |
-| `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). Disabled under `--read-only`. |
-| `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. Disabled under `--read-only`. |
-| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. `attachments` is an optional array of `{filePath, name?}` — files are read from disk and encoded automatically. Disabled under `--read-only`. |
-| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. Disabled under `--read-only`. |
-| `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?`, `new_attachments?`, `remove_attachments?` | Edit an existing draft by ID. Only provided fields are updated. `new_attachments` adds files (`{filePath, name?}[]`); `remove_attachments` removes by attachment ID (`string[]`). Returns the updated draft ID, HTML body (`draftHtml`), and attachment metadata. Disabled under `--read-only`. |
-| `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. Disabled under `--read-only`. |
+| `archive_email` | `account`, `id` | Move a message to the Archive folder. |
+| `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). |
+| `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. |
+| `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. `attachments` is an optional array of `{filePath, name?}` — files are read from disk and encoded automatically. |
+| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. |
+| `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `body?`, `format?`, `include_signature?`, `new_attachments?`, `remove_attachments?` | Edit an existing draft by ID. Only provided fields are updated. `new_attachments` adds files (`{filePath, name?}[]`); `remove_attachments` removes by attachment ID (`string[]`). Returns the updated draft ID, HTML body (`draftHtml`), and attachment metadata. |
+| `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. |
 | `list_folders` | `account`, `parentFolderId?` | List available mail folders. Returns top-level folders by default, or children of `parentFolderId`. |
-| `create_folder` | `account`, `displayName`, `parentFolderId?` | Create a new mail folder under root (default) or the given parent. Disabled under `--read-only`. |
-| `delete_folder` | `account`, `folderId` | Delete a mail folder by ID. Disabled under `--read-only`. |
-| `rename_folder` | `account`, `folderId`, `newName` | Rename an existing mail folder. Disabled under `--read-only`. |
-| `mark_read` | `account`, `id` | Mark a message as read. Disabled under `--read-only`. |
-| `mark_unread` | `account`, `id` | Mark a message as unread. Disabled under `--read-only`. |
+| `create_folder` | `account`, `displayName`, `parentFolderId?` | Create a new mail folder under root (default) or the given parent. |
+| `delete_folder` | `account`, `folderId` | Delete a mail folder by ID. |
+| `rename_folder` | `account`, `folderId`, `newName` | Rename an existing mail folder. |
+| `mark_read` | `account`, `id` | Mark a message as read. |
+| `mark_unread` | `account`, `id` | Mark a message as unread. |
 
 ## Email Watch
 
@@ -396,12 +405,13 @@ src/
   watcher/
     manager.ts                 # WatcherManager — inbox poll loop + dedup
     webhook.ts                 # HTTP POST with exponential backoff retry
+    script.ts                  # shell-command delivery with retry/timeout
     index.ts                   # barrel export
   tools/
     index.ts                   # MCP tool registrations
     accounts.ts                # list/add/remove/complete-add account tools
     browse.ts                  # list/search/read email tools
-    compose.ts                 # send/draft/edit/send-draft/add-attachment tools
+    compose.ts                 # send/draft/edit/send-draft tools
     folders.ts                 # list/create/delete/rename folder tools
     organize.ts                # archive/trash/move/mark-read/mark-unread tools
     shared.ts                  # shared tool helpers
