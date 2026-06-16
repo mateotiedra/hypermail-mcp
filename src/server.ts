@@ -14,7 +14,7 @@ import type { AppConfig, ResolvedTools } from "./config.js";
 import { resolveTools } from "./config.js";
 
 export interface ServerOptions {
-  /** Fully resolved application config from hypermail-config.json. */
+  /** Fully resolved application config from environment plus CLI overrides. */
   config: AppConfig;
 }
 
@@ -47,7 +47,7 @@ export async function startServer(opts: ServerOptions): Promise<void> {
     return s;
   };
 
-  if (config.http.enabled) {
+  if (config.transport === "http") {
     await startHttp(createServer, registry, config.http.host, config.http.port);
   } else {
     const server = createServer();

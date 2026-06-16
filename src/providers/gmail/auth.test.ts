@@ -10,6 +10,10 @@ afterEach(() => {
 });
 
 describe("Gmail authorization-code OAuth", () => {
+  it("names HYPERMAIL_GMAIL_CLIENT_ID when client ID is missing", async () => {
+    await expect(beginAuthorizationCode()).rejects.toThrow("HYPERMAIL_GMAIL_CLIENT_ID");
+  });
+
   it("builds a Gmail OAuth URL with PKCE, state, and a configured redirect URI", async () => {
     const flow = await beginAuthorizationCode({
       clientId: "client-id",

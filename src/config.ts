@@ -1,69 +1,8 @@
-import { z } from "zod";
-
-// ── Schema ──
-
-const httpConfigSchema = z.object({
-  enabled: z.boolean().default(false),
-  port: z.number().int().min(1).max(65535).default(3000),
-  host: z.string().default("127.0.0.1"),
-});
-
-const toolsConfigSchema = z.object({
-  disabled: z.array(z.string()).optional(),
-  enabled: z.array(z.string()).optional(),
-});
-
-const outlookProviderSchema = z.object({
-  clientId: z.string().optional(),
-  tenantId: z.string().optional(),
-});
-
-const gmailProviderSchema = z.object({
-  clientId: z.string().optional(),
-  clientSecret: z.string().optional(),
-  redirectUri: z.string().optional(),
-});
-
-const providersConfigSchema = z.object({
-  outlook: outlookProviderSchema.optional(),
-  gmail: gmailProviderSchema.optional(),
-});
-
-const watchRetrySchema = z.object({
-  maxAttempts: z.number().int().min(1).max(10).default(5),
-  baseDelayMs: z.number().int().min(100).default(1000),
-});
-
-const watchWebhookSchema = z.object({
-  url: z.string(),
-  retry: watchRetrySchema.optional(),
-});
-
-const watchScriptSchema = z.object({
-  path: z.string(),
-  timeoutMs: z.number().int().min(1000).default(30000),
-  retry: watchRetrySchema.optional(),
-});
-
-const watchConfigSchema = z.object({
-  enabled: z.boolean().default(false),
-  pollIntervalSeconds: z.number().int().min(10).max(3600).default(10),
-  webhook: watchWebhookSchema.optional(),
-  script: watchScriptSchema.optional(),
-});
-
-export const rawConfigSchema = z.object({
-  dataDir: z.string().optional(),
-  http: httpConfigSchema.optional(),
-  tools: toolsConfigSchema.optional(),
-  providers: providersConfigSchema.optional(),
-  watch: watchConfigSchema.optional(),
-});
-
 // ── Types ──
 
+export type Transport = "stdio" | "http";
+
 export interface HttpConfig {
-  enabled: boolean;
   port: number;
   host: string;
 }
@@ -90,7 +29,7 @@ export interface ProvidersConfig {
 }
 
 export interface WatchRetryConfig {
-  /** Maximum number of webhook delivery attempts (default: 5). */
+  /** Maximum number of delivery attempts (default: 5). */
   maxAttempts: number;
   /** Base delay in milliseconds for exponential backoff (default: 1000). */
   baseDelayMs: number;
@@ -103,38 +42,44 @@ export interface WatchWebhookConfig {
   retry: WatchRetryConfig;
 }
 
-export interface WatchScriptConfig {
-  /** Absolute path to a script that receives new-email JSON on stdin. */
-  path: string;
+export interface WatchNotifyCommandConfig {
+  /** Shell command that receives new-email JSON on stdin. */
+  command: string;
   /** Maximum time in ms before the child process is killed (default: 30000). */
   timeoutMs: number;
-  /** Retry configuration for failed script executions. */
-  retry?: WatchRetryConfig;
+  /** Retry configuration for failed command executions. */
+  retry: WatchRetryConfig;
 }
 
 export interface WatchConfig {
-  /** Whether the email poll loop is enabled (default: false). */
+  /** Whether the email poll loop is enabled. */
   enabled: boolean;
-  /** Seconds between inbox polls (min 10, default 10). */
+  /** Seconds between inbox polls (default: 10). */
   pollIntervalSeconds: number;
   /** Webhook delivery configuration. */
   webhook?: WatchWebhookConfig;
-  /** Script-based delivery configuration — spawns a child process per new email. */
-  script?: WatchScriptConfig;
+  /** Shell-command delivery configuration. */
+  notifyCommand?: WatchNotifyCommandConfig;
 }
 
-/** Fully resolved application configuration (after ${VAR} expansion and CLI merge). */
+/** Fully resolved application configuration. */
 export interface AppConfig {
   dataDir?: string;
+  transport: Transport;
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
   watch?: WatchConfig;
 }
 
-/** CLI flags that can override config file values. */
+export interface LoadConfigResult {
+  config: AppConfig;
+  warnings: string[];
+}
+
+/** CLI flags that can override env values. */
 export interface CliOverrides {
-  http?: boolean;
+  transport?: Transport;
   port?: number;
   host?: string;
   dataDir?: string;
@@ -144,10 +89,8 @@ export interface CliOverrides {
 
 /**
  * Every tool that {@link registerTools} may register.
- * Used for validation — typos in tools.disabled / tools.enabled are caught at startup.
+ * Used for validation — typos in HYPERMAIL_TOOLS_* are caught at startup.
  */
-// Legacy: `check_notifications` was removed in v0.7.0 but is kept here
-// so existing configs that reference it don't break validation.
 export const KNOWN_TOOLS = [
   "list_accounts",
   "add_account",
@@ -172,7 +115,6 @@ export const KNOWN_TOOLS = [
   "draft_email",
   "edit_draft",
   "send_draft",
-  "check_notifications",
 ] as const;
 
 // ── Helpers ──

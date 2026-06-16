@@ -44,8 +44,13 @@ export function decrypt<T = unknown>(buf: Buffer, key: Buffer): T {
 // ── key + path resolution ──
 
 export function resolveDataDir(explicit?: string): string {
-  if (explicit && explicit.length > 0) return path.resolve(explicit);
-  return path.join(homedir(), ".hypermail-mcp");
+  if (explicit && explicit.length > 0) return explicit;
+  const envDataDir = process.env.HYPERMAIL_DATA_DIR;
+  if (envDataDir && envDataDir.length > 0) return envDataDir;
+  const dataHome = process.env.XDG_DATA_HOME && process.env.XDG_DATA_HOME.length > 0
+    ? process.env.XDG_DATA_HOME
+    : path.join(homedir(), ".local", "share");
+  return path.join(dataHome, "hypermail-mcp");
 }
 
 export function parseEnvKey(raw: string): Buffer | undefined {
@@ -64,7 +69,7 @@ export function parseEnvKey(raw: string): Buffer | undefined {
 }
 
 export async function resolveKey(dataDir: string): Promise<Buffer> {
-  const env = process.env.HYPERMAIL_MCP_KEY;
+  const env = process.env.HYPERMAIL_KEY;
   if (env && env.length > 0) {
     const k = parseEnvKey(env);
     if (k) return k;

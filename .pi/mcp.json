@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "hypermail-http": {
-      "url": "https://hypermail.hypersimple.ch/mcp",
-      "directTools": false,
-      "lifecycle": "eager"
-    }
-  }
+  "mcpServers": {}
 }

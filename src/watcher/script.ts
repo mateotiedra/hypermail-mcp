@@ -3,21 +3,21 @@ import type { EmailFull } from "../providers/types.js";
 import type { WatchConfig } from "../config.js";
 
 /**
- * Execute the configured script with a new-email JSON payload on stdin.
- * Supports exponential backoff retry — mirrors {@link postWebhook}.
+ * Execute the configured notification command with a new-email JSON payload on
+ * stdin. Supports exponential backoff retry — mirrors {@link postWebhook}.
  *
- * Returns `true` if the script exited with code 0, `false` if all retries
- * were exhausted or the script timed out.
+ * Returns `true` if the command exited with code 0, `false` if all retries
+ * were exhausted or the command timed out.
  */
-export async function runScript(
+export async function runNotifyCommand(
   email: EmailFull,
   config: WatchConfig,
 ): Promise<boolean> {
-  if (!config.script) return false;
+  if (!config.notifyCommand) return false;
 
-  const { path: scriptPath, timeoutMs, retry } = config.script;
-  const maxAttempts = retry?.maxAttempts ?? 5;
-  const baseDelayMs = retry?.baseDelayMs ?? 1000;
+  const { command, timeoutMs, retry } = config.notifyCommand;
+  const maxAttempts = retry.maxAttempts;
+  const baseDelayMs = retry.baseDelayMs;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     if (attempt > 0) {
@@ -27,7 +27,7 @@ export async function runScript(
 
     try {
       const ok = await spawnWithTimeout(
-        scriptPath,
+        command,
         JSON.stringify(email),
         timeoutMs,
       );
@@ -36,19 +36,19 @@ export async function runScript(
 
       // eslint-disable-next-line no-console
       console.error(
-        `[hypermail-watch] script ${email.id} attempt ${attempt + 1}/${maxAttempts}: non-zero exit code`,
+        `[hypermail-watch] notify command ${email.id} attempt ${attempt + 1}/${maxAttempts}: non-zero exit code`,
       );
     } catch (err: unknown) {
       // eslint-disable-next-line no-console
       console.error(
-        `[hypermail-watch] script ${email.id} attempt ${attempt + 1}/${maxAttempts}: ${String(err)}`,
+        `[hypermail-watch] notify command ${email.id} attempt ${attempt + 1}/${maxAttempts}: ${String(err)}`,
       );
     }
   }
 
   // eslint-disable-next-line no-console
   console.error(
-    `[hypermail-watch] script delivery failed after ${maxAttempts} retries for ${email.id}`,
+    `[hypermail-watch] notify command delivery failed after ${maxAttempts} retries for ${email.id}`,
   );
   return false;
 }
@@ -56,19 +56,20 @@ export async function runScript(
 // ── helpers ──
 
 /**
- * Spawn `node <scriptPath>`, pipe `stdinData` to stdin, and resolve when the
- * child exits or the timeout fires.
+ * Spawn the configured shell command, pipe `stdinData` to stdin, and resolve
+ * when the child exits or the timeout fires.
  *
  * Timeout kills the child with SIGTERM and resolves `false`. A non-zero exit
  * code also resolves `false` (retry is handled by the caller).
  */
 function spawnWithTimeout(
-  scriptPath: string,
+  command: string,
   stdinData: string,
   timeoutMs: number,
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    const child = spawn("node", [scriptPath], {
+    const child = spawn(command, {
+      shell: true,
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -82,7 +83,7 @@ function spawnWithTimeout(
       child.kill("SIGTERM");
       if (stderr) {
         // eslint-disable-next-line no-console
-        console.error(`[hypermail-watch] script timed out after ${timeoutMs}ms. stderr:\n${stderr}`);
+        console.error(`[hypermail-watch] notify command timed out after ${timeoutMs}ms. stderr:\n${stderr}`);
       }
       resolve(false);
     }, timeoutMs);
@@ -91,7 +92,7 @@ function spawnWithTimeout(
       clearTimeout(timer);
       if (stderr && code !== 0) {
         // eslint-disable-next-line no-console
-        console.error(`[hypermail-watch] script stderr:\n${stderr}`);
+        console.error(`[hypermail-watch] notify command stderr:\n${stderr}`);
       }
       resolve(code === 0);
     });
@@ -99,7 +100,7 @@ function spawnWithTimeout(
     child.on("error", (err: NodeJS.ErrnoException) => {
       clearTimeout(timer);
       // eslint-disable-next-line no-console
-      console.error(`[hypermail-watch] script spawn error: ${err.message}`);
+      console.error(`[hypermail-watch] notify command spawn error: ${err.message}`);
       resolve(false);
     });
 

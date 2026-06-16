@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "dev:http": "tsup && node dist/cli.js --http --config hypermail-config.http.json",
+    "dev:http": "tsup && node dist/cli.js --http",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
     "check": "pnpm test && pnpm typecheck && pnpm build",

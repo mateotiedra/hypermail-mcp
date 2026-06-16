@@ -22,7 +22,7 @@ Go to the **Environment** tab and add:
 
 | Variable | Value |
 |----------|-------|
-| `HYPERMAIL_MCP_KEY` | Run `openssl rand -hex 32` and paste the output |
+| `HYPERMAIL_KEY` | Run `hypermail-mcp generate-key` or `openssl rand -base64 32` and paste the output |
 
 This key encrypts your OAuth tokens at rest. Back it up — if lost, you'll need to re-authenticate every email account.
 
@@ -32,7 +32,7 @@ Go to **Advanced** → **Mounts** → add a bind mount:
 
 | Host path | Container path |
 |-----------|---------------|
-| `../files/data` | `/data` |
+| `../files/data` | `/var/lib/mcp` |
 
 This persists your encrypted tokens across redeploys. Dokploy creates the host path automatically on first deploy.
 
@@ -77,16 +77,16 @@ Set these in the **Environment** tab — only for providers you use:
 
 | Variable | Provider |
 |----------|----------|
-| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | Outlook |
-| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | Outlook |
-| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` | Gmail |
-| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` | Gmail |
-| `HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI` | Gmail hosted OAuth callback |
+| `HYPERMAIL_OUTLOOK_CLIENT_ID` | Outlook |
+| `HYPERMAIL_OUTLOOK_TENANT_ID` | Outlook |
+| `HYPERMAIL_GMAIL_CLIENT_ID` | Gmail |
+| `HYPERMAIL_GMAIL_CLIENT_SECRET` | Gmail |
+| `HYPERMAIL_GMAIL_REDIRECT_URI` | Gmail hosted OAuth callback |
 
 For hosted Gmail OAuth, create a Google OAuth **Web application** client and
 register the exact callback URL, for example
 `https://mail-api.example.com/oauth/gmail/callback`. Set the same value as
-`HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI`. Google's official Gmail MCP also uses
+`HYPERMAIL_GMAIL_REDIRECT_URI`. Google's official Gmail MCP also uses
 OAuth 2.0; service accounts only work for Google Workspace domain-wide
 delegation and won't access consumer `@gmail.com` inboxes.
 

@@ -3,7 +3,7 @@ import type { Registry } from "../providers/registry.js";
 import type { WatchConfig } from "../config.js";
 import type { EmailFull } from "../providers/types.js";
 import { postWebhook } from "./webhook.js";
-import { runScript } from "./script.js";
+import { runNotifyCommand } from "./script.js";
 
 /**
  * Polls all accounts' inboxes on an interval, detects new emails via
@@ -11,8 +11,8 @@ import { runScript } from "./script.js";
  * client.
  *
  * Instantiated once at server startup when `config.watch.enabled` is true.
- * Gated behind `HYPERMAIL_WATCH_ENABLED` or explicit config opt-in — both
- * default to off.
+ * Gated behind `HYPERMAIL_WATCH_ENABLED=true` and at least one configured
+ * delivery target.
  */
 export class WatcherManager {
   private intervalId: ReturnType<typeof setInterval> | null = null;
@@ -94,11 +94,11 @@ export class WatcherManager {
 
   private async emit(full: EmailFull): Promise<void> {
     await postWebhook(full, this.config);
-    // Fire-and-forget — script execution must not block the poll loop.
-    runScript(full, this.config).catch((err: unknown) => {
+    // Fire-and-forget — command execution must not block the poll loop.
+    runNotifyCommand(full, this.config).catch((err: unknown) => {
       // eslint-disable-next-line no-console
       console.error(
-        `[hypermail-watch] script unhandled error for ${full.id}:`,
+        `[hypermail-watch] notify command unhandled error for ${full.id}:`,
         err,
       );
     });

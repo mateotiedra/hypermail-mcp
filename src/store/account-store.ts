@@ -41,7 +41,7 @@ interface StoreFile {
 export interface OpenOptions {
   dataDir?: string;
   /** Inject the encryption key directly (mostly for tests). Otherwise resolved
-   *  from `HYPERMAIL_MCP_KEY` env, then OS keychain, then auto-generated. */
+   *  from `HYPERMAIL_KEY` env, then OS keychain, then auto-generated. */
   key?: Buffer;
 }
 

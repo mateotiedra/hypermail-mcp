@@ -238,7 +238,7 @@ export async function beginAuthorizationCode(
   const clientId = options.clientId;
   if (!clientId) {
     throw new Error(
-      "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is required for Gmail OAuth — set it via HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID or provider config",
+      "HYPERMAIL_GMAIL_CLIENT_ID is required for Gmail OAuth — set HYPERMAIL_GMAIL_CLIENT_ID before adding a Gmail account",
     );
   }
 

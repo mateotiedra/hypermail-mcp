@@ -18,7 +18,7 @@ src/
 ├── cli.ts              # Entry point → dist/cli.js (bin: hypermail-mcp)
 ├── server.ts           # MCP server setup (stdio + HTTP), session management
 ├── version.ts          # Version constant
-├── config.ts           # hypermail-config.json schema + resolution
+├── config.ts           # env-only config types + resolution
 ├── providers/          # Email provider backends
 │   ├── outlook/        # Microsoft Graph API (auth.ts, client.ts, index.ts)
 │   ├── imap/           # IMAP provider (index.ts)
@@ -40,13 +40,13 @@ src/
 
 ## Dev Workflow
 
-This MCP is configured in `.mcp.json` with `lifecycle: "lazy"` and `directTools: true`. This means:
+Configuration is env-only at runtime. Local MCP client wiring is developer-specific and should not be committed.
 
 1. **Edit** source files in `src/`
 2. **Build:** `pnpm build` (TypeScript → `dist/` via tsup)
    - Or `pnpm dev` for watch mode (auto-rebuild on save)
-3. **Test with pi (stdio):** use the `hyper_*` tools directly — the lazy server restarts on next invocation, picking up the rebuilt `dist/cli.js` automatically
-4. **Iterate** — no manual restarts or re-registration needed
+3. **Test with an MCP client** using local env vars and `dist/cli.js`
+4. **Iterate**
 
 ### Commands
 
@@ -61,12 +61,13 @@ pnpm start        # Run dist/cli.js directly
 
 ### Environment
 
-Required env vars (set in `.mcp.json`):
-- `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` — Azure/Entra ID app registration client ID
-- `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` — Azure/Entra ID tenant ID
-- `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` — Google OAuth client ID
-- `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` — Google OAuth client secret, if issued
-- `HYPERMAIL_MCP_DATA_DIR` — directory for token/account storage
+Common env vars:
+- `HYPERMAIL_DATA_DIR` — directory for token/account storage
+- `HYPERMAIL_KEY` — encryption key/passphrase for token storage
+- `HYPERMAIL_OUTLOOK_CLIENT_ID` — optional Azure/Entra app registration client ID
+- `HYPERMAIL_OUTLOOK_TENANT_ID` — optional Azure/Entra tenant ID
+- `HYPERMAIL_GMAIL_CLIENT_ID` — Google OAuth client ID, required when adding Gmail accounts
+- `HYPERMAIL_GMAIL_CLIENT_SECRET` — Google OAuth client secret, if issued
 
 ## Key Dependencies
 

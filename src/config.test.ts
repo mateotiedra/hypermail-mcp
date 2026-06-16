@@ -1,7 +1,3 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { loadConfig, resolveTools } from "./config.js";
 
@@ -9,36 +5,55 @@ import { loadConfig, resolveTools } from "./config.js";
 
 /** All env vars that our tests might touch. */
 const MANAGED_KEYS = [
-  "HYPERMAIL_HTTP_ENABLED",
+  "HYPERMAIL_DATA_DIR",
+  "HYPERMAIL_KEY",
+  "HYPERMAIL_TRANSPORT",
   "HYPERMAIL_HTTP_PORT",
   "HYPERMAIL_HTTP_HOST",
   "HYPERMAIL_TOOLS_DISABLED",
   "HYPERMAIL_TOOLS_ENABLED",
+  "HYPERMAIL_OUTLOOK_CLIENT_ID",
+  "HYPERMAIL_OUTLOOK_TENANT_ID",
+  "HYPERMAIL_GMAIL_CLIENT_ID",
+  "HYPERMAIL_GMAIL_CLIENT_SECRET",
+  "HYPERMAIL_GMAIL_REDIRECT_URI",
+  "HYPERMAIL_WATCH_ENABLED",
+  "HYPERMAIL_WATCH_POLL_SECONDS",
+  "HYPERMAIL_WATCH_WEBHOOK_URL",
+  "HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS",
+  "HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS",
+  "HYPERMAIL_WATCH_NOTIFY_COMMAND",
+  "HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS",
+  "HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS",
+  "HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS",
+  // legacy names that should be ignored
+  "HYPERMAIL_MCP_DATA_DIR",
+  "HYPERMAIL_MCP_KEY",
+  "HYPERMAIL_HTTP_ENABLED",
   "HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID",
   "HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID",
   "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID",
   "HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET",
   "HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI",
-  "HYPERMAIL_WATCH_ENABLED",
   "HYPERMAIL_WATCH_POLL_INTERVAL",
-  "HYPERMAIL_WATCH_WEBHOOK_URL",
-  "HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS",
-  "HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS",
-  "HYPERMAIL_MCP_DATA_DIR",
+  "HYPERMAIL_WATCH_SCRIPT_PATH",
   "MS_CLIENT_ID",
   "MS_TENANT_ID",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
 ];
 
-/** Delete every managed env key — call in beforeEach for isolation. */
 function cleanEnv() {
   for (const key of MANAGED_KEYS) {
     delete process.env[key];
   }
 }
 
-describe("loadConfig — env var resolution", () => {
+function load() {
+  return loadConfig().config;
+}
+
+describe("loadConfig — env-only resolution", () => {
   beforeEach(() => {
     cleanEnv();
   });
@@ -47,219 +62,204 @@ describe("loadConfig — env var resolution", () => {
     cleanEnv();
   });
 
-  // ── defaults ──
-
   it("returns safe defaults when nothing is configured", () => {
-    const cfg = loadConfig(undefined);
-    expect(cfg.http.enabled).toBe(false);
-    expect(cfg.http.port).toBe(3000);
-    expect(cfg.http.host).toBe("127.0.0.1");
-    expect(cfg.tools).toBeUndefined();
-    expect(cfg.providers).toBeUndefined();
-    expect(cfg.watch).toBeUndefined();
-    expect(cfg.dataDir).toBeUndefined();
+    const { config, warnings } = loadConfig();
+    expect(config.transport).toBe("stdio");
+    expect(config.http.port).toBe(3000);
+    expect(config.http.host).toBe("127.0.0.1");
+    expect(config.tools).toBeUndefined();
+    expect(config.providers).toBeUndefined();
+    expect(config.watch).toBeUndefined();
+    expect(config.dataDir).toBeUndefined();
+    expect(warnings).toContain(
+      "HYPERMAIL_KEY is not set; a local generated key will be used. Set HYPERMAIL_KEY explicitly for portable hosted deployments.",
+    );
   });
 
-  // ── HTTP via env ──
-
-  it("resolves HTTP settings from HYPERMAIL_HTTP_* env vars", () => {
-    process.env.HYPERMAIL_HTTP_ENABLED = "true";
+  it("resolves transport and HTTP settings from compact env vars", () => {
+    process.env.HYPERMAIL_TRANSPORT = "http";
     process.env.HYPERMAIL_HTTP_PORT = "8080";
     process.env.HYPERMAIL_HTTP_HOST = "0.0.0.0";
-    const cfg = loadConfig(undefined);
-    expect(cfg.http.enabled).toBe(true);
+    const cfg = load();
+    expect(cfg.transport).toBe("http");
     expect(cfg.http.port).toBe(8080);
     expect(cfg.http.host).toBe("0.0.0.0");
   });
 
-  it("coerces HTTP booleans from env (1/0/yes/no)", () => {
-    process.env.HYPERMAIL_HTTP_ENABLED = "1";
-    expect(loadConfig(undefined).http.enabled).toBe(true);
-
-    process.env.HYPERMAIL_HTTP_ENABLED = "0";
-    expect(loadConfig(undefined).http.enabled).toBe(false);
-
-    process.env.HYPERMAIL_HTTP_ENABLED = "yes";
-    expect(loadConfig(undefined).http.enabled).toBe(true);
-
-    process.env.HYPERMAIL_HTTP_ENABLED = "no";
-    expect(loadConfig(undefined).http.enabled).toBe(false);
-
-    process.env.HYPERMAIL_HTTP_ENABLED = "";
-    expect(loadConfig(undefined).http.enabled).toBe(false);
+  it("accepts transport case-insensitively", () => {
+    process.env.HYPERMAIL_TRANSPORT = "HTTP";
+    expect(load().transport).toBe("http");
   });
 
-  it("ignores unrecognised boolean string (falls to default)", () => {
-    process.env.HYPERMAIL_HTTP_ENABLED = "blah";
-    expect(loadConfig(undefined).http.enabled).toBe(false);
+  it("throws on invalid transport values", () => {
+    process.env.HYPERMAIL_TRANSPORT = "websocket";
+    expect(() => loadConfig()).toThrow("HYPERMAIL_TRANSPORT");
   });
 
-  it("CLI overrides env for HTTP", () => {
+  it("uses CLI overrides after env parsing", () => {
+    process.env.HYPERMAIL_TRANSPORT = "stdio";
     process.env.HYPERMAIL_HTTP_PORT = "9090";
-    const cfg = loadConfig(undefined, { port: 7070 });
+    process.env.HYPERMAIL_HTTP_HOST = "127.0.0.1";
+    const cfg = loadConfig({
+      transport: "http",
+      port: 7070,
+      host: "0.0.0.0",
+    }).config;
+    expect(cfg.transport).toBe("http");
     expect(cfg.http.port).toBe(7070);
+    expect(cfg.http.host).toBe("0.0.0.0");
   });
 
-  it("config file overrides env for HTTP", () => {
-    // We need a temp config file — skip and test via priority logic instead.
-    // The ?? chain ensures this, but we can test the same by checking that
-    // when both parsed and env are present, parsed wins — that's handled by
-    // the internal logic. We validate priority in the "CLI > all" test.
+  it("warns and falls back for invalid HTTP host/port when HTTP is selected", () => {
+    process.env.HYPERMAIL_TRANSPORT = "http";
+    process.env.HYPERMAIL_HTTP_PORT = "99999";
+    process.env.HYPERMAIL_HTTP_HOST = "";
+    const { config, warnings } = loadConfig();
+    expect(config.http.port).toBe(3000);
+    expect(config.http.host).toBe("127.0.0.1");
+    expect(warnings).toContain("Invalid HYPERMAIL_HTTP_PORT; using default HTTP port 3000.");
+    expect(warnings).toContain("Invalid HYPERMAIL_HTTP_HOST; using default HTTP host 127.0.0.1.");
   });
 
-  // ── Tools via env ──
+  it("does not warn about invalid HTTP values while stdio is selected", () => {
+    process.env.HYPERMAIL_HTTP_PORT = "bad";
+    const { config, warnings } = loadConfig();
+    expect(config.transport).toBe("stdio");
+    expect(config.http.port).toBe(3000);
+    expect(warnings.some((w) => w.includes("HYPERMAIL_HTTP_PORT"))).toBe(false);
+  });
 
-  it("resolves tools.disabled from HYPERMAIL_TOOLS_DISABLED", () => {
+  it("parses HYPERMAIL_TOOLS_DISABLED", () => {
     process.env.HYPERMAIL_TOOLS_DISABLED = "send_email,draft_email";
-    const cfg = loadConfig(undefined);
+    const cfg = load();
     expect(cfg.tools?.disabled).toEqual(["send_email", "draft_email"]);
     expect(cfg.tools?.enabled).toBeUndefined();
   });
 
-  it("resolves tools.enabled from HYPERMAIL_TOOLS_ENABLED", () => {
+  it("parses HYPERMAIL_TOOLS_ENABLED", () => {
     process.env.HYPERMAIL_TOOLS_ENABLED = "list_emails,read_email";
-    const cfg = loadConfig(undefined);
+    const cfg = load();
     expect(cfg.tools?.enabled).toEqual(["list_emails", "read_email"]);
     expect(cfg.tools?.disabled).toBeUndefined();
   });
 
-  it("trims whitespace in comma-separated tool env vars", () => {
-    process.env.HYPERMAIL_TOOLS_DISABLED = " send_email , draft_email ";
-    const cfg = loadConfig(undefined);
-    expect(cfg.tools?.disabled).toEqual(["send_email", "draft_email"]);
+  it("treats empty tool lists as no filtering", () => {
+    process.env.HYPERMAIL_TOOLS_ENABLED = "";
+    process.env.HYPERMAIL_TOOLS_DISABLED = "   ";
+    expect(load().tools).toBeUndefined();
   });
 
-  it("throws when both tools.disabled and tools.enabled are set via env", () => {
+  it("throws when both non-empty tool lists are set", () => {
     process.env.HYPERMAIL_TOOLS_DISABLED = "send_email";
     process.env.HYPERMAIL_TOOLS_ENABLED = "list_emails";
-    expect(() => loadConfig(undefined)).toThrow("mutually exclusive");
+    expect(() => loadConfig()).toThrow("mutually exclusive");
   });
 
-  it("throws when tools.enabled is empty via env", () => {
-    process.env.HYPERMAIL_TOOLS_ENABLED = "";
-    expect(() => loadConfig(undefined)).toThrow("tools.enabled is empty");
-  });
-
-  it("throws on unknown tool name via env", () => {
+  it("throws on unknown tool names", () => {
     process.env.HYPERMAIL_TOOLS_DISABLED = "nonexistent_tool";
-    expect(() => loadConfig(undefined)).toThrow(
-      'Unknown tool "nonexistent_tool" in tools.disabled',
+    expect(() => loadConfig()).toThrow(
+      'Unknown tool "nonexistent_tool" in HYPERMAIL_TOOLS_DISABLED',
     );
   });
 
-  // ── Providers via env ──
-
-  it("resolves Outlook provider from HYPERMAIL_PROVIDERS_OUTLOOK_* env vars", () => {
-    process.env.HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID = "ocid";
-    process.env.HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID = "otnt";
-    const cfg = loadConfig(undefined);
+  it("resolves Outlook provider settings from new env vars", () => {
+    process.env.HYPERMAIL_OUTLOOK_CLIENT_ID = "ocid";
+    process.env.HYPERMAIL_OUTLOOK_TENANT_ID = "otnt";
+    const cfg = load();
     expect(cfg.providers?.outlook?.clientId).toBe("ocid");
     expect(cfg.providers?.outlook?.tenantId).toBe("otnt");
   });
 
-  it("resolves Gmail provider from HYPERMAIL_PROVIDERS_GMAIL_* env vars", () => {
-    process.env.HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID = "gcid";
-    process.env.HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET = "gsec";
-    process.env.HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI = "https://example.com/oauth/gmail/callback";
-    const cfg = loadConfig(undefined);
+  it("resolves Gmail provider settings from new env vars", () => {
+    process.env.HYPERMAIL_GMAIL_CLIENT_ID = "gcid";
+    process.env.HYPERMAIL_GMAIL_CLIENT_SECRET = "gsec";
+    process.env.HYPERMAIL_GMAIL_REDIRECT_URI = "https://example.com/oauth/gmail/callback";
+    const cfg = load();
     expect(cfg.providers?.gmail?.clientId).toBe("gcid");
     expect(cfg.providers?.gmail?.clientSecret).toBe("gsec");
     expect(cfg.providers?.gmail?.redirectUri).toBe("https://example.com/oauth/gmail/callback");
   });
 
-  it("resolves Gmail redirectUri from config file", () => {
-    const dir = mkdtempSync(join(tmpdir(), "hypermail-config-test-"));
-    try {
-      const file = join(dir, "hypermail-config.json");
-      writeFileSync(file, JSON.stringify({
-        providers: {
-          gmail: {
-            redirectUri: "https://mail.example.com/oauth/gmail/callback",
-          },
-        },
-      }));
-      const cfg = loadConfig(file);
-      expect(cfg.providers?.gmail?.redirectUri).toBe("https://mail.example.com/oauth/gmail/callback");
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  it("ignores legacy MS_CLIENT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID is unset", () => {
+  it("ignores legacy provider env vars", () => {
+    process.env.HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID = "old-outlook";
+    process.env.HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID = "old-gmail";
     process.env.MS_CLIENT_ID = "legacy-ms-cid";
-    const cfg = loadConfig(undefined);
-    expect(cfg.providers?.outlook).toBeUndefined();
+    process.env.GOOGLE_CLIENT_ID = "legacy-google-cid";
+    const cfg = load();
+    expect(cfg.providers).toBeUndefined();
   });
 
-  it("ignores legacy MS_TENANT_ID when HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID is unset", () => {
-    process.env.MS_TENANT_ID = "legacy-ms-tenant";
-    const cfg = loadConfig(undefined);
-    expect(cfg.providers?.outlook).toBeUndefined();
-  });
-
-  it("ignores legacy GOOGLE_CLIENT_ID when HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID is unset", () => {
-    process.env.GOOGLE_CLIENT_ID = "legacy-g-cid";
-    const cfg = loadConfig(undefined);
-    expect(cfg.providers?.gmail).toBeUndefined();
-  });
-
-  it("ignores legacy GOOGLE_CLIENT_SECRET when HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET is unset", () => {
-    process.env.GOOGLE_CLIENT_SECRET = "legacy-g-secret";
-    const cfg = loadConfig(undefined);
-    expect(cfg.providers?.gmail).toBeUndefined();
-  });
-
-  // ── Watch via env ──
-
-  it("enables watch via HYPERMAIL_WATCH_ENABLED=true", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    const cfg = loadConfig(undefined);
-    expect(cfg.watch?.enabled).toBe(true);
-    expect(cfg.watch?.pollIntervalSeconds).toBe(10);
-  });
-
-  it("disables watch when HYPERMAIL_WATCH_ENABLED=false (still defined)", () => {
+  it("does not create watch config unless explicitly enabled", () => {
+    expect(load().watch).toBeUndefined();
     process.env.HYPERMAIL_WATCH_ENABLED = "false";
-    const cfg = loadConfig(undefined);
-    expect(cfg.watch).toBeDefined();
-    expect(cfg.watch?.enabled).toBe(false);
+    expect(load().watch).toBeUndefined();
   });
 
-  it("watch is undefined when no env is set", () => {
-    const cfg = loadConfig(undefined);
-    expect(cfg.watch).toBeUndefined();
-  });
-
-  it("resolves watch poll interval from env", () => {
+  it("requires a watcher delivery target when enabled", () => {
     process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    process.env.HYPERMAIL_WATCH_POLL_INTERVAL = "60";
-    const cfg = loadConfig(undefined);
-    expect(cfg.watch?.pollIntervalSeconds).toBe(60);
+    expect(() => loadConfig()).toThrow("requires HYPERMAIL_WATCH_WEBHOOK_URL or HYPERMAIL_WATCH_NOTIFY_COMMAND");
   });
 
-  it("resolves webhook url and retry settings from env", () => {
+  it("resolves webhook watcher config", () => {
     process.env.HYPERMAIL_WATCH_ENABLED = "true";
+    process.env.HYPERMAIL_WATCH_POLL_SECONDS = "60";
     process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "https://hooks.example.com/email";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS = "3";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS = "500";
-    const cfg = loadConfig(undefined);
+    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS = "3";
+    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS = "500";
+    const cfg = load();
+    expect(cfg.watch?.enabled).toBe(true);
+    expect(cfg.watch?.pollIntervalSeconds).toBe(60);
     expect(cfg.watch?.webhook?.url).toBe("https://hooks.example.com/email");
     expect(cfg.watch?.webhook?.retry.maxAttempts).toBe(3);
     expect(cfg.watch?.webhook?.retry.baseDelayMs).toBe(500);
   });
 
-  // ── dataDir via env ──
+  it("resolves notify-command watcher config", () => {
+    process.env.HYPERMAIL_WATCH_ENABLED = "true";
+    process.env.HYPERMAIL_WATCH_NOTIFY_COMMAND = "node ./notify.js --flag";
+    process.env.HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS = "2000";
+    process.env.HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS = "2";
+    process.env.HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS = "250";
+    const cfg = load();
+    expect(cfg.watch?.notifyCommand?.command).toBe("node ./notify.js --flag");
+    expect(cfg.watch?.notifyCommand?.timeoutMs).toBe(2000);
+    expect(cfg.watch?.notifyCommand?.retry.maxAttempts).toBe(2);
+    expect(cfg.watch?.notifyCommand?.retry.baseDelayMs).toBe(250);
+  });
 
-  it("resolves dataDir from HYPERMAIL_MCP_DATA_DIR", () => {
-    process.env.HYPERMAIL_MCP_DATA_DIR = "/custom/data";
-    const cfg = loadConfig(undefined);
+  it("strictly parses watcher booleans", () => {
+    process.env.HYPERMAIL_WATCH_ENABLED = "yes";
+    expect(() => loadConfig()).toThrow('HYPERMAIL_WATCH_ENABLED must be either "true" or "false"');
+  });
+
+  it("validates watcher URL syntax", () => {
+    process.env.HYPERMAIL_WATCH_ENABLED = "true";
+    process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "not-a-url";
+    expect(() => loadConfig()).toThrow("valid http(s) URL");
+  });
+
+  it("validates watcher positive integers", () => {
+    process.env.HYPERMAIL_WATCH_ENABLED = "true";
+    process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "https://hooks.example.com/email";
+    process.env.HYPERMAIL_WATCH_POLL_SECONDS = "0";
+    expect(() => loadConfig()).toThrow("HYPERMAIL_WATCH_POLL_SECONDS must be a positive integer");
+  });
+
+  it("resolves dataDir from HYPERMAIL_DATA_DIR", () => {
+    process.env.HYPERMAIL_DATA_DIR = "/custom/data";
+    const cfg = load();
     expect(cfg.dataDir).toBe("/custom/data");
   });
 
   it("CLI dataDir overrides env", () => {
-    process.env.HYPERMAIL_MCP_DATA_DIR = "/env/data";
-    const cfg = loadConfig(undefined, { dataDir: "/cli/data" });
+    process.env.HYPERMAIL_DATA_DIR = "/env/data";
+    const cfg = loadConfig({ dataDir: "/cli/data" }).config;
     expect(cfg.dataDir).toBe("/cli/data");
+  });
+
+  it("ignores legacy HYPERMAIL_MCP_DATA_DIR", () => {
+    process.env.HYPERMAIL_MCP_DATA_DIR = "/old/data";
+    expect(load().dataDir).toBeUndefined();
   });
 });
 
@@ -271,17 +271,16 @@ describe("resolveTools", () => {
   afterEach(() => {
     cleanEnv();
   });
+
   it("returns null sets when tools is undefined", () => {
-    const cfg = loadConfig(undefined);
-    const resolved = resolveTools(cfg);
+    const resolved = resolveTools(load());
     expect(resolved.enabledTools).toBeNull();
     expect(resolved.disabledTools).toBeNull();
   });
 
   it("returns enabledTools set when tools.enabled is present", () => {
     process.env.HYPERMAIL_TOOLS_ENABLED = "list_emails,search_emails";
-    const cfg = loadConfig(undefined);
-    const resolved = resolveTools(cfg);
+    const resolved = resolveTools(load());
     expect(resolved.enabledTools?.has("list_emails")).toBe(true);
     expect(resolved.enabledTools?.has("search_emails")).toBe(true);
     expect(resolved.disabledTools).toBeNull();
@@ -289,8 +288,7 @@ describe("resolveTools", () => {
 
   it("returns disabledTools set when tools.disabled is present", () => {
     process.env.HYPERMAIL_TOOLS_DISABLED = "send_email";
-    const cfg = loadConfig(undefined);
-    const resolved = resolveTools(cfg);
+    const resolved = resolveTools(load());
     expect(resolved.disabledTools?.has("send_email")).toBe(true);
     expect(resolved.enabledTools).toBeNull();
   });

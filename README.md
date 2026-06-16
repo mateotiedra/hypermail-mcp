@@ -3,16 +3,15 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
-> **v0.7.6** — Strict provider env var enforcement. Legacy env vars
-> (`MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`,
-> `GOOGLE_CLIENT_SECRET`) are unconditionally ignored; only the dedicated
-> `HYPERMAIL_PROVIDERS_*` names are resolved.
+> **Unreleased** — Env-only configuration. Runtime config now comes from flat
+> `HYPERMAIL_*` environment variables plus selected CLI overrides. Config files
+> and legacy provider env names are no longer read.
 >
 > **v0.7.5** — Attachments via file path on `send_email`/`draft_email`
 > (`attachments` param). `edit_draft` gains `new_attachments` and
 > `remove_attachments` — `add_attachment_to_draft` is removed (23 tools now).
 > Draft editing uses multi-strategy thread boundary detection for more reliable
-> quoted-thread preservation. Watcher now supports script emission (`runScript`)
+> quoted-thread preservation. Watcher now supports shell-command notification
 > alongside webhook delivery.
 >
 > **v0.7.4** — `inReplyTo` is now a required parameter on `send_email` and
@@ -31,7 +30,7 @@ inboxes through a single, unified tool surface.
 >
 > **v0.7.0** — Email watch mode: background poll loop detects new inbox
 > messages and POSTs them to a configurable webhook URL (e.g. Mastra). Opt-in —
-> disabled by default, enabled via `HYPERMAIL_WATCH_ENABLED=true` or config.
+> disabled by default, enabled via `HYPERMAIL_WATCH_ENABLED=true`.
 > Works in both stdio and HTTP transport modes.
 >
 > **v0.6.3** — Unify stdio and HTTP modes into a single feature set. Removed
@@ -110,8 +109,8 @@ hypermail-mcp --http --port 3000 --host 0.0.0.0
 # endpoint: http://<host>:3000/mcp  (Streamable HTTP transport, session-aware)
 ```
 
-When hosted you **must** set `HYPERMAIL_MCP_KEY` so the account file is
-reproducibly decryptable.
+When hosted, set `HYPERMAIL_KEY` so the account file is reproducibly
+decryptable across restarts and redeploys.
 
 ### Docker
 
@@ -120,18 +119,20 @@ reproducibly decryptable.
 docker build -t hypermail-mcp .
 
 # Run
+# Pass secret values from your shell or deployment environment; do not commit them.
 docker run -d \
   --name hypermail-mcp \
   -p 3000:3000 \
-  -e HYPERMAIL_MCP_KEY=<32-byte-key> \
-  -e HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID=<your-client-id> \
-  -e HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID=<your-tenant-id> \
-  -v hypermail-data:/data \
+  -e HYPERMAIL_KEY \
+  -e HYPERMAIL_OUTLOOK_CLIENT_ID \
+  -e HYPERMAIL_OUTLOOK_TENANT_ID \
+  -v hypermail-data:/var/lib/mcp \
   hypermail-mcp
 ```
 
 The image runs the server in HTTP mode on port 3000 with a 30-second
-HEALTHCHECK against `/mcp`. Data is persisted via a Docker volume at `/data`.
+HEALTHCHECK against `/mcp`. Data is persisted via a Docker volume at
+`/var/lib/mcp`.
 
 ### Development
 
@@ -141,94 +142,81 @@ To test the HTTP server locally:
 # Terminal 1: auto-rebuild TypeScript on save
 pnpm dev
 
-# Terminal 2: start HTTP server with dev config
+# Terminal 2: start HTTP server with env/CLI config
 pnpm dev:http
 ```
 
-The server listens on `http://127.0.0.1:3000/mcp`. Pi connects via the
-`.pi/mcp.json` config (read by `pi-mcp-adapter`). Tools appear as
-`hypermail_http_*`.
+The server listens on `http://127.0.0.1:3000/mcp`.
 
 ## Runtime and provider configuration
 
-| Env var | Purpose | Default |
-| --- | --- | --- |
-| `HYPERMAIL_MCP_DATA_DIR` | Where to keep the encrypted accounts blob | `~/.hypermail-mcp` |
-| `HYPERMAIL_MCP_KEY` | 32-byte AES-256-GCM key (hex, base64, or any passphrase — derived via SHA-256). Required for hosted deployments. Auto-generated for stdio. | auto-generated, stored via OS keychain (`keytar`) or a local `master.key` file |
-| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | Azure Entra public client (application) id used for device-code login | placeholder — **set your own for production** |
-| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | Tenant for the authority URL | `common` |
+Hypermail uses flat `HYPERMAIL_*` environment variables as the source of truth.
+There is no runtime config file. CLI flags only override transport, host, port,
+and data directory for a single invocation.
 
-CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--read-only`, `--help`.
+CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--help`.
 
-Subcommands: `hypermail-mcp generate-key` — generate an `hm_sk_` API key.
+Subcommands: `hypermail-mcp generate-key` — generate a base64 32-byte key for
+`HYPERMAIL_KEY`.
 
-### Configuration
+### Local CLI / env example
 
-Instead of (or in addition to) CLI flags and env vars, you can configure the
-server with a `hypermail-config.json` file next to the server binary. The server
-looks for it in the same directory as `cli.js`.
+```bash
+export HYPERMAIL_KEY="$(hypermail-mcp generate-key)"
+export HYPERMAIL_DATA_DIR="$HOME/.local/share/hypermail-mcp"
+export HYPERMAIL_OUTLOOK_CLIENT_ID="<your-client-id>"
+hypermail-mcp
+```
+
+### Generic MCP client JSON example
 
 ```jsonc
 {
-  "http": { "enabled": true, "port": 3000, "host": "0.0.0.0" },
-  "dataDir": "/path/to/data",
-  "tools": {
-    // allowlist: only these tools are registered
-    "enabled": ["list_emails", "search_emails", "read_email", "send_email"],
-    // blocklist: these tools are NOT registered
-    // "disabled": ["add_account", "remove_account"]
-  },
-  "providers": {
-    "outlook": { "clientId": "...", "tenantId": "..." },
-    "gmail": { "clientId": "...", "clientSecret": "..." }
-  },
-  "watch": {
-    "enabled": true,
-    "pollIntervalSeconds": 10,
-    "webhook": {
-      "url": "http://your-agent:3000/api/email-webhook",
-      "retry": { "maxAttempts": 5, "baseDelayMs": 1000 }
+  "mcpServers": {
+    "hypermail": {
+      "command": "npx",
+      "args": ["-y", "hypermail-mcp"],
+      "env": {
+        "HYPERMAIL_KEY": "${HYPERMAIL_KEY}",
+        "HYPERMAIL_DATA_DIR": "${HYPERMAIL_DATA_DIR}",
+        "HYPERMAIL_OUTLOOK_CLIENT_ID": "${HYPERMAIL_OUTLOOK_CLIENT_ID}"
+      }
     }
   }
 }
 ```
 
-Per-tool filtering (`tools.enabled` / `tools.disabled`) lets operators ship
-minimal agent-facing surfaces — e.g. a read-only assistant that can only list
-and read emails.
+### Environment Variables
 
-## Environment Variables
-
-Every config field can be set via a dedicated `HYPERMAIL_*` env var, following
-a dotted-path naming convention (`HYPERMAIL_HTTP_PORT`,
-`HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID`, etc.). Legacy provider env vars such
-as `MS_CLIENT_ID`, `MS_TENANT_ID`, `GOOGLE_CLIENT_ID`, and
-`GOOGLE_CLIENT_SECRET` are ignored; use the `HYPERMAIL_PROVIDERS_*` names
-below.
-
-| Env var | Config path | Type |
+| Env var | Purpose | Default / behavior |
 | --- | --- | --- |
-| `HYPERMAIL_HTTP_ENABLED` | `http.enabled` | `bool` |
-| `HYPERMAIL_HTTP_PORT` | `http.port` | `int` |
-| `HYPERMAIL_HTTP_HOST` | `http.host` | `string` |
-| `HYPERMAIL_TOOLS_ENABLED` | `tools.enabled` | comma-sep strings |
-| `HYPERMAIL_TOOLS_DISABLED` | `tools.disabled` | comma-sep strings |
-| `HYPERMAIL_PROVIDERS_OUTLOOK_CLIENT_ID` | `providers.outlook.clientId` | `string` |
-| `HYPERMAIL_PROVIDERS_OUTLOOK_TENANT_ID` | `providers.outlook.tenantId` | `string` |
-| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_ID` | `providers.gmail.clientId` | `string` |
-| `HYPERMAIL_PROVIDERS_GMAIL_CLIENT_SECRET` | `providers.gmail.clientSecret` | `string` |
-| `HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI` | `providers.gmail.redirectUri` | `string` |
-| `HYPERMAIL_WATCH_ENABLED` | `watch.enabled` | `bool` |
-| `HYPERMAIL_WATCH_POLL_INTERVAL` | `watch.pollIntervalSeconds` | `int` |
-| `HYPERMAIL_WATCH_WEBHOOK_URL` | `watch.webhook.url` | `string` |
-| `HYPERMAIL_WATCH_WEBHOOK_RETRY_MAX_ATTEMPTS` | `watch.webhook.retry.maxAttempts` | `int` |
-| `HYPERMAIL_WATCH_WEBHOOK_RETRY_BASE_DELAY_MS` | `watch.webhook.retry.baseDelayMs` | `int` |
-| `HYPERMAIL_WATCH_SCRIPT_COMMAND` | `watch.script.command` | `string` |
-| `HYPERMAIL_WATCH_SCRIPT_TIMEOUT_MS` | `watch.script.timeoutMs` | `int` |
-| `HYPERMAIL_WATCH_SCRIPT_RETRY_MAX_ATTEMPTS` | `watch.script.retry.maxAttempts` | `int` |
-| `HYPERMAIL_WATCH_SCRIPT_RETRY_BASE_DELAY_MS` | `watch.script.retry.baseDelayMs` | `int` |
+| `HYPERMAIL_DATA_DIR` | Account/token store location | `${XDG_DATA_HOME:-~/.local/share}/hypermail-mcp` |
+| `HYPERMAIL_KEY` | 32-byte AES-256-GCM key as hex/base64, or any passphrase derived via SHA-256 | If unset, generates and persists a local key and prints a startup warning |
+| `HYPERMAIL_TRANSPORT` | Runtime transport: `stdio` or `http` | `stdio`; `--http` overrides to `http` |
+| `HYPERMAIL_HTTP_PORT` | HTTP bind port | `3000`; invalid HTTP-mode values warn and fall back |
+| `HYPERMAIL_HTTP_HOST` | HTTP bind host | `127.0.0.1`; invalid HTTP-mode values warn and fall back |
+| `HYPERMAIL_OUTLOOK_CLIENT_ID` | Optional custom Azure/Entra public client ID | Built-in public client |
+| `HYPERMAIL_OUTLOOK_TENANT_ID` | Optional Outlook tenant/authority selector | `common` |
+| `HYPERMAIL_GMAIL_CLIENT_ID` | Google OAuth client ID | Required when adding a Gmail account |
+| `HYPERMAIL_GMAIL_CLIENT_SECRET` | Google OAuth client secret, when issued by the client type | unset |
+| `HYPERMAIL_GMAIL_REDIRECT_URI` | Hosted Gmail OAuth callback URI | Local loopback callback when unset |
+| `HYPERMAIL_TOOLS_ENABLED` | Comma-separated tool allowlist | Empty/unset means no filtering |
+| `HYPERMAIL_TOOLS_DISABLED` | Comma-separated tool blocklist | Empty/unset means no filtering |
+| `HYPERMAIL_WATCH_ENABLED` | Enable inbox polling: `true` or `false` | `false` |
+| `HYPERMAIL_WATCH_POLL_SECONDS` | Watcher polling cadence | `10` |
+| `HYPERMAIL_WATCH_WEBHOOK_URL` | Webhook delivery target | Required if watch is enabled and no notify command is set |
+| `HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS` | Webhook retry attempts | `5` |
+| `HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS` | Webhook exponential-backoff base delay | `1000` |
+| `HYPERMAIL_WATCH_NOTIFY_COMMAND` | Shell command run with `EmailFull` JSON on stdin | Required if watch is enabled and no webhook is set |
+| `HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS` | Notify-command execution timeout | `30000` |
+| `HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS` | Notify-command retry attempts | `5` |
+| `HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS` | Notify-command exponential-backoff base delay | `1000` |
 
-**Priority order:** CLI flags > config file > `HYPERMAIL_*` env var > hardcoded default.
+**Priority order:** selected CLI flags > `HYPERMAIL_*` env vars > hardcoded defaults.
+
+Per-tool filtering (`HYPERMAIL_TOOLS_ENABLED` / `HYPERMAIL_TOOLS_DISABLED`) lets
+operators ship minimal agent-facing surfaces. If both non-empty lists are set,
+or either list contains an unknown tool name, startup fails.
 
 ## Tools
 
@@ -265,39 +253,22 @@ account store.
 ## Email Watch
 
 When enabled, hypermail-mcp runs a background poll loop that scans inboxes for
-new messages and delivers each one via webhook POST and/or script execution.
-Intended for push-based email triage — downstream agents (e.g. Mastra) receive
-full email content without polling.
+new messages and delivers each one via webhook POST and/or shell command.
+Intended for push-based email triage — downstream agents receive full email
+content without polling.
 
-```jsonc
-{
-  "watch": {
-    "enabled": true,
-    "pollIntervalSeconds": 10,
-    "webhook": {
-      "url": "http://localhost:3000/api/email-webhook",
-      "retry": { "maxAttempts": 5, "baseDelayMs": 1000 }
-    },
-    "script": {
-      "command": "node /path/to/email-handler.js",
-      "timeoutMs": 30000,
-      "retry": { "maxAttempts": 3, "baseDelayMs": 1000 }
-    }
-  }
-}
+```bash
+HYPERMAIL_WATCH_ENABLED=true \
+HYPERMAIL_WATCH_POLL_SECONDS=10 \
+HYPERMAIL_WATCH_WEBHOOK_URL=http://localhost:3000/api/email-webhook \
+HYPERMAIL_WATCH_NOTIFY_COMMAND='node /path/to/email-handler.js' \
+hypermail-mcp
 ```
 
-| Setting | Default | Notes |
-| --- | --- | --- |
-| `watch.enabled` | `false` | Toggle via config or `HYPERMAIL_WATCH_ENABLED=true` env var |
-| `watch.pollIntervalSeconds` | `10` | Min 10s, max 3600s |
-| `watch.webhook.url` | — | Endpoint that receives `POST` with `EmailFull` JSON |
-| `watch.webhook.retry.maxAttempts` | `5` | Max delivery attempts (1–10) |
-| `watch.webhook.retry.baseDelayMs` | `1000` | Base backoff delay (× 2^attempt) |
-| `watch.script.command` | — | Shell command spawned with email JSON on stdin |
-| `watch.script.timeoutMs` | `30000` | Max script runtime before SIGKILL |
-| `watch.script.retry.maxAttempts` | `3` | Max script delivery attempts |
-| `watch.script.retry.baseDelayMs` | `1000` | Base backoff delay (× 2^attempt) |
+**Validation:** If `HYPERMAIL_WATCH_ENABLED=true`, startup requires at least one
+of `HYPERMAIL_WATCH_WEBHOOK_URL` or `HYPERMAIL_WATCH_NOTIFY_COMMAND`. Webhook
+URLs are syntax-validated, and notify commands must be non-empty. Startup does
+not test network reachability or execute the command.
 
 **Behavior:**
 - Polls **all accounts** in the store, **inbox only**.
@@ -305,14 +276,13 @@ full email content without polling.
   account file — no duplicate emits across restarts.
 - Two delivery modes (can be used together):
   - **Webhook:** One `POST` per email (full body as `EmailFull` JSON).
-  - **Script:** Spawns a shell command with the `EmailFull` JSON piped to
-    stdin. The script receives `conversationId`, `subject`, `from`, `toRecipients`,
-    `body`, `isRead`, `sentDateTime`, `attachments`, plus an `account` field.
+  - **Notify command:** Executes `HYPERMAIL_WATCH_NOTIFY_COMMAND` through the
+    platform shell with the `EmailFull` JSON piped to stdin.
 - Both modes use exponential backoff (`baseDelay × 2^attempt`). Retries on
-  failures (non-2xx for webhook, non-zero exit for script). Logs and moves on
+  failures (non-2xx for webhook, non-zero exit for command). Logs and moves on
   after `maxAttempts` exhausted — never blocks the poll loop.
-- Each delivery mode is fire-and-forget — the poll loop continues while
-  delivery runs in the background.
+- Command delivery is fire-and-forget — the poll loop continues while delivery
+  runs in the background.
 - Works in both **stdio** and **HTTP** transport modes — the poll interval
   fires normally alongside MCP message handling.
 
@@ -353,19 +323,17 @@ consumer `@gmail.com` inboxes.
 
 For local stdio/Desktop OAuth clients, Hypermail starts a temporary
 `127.0.0.1` loopback callback server automatically. For hosted HTTP deployments,
-configure `providers.gmail.redirectUri` (or
-`HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI`) and register the exact URI in Google
-Auth Platform, for example:
+set `HYPERMAIL_GMAIL_REDIRECT_URI` and register the exact URI in Google Auth
+Platform, for example:
 
 ```bash
-HYPERMAIL_HTTP_ENABLED=true
-HYPERMAIL_PROVIDERS_GMAIL_REDIRECT_URI=https://mail.example.com/oauth/gmail/callback
+HYPERMAIL_TRANSPORT=http
+HYPERMAIL_GMAIL_REDIRECT_URI=https://mail.example.com/oauth/gmail/callback
 ```
 
-1. Configure `providers.gmail.clientId` and `providers.gmail.clientSecret` (or
-   the matching `HYPERMAIL_PROVIDERS_GMAIL_*` env vars) from a Google OAuth
-   client with Gmail API enabled. Use a Desktop client for local loopback, or a
-   Web client for hosted HTTP callbacks.
+1. Configure `HYPERMAIL_GMAIL_CLIENT_ID` and, when issued by your Google client
+   type, `HYPERMAIL_GMAIL_CLIENT_SECRET`. Use a Desktop client for local
+   loopback, or a Web client for hosted HTTP callbacks.
 2. Agent calls `add_account({ provider: "gmail" })`.
 3. Server returns an OAuth URL:
    ```json
@@ -408,7 +376,7 @@ src/
   cli.ts                       # arg parsing + entry
   server.ts                    # MCP server, stdio + HTTP transports, session management
   version.ts                   # version constant
-  config.ts                    # hypermail-config.json schema + resolution
+  config.ts                    # env-only config types + resolution
   store/
     account-store.ts           # encrypted multi-account store (AES-256-GCM)
     crypto.ts                  # AES-256-GCM encrypt/decrypt, key resolution, atomic writes

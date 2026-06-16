@@ -28,8 +28,11 @@ export function fail(message: string) {
 }
 
 export function errMsg(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return String(err);
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes("HYPERMAIL_GMAIL_CLIENT_ID")) {
+    return "Missing Gmail OAuth configuration: set HYPERMAIL_GMAIL_CLIENT_ID before adding a Gmail account.";
+  }
+  return message;
 }
 
 // ── shared schemas ──
