@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.8** — Default Gmail loopback redirect URI changed from random-port
+> `/oauth2callback` to fixed `http://127.0.0.1:33333/callback` (still overridable via
+> `HYPERMAIL_GMAIL_REDIRECT_URI`). `.data/` encryption key directory added to
+> `.gitignore`.
+>
 > **v0.7.7** — Env-only configuration. Runtime config now comes from flat
 > `HYPERMAIL_*` environment variables plus selected CLI overrides. Config files
 > and legacy provider env names are no longer read. Hosted Gmail OAuth callbacks
