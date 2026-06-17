@@ -20,12 +20,8 @@ const MANAGED_KEYS = [
   "HYPERMAIL_WATCH_ENABLED",
   "HYPERMAIL_WATCH_POLL_SECONDS",
   "HYPERMAIL_WATCH_WEBHOOK_URL",
-  "HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS",
-  "HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS",
   "HYPERMAIL_WATCH_NOTIFY_COMMAND",
   "HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS",
-  "HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS",
-  "HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS",
   // legacy names that should be ignored
   "HYPERMAIL_MCP_DATA_DIR",
   "HYPERMAIL_MCP_KEY",
@@ -204,27 +200,23 @@ describe("loadConfig — env-only resolution", () => {
     process.env.HYPERMAIL_WATCH_ENABLED = "true";
     process.env.HYPERMAIL_WATCH_POLL_SECONDS = "60";
     process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "https://hooks.example.com/email";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS = "3";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS = "500";
     const cfg = load();
     expect(cfg.watch?.enabled).toBe(true);
     expect(cfg.watch?.pollIntervalSeconds).toBe(60);
     expect(cfg.watch?.webhook?.url).toBe("https://hooks.example.com/email");
-    expect(cfg.watch?.webhook?.retry.maxAttempts).toBe(3);
-    expect(cfg.watch?.webhook?.retry.baseDelayMs).toBe(500);
+    expect(cfg.watch?.webhook?.retry.maxAttempts).toBe(5);
+    expect(cfg.watch?.webhook?.retry.baseDelayMs).toBe(1000);
   });
 
   it("resolves notify-command watcher config", () => {
     process.env.HYPERMAIL_WATCH_ENABLED = "true";
     process.env.HYPERMAIL_WATCH_NOTIFY_COMMAND = "node ./notify.js --flag";
     process.env.HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS = "2000";
-    process.env.HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS = "2";
-    process.env.HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS = "250";
     const cfg = load();
     expect(cfg.watch?.notifyCommand?.command).toBe("node ./notify.js --flag");
     expect(cfg.watch?.notifyCommand?.timeoutMs).toBe(2000);
-    expect(cfg.watch?.notifyCommand?.retry.maxAttempts).toBe(2);
-    expect(cfg.watch?.notifyCommand?.retry.baseDelayMs).toBe(250);
+    expect(cfg.watch?.notifyCommand?.retry.maxAttempts).toBe(5);
+    expect(cfg.watch?.notifyCommand?.retry.baseDelayMs).toBe(1000);
   });
 
   it("strictly parses watcher booleans", () => {

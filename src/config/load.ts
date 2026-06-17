@@ -30,12 +30,8 @@ const ENV_GMAIL_REDIRECT_URI = "HYPERMAIL_GMAIL_REDIRECT_URI";
 const ENV_WATCH_ENABLED = "HYPERMAIL_WATCH_ENABLED";
 const ENV_WATCH_POLL_SECONDS = "HYPERMAIL_WATCH_POLL_SECONDS";
 const ENV_WATCH_WEBHOOK_URL = "HYPERMAIL_WATCH_WEBHOOK_URL";
-const ENV_WATCH_WEBHOOK_RETRY_ATTEMPTS = "HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS";
-const ENV_WATCH_WEBHOOK_RETRY_DELAY_MS = "HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS";
 const ENV_WATCH_NOTIFY_COMMAND = "HYPERMAIL_WATCH_NOTIFY_COMMAND";
 const ENV_WATCH_NOTIFY_TIMEOUT_MS = "HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS";
-const ENV_WATCH_NOTIFY_RETRY_ATTEMPTS = "HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS";
-const ENV_WATCH_NOTIFY_RETRY_DELAY_MS = "HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS";
 
 const DEFAULT_TRANSPORT: Transport = "stdio";
 const DEFAULT_HTTP_PORT = 3000;
@@ -215,13 +211,10 @@ function resolveProvidersConfig(): ProvidersConfig | undefined {
   return providers;
 }
 
-function resolveRetryConfig(
-  attemptsEnv: string,
-  delayEnv: string,
-): WatchRetryConfig {
+function resolveRetryConfig(): WatchRetryConfig {
   return {
-    maxAttempts: parsePositiveIntegerEnv(attemptsEnv, DEFAULT_RETRY_ATTEMPTS),
-    baseDelayMs: parsePositiveIntegerEnv(delayEnv, DEFAULT_RETRY_DELAY_MS),
+    maxAttempts: DEFAULT_RETRY_ATTEMPTS,
+    baseDelayMs: DEFAULT_RETRY_DELAY_MS,
   };
 }
 
@@ -239,10 +232,7 @@ function resolveWatchConfig(): WatchConfig | undefined {
   if (webhookUrl) {
     webhook = {
       url: validateWebhookUrl(webhookUrl),
-      retry: resolveRetryConfig(
-        ENV_WATCH_WEBHOOK_RETRY_ATTEMPTS,
-        ENV_WATCH_WEBHOOK_RETRY_DELAY_MS,
-      ),
+      retry: resolveRetryConfig(),
     };
   }
 
@@ -259,10 +249,7 @@ function resolveWatchConfig(): WatchConfig | undefined {
         ENV_WATCH_NOTIFY_TIMEOUT_MS,
         DEFAULT_NOTIFY_TIMEOUT_MS,
       ),
-      retry: resolveRetryConfig(
-        ENV_WATCH_NOTIFY_RETRY_ATTEMPTS,
-        ENV_WATCH_NOTIFY_RETRY_DELAY_MS,
-      ),
+      retry: resolveRetryConfig(),
     };
   }
 
