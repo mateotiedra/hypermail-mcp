@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.9** — Replaced server-side email watch/webhook/script delivery with
+> the pull-based `get_new_emails` tool. Agents schedule their own repeated calls
+> and fetch bounded batches of new inbox email.
+>
 > **v0.7.8** — Default Gmail loopback redirect URI changed from random-port
 > `/oauth2callback` to fixed `http://127.0.0.1:33333/callback` (still overridable via
 > `HYPERMAIL_GMAIL_REDIRECT_URI`). `.data/` encryption key directory added to
@@ -23,8 +27,7 @@ inboxes through a single, unified tool surface.
 > (`attachments` param). `edit_draft` gains `new_attachments` and
 > `remove_attachments` — `add_attachment_to_draft` is removed (23 tools now).
 > Draft editing uses multi-strategy thread boundary detection for more reliable
-> quoted-thread preservation. Watcher now supports shell-command notification
-> alongside webhook delivery. Published CLI installs the MCP SDK dependency so
+> quoted-thread preservation. Published CLI installs the MCP SDK dependency so
 > global/npx runs do not fail on a missing SDK module.
 >
 > **v0.7.4** — `inReplyTo` is now a required parameter on `send_email` and
@@ -40,12 +43,7 @@ inboxes through a single, unified tool surface.
 > **v0.7.1** — Every config field is now settable via a dedicated
 > `HYPERMAIL_*` env var. Legacy provider env vars are no longer accepted. See
 > [Environment Variables](#environment-variables) for the full reference.
->
-> **v0.7.0** — Email watch mode: background poll loop detects new inbox
-> messages and POSTs them to a configurable webhook URL (e.g. Mastra). Opt-in —
-> disabled by default, enabled via `HYPERMAIL_WATCH_ENABLED=true`.
-> Works in both stdio and HTTP transport modes.
->
+
 > **v0.6.3** — Unify stdio and HTTP modes into a single feature set. Removed
 > email watch (inbox polling, SSE push, notification buffer), agent
 > multi-tenancy (`agents.yaml`, `x-api-key` auth, per-agent allowlists), and
@@ -216,15 +214,6 @@ hypermail-mcp
 | `HYPERMAIL_GMAIL_REDIRECT_URI` | Hosted Gmail OAuth callback URI | Local loopback callback when unset |
 | `HYPERMAIL_TOOLS_ENABLED` | Comma-separated tool allowlist | Empty/unset means no filtering |
 | `HYPERMAIL_TOOLS_DISABLED` | Comma-separated tool blocklist | Empty/unset means no filtering |
-| `HYPERMAIL_WATCH_ENABLED` | Enable inbox polling: `true` or `false` | `false` |
-| `HYPERMAIL_WATCH_POLL_SECONDS` | Watcher polling cadence | `10` |
-| `HYPERMAIL_WATCH_WEBHOOK_URL` | Webhook delivery target | Required if watch is enabled and no notify command is set |
-| `HYPERMAIL_WATCH_WEBHOOK_RETRY_ATTEMPTS` | Webhook retry attempts | `5` |
-| `HYPERMAIL_WATCH_WEBHOOK_RETRY_DELAY_MS` | Webhook exponential-backoff base delay | `1000` |
-| `HYPERMAIL_WATCH_NOTIFY_COMMAND` | Shell command run with `EmailFull` JSON on stdin | Required if watch is enabled and no webhook is set |
-| `HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS` | Notify-command execution timeout | `30000` |
-| `HYPERMAIL_WATCH_NOTIFY_RETRY_ATTEMPTS` | Notify-command retry attempts | `5` |
-| `HYPERMAIL_WATCH_NOTIFY_RETRY_DELAY_MS` | Notify-command exponential-backoff base delay | `1000` |
 
 **Priority order:** selected CLI flags > `HYPERMAIL_*` env vars > hardcoded defaults.
 
@@ -247,6 +236,7 @@ account store.
 | `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. |
 | `remove_account` | `email` | Deletes tokens for the account. |
 | `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. |
+| `get_new_emails` | `account?`, `limit?` | Pull new inbox emails not previously returned by this tool. `limit` defaults to 10 and is global when `account` is omitted. Returns full markdown bodies with attachment metadata; bodies may be truncated. |
 | `search_emails` | `account`, `query`, `limit?` | KQL on Outlook. |
 | `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. |
 | `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
@@ -264,44 +254,28 @@ account store.
 | `mark_read` | `account`, `id` | Mark a message as read. |
 | `mark_unread` | `account`, `id` | Mark a message as unread. |
 
-## Email Watch
+## Pull new emails
 
-When enabled, hypermail-mcp runs a background poll loop that scans inboxes for
-new messages and delivers each one via webhook POST and/or shell command.
-Intended for push-based email triage — downstream agents receive full email
-content without polling.
-
-```bash
-HYPERMAIL_WATCH_ENABLED=true \
-HYPERMAIL_WATCH_POLL_SECONDS=10 \
-HYPERMAIL_WATCH_WEBHOOK_URL=http://localhost:3000/api/email-webhook \
-HYPERMAIL_WATCH_NOTIFY_COMMAND='node /path/to/email-handler.js' \
-hypermail-mcp
-```
-
-**Validation:** If `HYPERMAIL_WATCH_ENABLED=true`, startup requires at least one
-of `HYPERMAIL_WATCH_WEBHOOK_URL` or `HYPERMAIL_WATCH_NOTIFY_COMMAND`. Webhook
-URLs are syntax-validated, and notify commands must be non-empty. Startup does
-not test network reachability or execute the command.
+`get_new_emails` is the replacement for server-side watch/push delivery. The
+server does not run background cron jobs; agents or their harnesses call this
+tool on their own schedule, for example every 30–60 seconds.
 
 **Behavior:**
-- Polls **all accounts** in the store, **inbox only**.
-- Detects new emails via `lastSeenIds` (capped at 200) stored in the encrypted
-  account file — no duplicate emits across restarts.
-- Two delivery modes (can be used together):
-  - **Webhook:** One `POST` per email (full body as `EmailFull` JSON).
-  - **Notify command:** Executes `HYPERMAIL_WATCH_NOTIFY_COMMAND` through the
-    platform shell with the `EmailFull` JSON piped to stdin.
-- Both modes use exponential backoff (`baseDelay × 2^attempt`). Retries on
-  failures (non-2xx for webhook, non-zero exit for command). Logs and moves on
-  after `maxAttempts` exhausted — never blocks the poll loop.
-- Command delivery is fire-and-forget — the poll loop continues while delivery
-  runs in the background.
-- Works in both **stdio** and **HTTP** transport modes — the poll interval
-  fires normally alongside MCP message handling.
+- Polls **inbox only**.
+- `account` is optional. When omitted, the tool checks all registered accounts.
+- `limit` defaults to `10`. In all-account mode, the limit is a global total
+  across accounts, selected by oldest `receivedAt` first.
+- First use for an account initializes its checkpoint to the newest inbox email
+  and returns no emails for that account.
+- Later calls return emails not previously returned by this tool, oldest first.
+- Returned bodies are markdown and may be truncated around 20k characters; call
+  `read_email` for the full body when needed.
+- Attachments are returned as metadata only; call `read_attachment` for content.
+- The tool does not mark emails as read.
+- `limit: 0` can initialize/check state without fetching message bodies.
 
-**Rate limits:** Polling every 10s on a single inbox = 6 req/min = 0.6% of
-Microsoft Graph's 10,000 req/10min per-user limit. Safe for personal inboxes.
+All-account calls return partial failures as `errors: [{ account, message }]`
+and still return successful accounts' emails.
 
 ## Add-account flows
 
@@ -407,15 +381,11 @@ src/
       client.ts                # Gmail API (googleapis)
       index.ts                 # GmailProvider implementation
     shared/                    # shared utilities across providers
-  watcher/
-    manager.ts                 # WatcherManager — inbox poll loop + dedup
-    webhook.ts                 # HTTP POST with exponential backoff retry
-    script.ts                  # shell-command delivery with retry/timeout
-    index.ts                   # barrel export
   tools/
     index.ts                   # MCP tool registrations
     accounts.ts                # list/add/remove/complete-add account tools
     browse.ts                  # list/search/read email tools
+    new-emails.ts              # get_new_emails pull/checkpoint tool
     compose.ts                 # send/draft/edit/send-draft tools
     folders.ts                 # list/create/delete/rename folder tools
     organize.ts                # archive/trash/move/mark-read/mark-unread tools

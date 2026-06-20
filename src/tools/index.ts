@@ -29,7 +29,7 @@ export function registerTools(
   const { store, registry, tools } = opts;
 
   registerAccountTools(server, { store, registry, tools });
-  registerBrowseTools(server, { registry, tools });
+  registerBrowseTools(server, { store, registry, tools });
   registerFolderTools(server, { registry, tools });
   registerOrganizeTools(server, { registry, tools });
   registerComposeTools(server, { store, registry, tools });

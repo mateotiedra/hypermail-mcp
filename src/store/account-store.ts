@@ -23,13 +23,17 @@ export interface AccountRecord {
   signature?: string;
   /** Font/style preferences applied to outgoing HTML emails. */
   style?: { fontFamily?: string; fontSize?: string; fontColor?: string };
-  /** ISO timestamp of the newest email the watcher has already seen.
-   *  Used by the email-watcher to detect new mail since last poll. */
+  /** Pull-based new-mail checkpoint for `get_new_emails`.
+   *  `receivedAt` is the high-water timestamp. `deliveredIdsAtReceivedAt`
+   *  contains message IDs already returned at exactly that timestamp so
+   *  same-timestamp batches do not skip or repeat messages. */
+  newEmailCheckpoint?: {
+    receivedAt: string;
+    deliveredIdsAtReceivedAt?: string[];
+  };
+  /** Legacy watcher state from older versions. Not used by `get_new_emails`. */
   lastSeenAt?: string;
-  /** Email IDs the watcher has already seen (most recent first, capped at 200).
-   *  Used for ID-based dedup — emails whose ID is in this list are skipped
-   *  during polling, preventing duplicate/lost notifications from timestamp
-   *  collisions. */
+  /** Legacy watcher state from older versions. Not used by `get_new_emails`. */
   lastSeenIds?: string[];
 }
 

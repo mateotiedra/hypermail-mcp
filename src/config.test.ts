@@ -65,7 +65,6 @@ describe("loadConfig — env-only resolution", () => {
     expect(config.http.host).toBe("127.0.0.1");
     expect(config.tools).toBeUndefined();
     expect(config.providers).toBeUndefined();
-    expect(config.watch).toBeUndefined();
     expect(config.dataDir).toBeUndefined();
     expect(warnings).toContain(
       "HYPERMAIL_KEY is not set; a local generated key will be used. Set HYPERMAIL_KEY explicitly for portable hosted deployments.",
@@ -185,56 +184,11 @@ describe("loadConfig — env-only resolution", () => {
     expect(cfg.providers).toBeUndefined();
   });
 
-  it("does not create watch config unless explicitly enabled", () => {
-    expect(load().watch).toBeUndefined();
-    process.env.HYPERMAIL_WATCH_ENABLED = "false";
-    expect(load().watch).toBeUndefined();
-  });
-
-  it("requires a watcher delivery target when enabled", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    expect(() => loadConfig()).toThrow("requires HYPERMAIL_WATCH_WEBHOOK_URL or HYPERMAIL_WATCH_NOTIFY_COMMAND");
-  });
-
-  it("resolves webhook watcher config", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    process.env.HYPERMAIL_WATCH_POLL_SECONDS = "60";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "https://hooks.example.com/email";
-    const cfg = load();
-    expect(cfg.watch?.enabled).toBe(true);
-    expect(cfg.watch?.pollIntervalSeconds).toBe(60);
-    expect(cfg.watch?.webhook?.url).toBe("https://hooks.example.com/email");
-    expect(cfg.watch?.webhook?.retry.maxAttempts).toBe(5);
-    expect(cfg.watch?.webhook?.retry.baseDelayMs).toBe(1000);
-  });
-
-  it("resolves notify-command watcher config", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    process.env.HYPERMAIL_WATCH_NOTIFY_COMMAND = "node ./notify.js --flag";
-    process.env.HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS = "2000";
-    const cfg = load();
-    expect(cfg.watch?.notifyCommand?.command).toBe("node ./notify.js --flag");
-    expect(cfg.watch?.notifyCommand?.timeoutMs).toBe(2000);
-    expect(cfg.watch?.notifyCommand?.retry.maxAttempts).toBe(5);
-    expect(cfg.watch?.notifyCommand?.retry.baseDelayMs).toBe(1000);
-  });
-
-  it("strictly parses watcher booleans", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "yes";
-    expect(() => loadConfig()).toThrow('HYPERMAIL_WATCH_ENABLED must be either "true" or "false"');
-  });
-
-  it("validates watcher URL syntax", () => {
+  it("ignores removed watch env vars", () => {
     process.env.HYPERMAIL_WATCH_ENABLED = "true";
     process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "not-a-url";
-    expect(() => loadConfig()).toThrow("valid http(s) URL");
-  });
-
-  it("validates watcher positive integers", () => {
-    process.env.HYPERMAIL_WATCH_ENABLED = "true";
-    process.env.HYPERMAIL_WATCH_WEBHOOK_URL = "https://hooks.example.com/email";
-    process.env.HYPERMAIL_WATCH_POLL_SECONDS = "0";
-    expect(() => loadConfig()).toThrow("HYPERMAIL_WATCH_POLL_SECONDS must be a positive integer");
+    process.env.HYPERMAIL_WATCH_NOTIFY_COMMAND = "";
+    expect(() => loadConfig()).not.toThrow();
   });
 
   it("resolves dataDir from HYPERMAIL_DATA_DIR", () => {

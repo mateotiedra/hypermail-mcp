@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
+import type { AccountStore } from "../store/account-store.js";
 import { selectBody } from "../html-to-markdown.js";
 import {
   ok,
@@ -13,15 +14,17 @@ import {
   attachmentMetaOutputSchema,
   shouldRegister,
 } from "./shared.js";
+import { registerNewEmailTool } from "./new-emails.js";
 
 export function registerBrowseTools(
   server: McpServer,
   ctx: {
+    store: AccountStore;
     registry: Registry;
     tools: ResolvedTools;
   },
 ): void {
-  const { registry, tools } = ctx;
+  const { store, registry, tools } = ctx;
 
   // ---------- email ops ----------
 
@@ -78,6 +81,8 @@ export function registerBrowseTools(
       },
     );
   }
+
+  registerNewEmailTool(server, { store, registry, tools });
 
   if (shouldRegister("search_emails", tools)) {
     server.registerTool(

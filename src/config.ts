@@ -28,40 +28,6 @@ export interface ProvidersConfig {
   gmail?: GmailProviderConfig;
 }
 
-export interface WatchRetryConfig {
-  /** Maximum number of delivery attempts (default: 5). */
-  maxAttempts: number;
-  /** Base delay in milliseconds for exponential backoff (default: 1000). */
-  baseDelayMs: number;
-}
-
-export interface WatchWebhookConfig {
-  /** URL to POST new-email events to. */
-  url: string;
-  /** Retry configuration for failed deliveries. */
-  retry: WatchRetryConfig;
-}
-
-export interface WatchNotifyCommandConfig {
-  /** Shell command that receives new-email JSON on stdin. */
-  command: string;
-  /** Maximum time in ms before the child process is killed (default: 30000). */
-  timeoutMs: number;
-  /** Retry configuration for failed command executions. */
-  retry: WatchRetryConfig;
-}
-
-export interface WatchConfig {
-  /** Whether the email poll loop is enabled. */
-  enabled: boolean;
-  /** Seconds between inbox polls (default: 10). */
-  pollIntervalSeconds: number;
-  /** Webhook delivery configuration. */
-  webhook?: WatchWebhookConfig;
-  /** Shell-command delivery configuration. */
-  notifyCommand?: WatchNotifyCommandConfig;
-}
-
 /** Fully resolved application configuration. */
 export interface AppConfig {
   dataDir?: string;
@@ -69,7 +35,6 @@ export interface AppConfig {
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
-  watch?: WatchConfig;
 }
 
 export interface LoadConfigResult {
@@ -99,6 +64,7 @@ export const KNOWN_TOOLS = [
   "set_account_settings",
   "remove_account",
   "list_emails",
+  "get_new_emails",
   "search_emails",
   "read_email",
   "read_attachment",

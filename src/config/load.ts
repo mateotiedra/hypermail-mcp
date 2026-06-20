@@ -6,10 +6,6 @@ import type {
   ProvidersConfig,
   ToolsConfig,
   Transport,
-  WatchConfig,
-  WatchNotifyCommandConfig,
-  WatchRetryConfig,
-  WatchWebhookConfig,
 } from "../config.js";
 import { KNOWN_TOOLS } from "../config.js";
 
@@ -27,20 +23,9 @@ const ENV_OUTLOOK_TENANT_ID = "HYPERMAIL_OUTLOOK_TENANT_ID";
 const ENV_GMAIL_CLIENT_ID = "HYPERMAIL_GMAIL_CLIENT_ID";
 const ENV_GMAIL_CLIENT_SECRET = "HYPERMAIL_GMAIL_CLIENT_SECRET";
 const ENV_GMAIL_REDIRECT_URI = "HYPERMAIL_GMAIL_REDIRECT_URI";
-const ENV_WATCH_ENABLED = "HYPERMAIL_WATCH_ENABLED";
-const ENV_WATCH_POLL_SECONDS = "HYPERMAIL_WATCH_POLL_SECONDS";
-const ENV_WATCH_WEBHOOK_URL = "HYPERMAIL_WATCH_WEBHOOK_URL";
-const ENV_WATCH_NOTIFY_COMMAND = "HYPERMAIL_WATCH_NOTIFY_COMMAND";
-const ENV_WATCH_NOTIFY_TIMEOUT_MS = "HYPERMAIL_WATCH_NOTIFY_TIMEOUT_MS";
-
 const DEFAULT_TRANSPORT: Transport = "stdio";
 const DEFAULT_HTTP_PORT = 3000;
 const DEFAULT_HTTP_HOST = "127.0.0.1";
-const DEFAULT_WATCH_POLL_SECONDS = 10;
-const DEFAULT_RETRY_ATTEMPTS = 5;
-const DEFAULT_RETRY_DELAY_MS = 1000;
-const DEFAULT_NOTIFY_TIMEOUT_MS = 30000;
-
 // ── Type coercion helpers ──
 
 function envRaw(name: string): string | undefined {
@@ -52,15 +37,6 @@ function optionalEnvString(name: string): string | undefined {
   if (value === undefined) return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function parseBoolEnv(name: string): boolean | undefined {
-  const value = envRaw(name);
-  if (value === undefined) return undefined;
-  const lower = value.trim().toLowerCase();
-  if (lower === "true") return true;
-  if (lower === "false") return false;
-  throw new Error(`${name} must be either "true" or "false"`);
 }
 
 function parseTransportEnv(): Transport | undefined {
@@ -80,16 +56,6 @@ function parsePositiveInteger(value: string | number | undefined): number | unde
   if (!/^[0-9]+$/.test(trimmed)) return undefined;
   const parsed = Number(trimmed);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-}
-
-function parsePositiveIntegerEnv(name: string, defaultValue: number): number {
-  const value = envRaw(name);
-  if (value === undefined) return defaultValue;
-  const parsed = parsePositiveInteger(value);
-  if (parsed === undefined) {
-    throw new Error(`${name} must be a positive integer`);
-  }
-  return parsed;
 }
 
 /** Parse a comma-separated string into a trimmed, filtered array.
@@ -119,18 +85,6 @@ function validateToolNames(
         `Unknown tool "${name}" in ${envName}. Known tools: ${KNOWN_TOOLS.join(", ")}`,
       );
     }
-  }
-}
-
-function validateWebhookUrl(raw: string): string {
-  try {
-    const url = new URL(raw);
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      throw new Error("unsupported protocol");
-    }
-    return raw;
-  } catch {
-    throw new Error(`${ENV_WATCH_WEBHOOK_URL} must be a valid http(s) URL`);
   }
 }
 
@@ -211,62 +165,6 @@ function resolveProvidersConfig(): ProvidersConfig | undefined {
   return providers;
 }
 
-function resolveRetryConfig(): WatchRetryConfig {
-  return {
-    maxAttempts: DEFAULT_RETRY_ATTEMPTS,
-    baseDelayMs: DEFAULT_RETRY_DELAY_MS,
-  };
-}
-
-function resolveWatchConfig(): WatchConfig | undefined {
-  const enabled = parseBoolEnv(ENV_WATCH_ENABLED) ?? false;
-  if (!enabled) return undefined;
-
-  const pollIntervalSeconds = parsePositiveIntegerEnv(
-    ENV_WATCH_POLL_SECONDS,
-    DEFAULT_WATCH_POLL_SECONDS,
-  );
-
-  const webhookUrl = optionalEnvString(ENV_WATCH_WEBHOOK_URL);
-  let webhook: WatchWebhookConfig | undefined;
-  if (webhookUrl) {
-    webhook = {
-      url: validateWebhookUrl(webhookUrl),
-      retry: resolveRetryConfig(),
-    };
-  }
-
-  const rawNotifyCommand = envRaw(ENV_WATCH_NOTIFY_COMMAND);
-  let notifyCommand: WatchNotifyCommandConfig | undefined;
-  if (rawNotifyCommand !== undefined) {
-    const command = rawNotifyCommand.trim();
-    if (!command) {
-      throw new Error(`${ENV_WATCH_NOTIFY_COMMAND} must not be empty when watch is enabled`);
-    }
-    notifyCommand = {
-      command,
-      timeoutMs: parsePositiveIntegerEnv(
-        ENV_WATCH_NOTIFY_TIMEOUT_MS,
-        DEFAULT_NOTIFY_TIMEOUT_MS,
-      ),
-      retry: resolveRetryConfig(),
-    };
-  }
-
-  if (!webhook && !notifyCommand) {
-    throw new Error(
-      `${ENV_WATCH_ENABLED}=true requires ${ENV_WATCH_WEBHOOK_URL} or ${ENV_WATCH_NOTIFY_COMMAND}`,
-    );
-  }
-
-  return {
-    enabled: true,
-    pollIntervalSeconds,
-    webhook,
-    notifyCommand,
-  };
-}
-
 // ── Loading ──
 
 /**
@@ -280,7 +178,6 @@ export function loadConfig(cliOverrides: CliOverrides = {}): LoadConfigResult {
   const http = resolveHttpConfig(transport, cliOverrides, warnings);
   const tools = resolveToolsConfig();
   const providers = resolveProvidersConfig();
-  const watch = resolveWatchConfig();
   const dataDir = cliOverrides.dataDir ?? optionalEnvString(ENV_DATA_DIR);
 
   if (!optionalEnvString(ENV_KEY)) {
@@ -296,7 +193,6 @@ export function loadConfig(cliOverrides: CliOverrides = {}): LoadConfigResult {
       http,
       tools,
       providers,
-      watch,
     },
     warnings,
   };
