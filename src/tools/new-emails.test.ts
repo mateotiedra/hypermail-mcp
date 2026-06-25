@@ -36,6 +36,35 @@ function memoryStore(initial: AccountRecord[]): AccountStore {
       records.set(rec.email.toLowerCase(), { ...rec });
       return { ...rec };
     }),
+    updateTokens: vi.fn(async (email: string, tokens: AccountRecord["tokens"]) => {
+      const rec = records.get(email.toLowerCase());
+      if (!rec) return undefined;
+      const next = { ...rec, tokens };
+      records.set(email.toLowerCase(), next);
+      return { ...next };
+    }),
+    updateNewEmailCheckpoint: vi.fn(async (
+      email: string,
+      checkpoint: NonNullable<AccountRecord["newEmailCheckpoint"]>,
+    ) => {
+      const rec = records.get(email.toLowerCase());
+      if (!rec) return undefined;
+      const current = rec.newEmailCheckpoint;
+      const merged = current?.receivedAt === checkpoint.receivedAt
+        ? {
+            receivedAt: checkpoint.receivedAt,
+            deliveredIdsAtReceivedAt: [
+              ...new Set([
+                ...(current.deliveredIdsAtReceivedAt ?? []),
+                ...(checkpoint.deliveredIdsAtReceivedAt ?? []),
+              ]),
+            ],
+          }
+        : checkpoint;
+      const next = { ...rec, newEmailCheckpoint: merged };
+      records.set(email.toLowerCase(), next);
+      return { ...next };
+    }),
   } as unknown as AccountStore;
 }
 
@@ -120,14 +149,10 @@ describe("get_new_emails", () => {
     const data = structured(await handler({ account: acct.email }));
 
     expect(data).toMatchObject({ count: 0, emails: [], errors: [] });
-    expect(store.upsertAccount).toHaveBeenCalledWith(
-      expect.objectContaining({
-        newEmailCheckpoint: {
-          receivedAt: "2026-01-02T00:00:00.000Z",
-          deliveredIdsAtReceivedAt: ["newest"],
-        },
-      }),
-    );
+    expect(store.updateNewEmailCheckpoint).toHaveBeenCalledWith(acct.email, {
+      receivedAt: "2026-01-02T00:00:00.000Z",
+      deliveredIdsAtReceivedAt: ["newest"],
+    });
     expect(prov.readEmail).not.toHaveBeenCalled();
   });
 
@@ -148,14 +173,10 @@ describe("get_new_emails", () => {
     const data = structured(await handler({ account: acct.email, limit: 2 }));
 
     expect((data.emails as Array<{ id: string }>).map((email) => email.id)).toEqual(["1", "2"]);
-    expect(store.upsertAccount).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        newEmailCheckpoint: {
-          receivedAt: "2026-01-03T00:00:00.000Z",
-          deliveredIdsAtReceivedAt: ["2"],
-        },
-      }),
-    );
+    expect(store.updateNewEmailCheckpoint).toHaveBeenLastCalledWith(acct.email, {
+      receivedAt: "2026-01-03T00:00:00.000Z",
+      deliveredIdsAtReceivedAt: ["2"],
+    });
   });
 
   it("returns empty when no initialized-account emails are new", async () => {
@@ -171,7 +192,7 @@ describe("get_new_emails", () => {
 
     expect(data).toMatchObject({ count: 0, emails: [], errors: [] });
     expect(prov.readEmail).not.toHaveBeenCalled();
-    expect(store.upsertAccount).not.toHaveBeenCalled();
+    expect(store.updateNewEmailCheckpoint).not.toHaveBeenCalled();
   });
 
   it("defaults limit to 10", async () => {
@@ -210,14 +231,11 @@ describe("get_new_emails", () => {
     const data = structured(await handler({ account: acct.email, limit: 1 }));
 
     expect((data.emails as Array<{ id: string }>).map((email) => email.id)).toEqual(["b"]);
-    expect(store.upsertAccount).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        newEmailCheckpoint: {
-          receivedAt: "2026-01-01T00:00:00.000Z",
-          deliveredIdsAtReceivedAt: ["a", "b"],
-        },
-      }),
-    );
+    expect(store.updateNewEmailCheckpoint).toHaveBeenLastCalledWith(acct.email, {
+      receivedAt: "2026-01-01T00:00:00.000Z",
+      deliveredIdsAtReceivedAt: ["b"],
+    });
+    expect(store.getAccount(acct.email)?.newEmailCheckpoint?.deliveredIdsAtReceivedAt).toEqual(["a", "b"]);
   });
 
   it("applies all-account limit globally and reports partial errors", async () => {
@@ -250,7 +268,7 @@ describe("get_new_emails", () => {
     const result = await handler({ account: acct.email });
 
     expect(result).toMatchObject({ isError: true });
-    expect(store.upsertAccount).not.toHaveBeenCalled();
+    expect(store.updateNewEmailCheckpoint).not.toHaveBeenCalled();
   });
 
   it("supports limit 0 without reading or advancing initialized accounts", async () => {
@@ -266,7 +284,7 @@ describe("get_new_emails", () => {
 
     expect(data).toMatchObject({ count: 0, emails: [], errors: [] });
     expect(prov.readEmail).not.toHaveBeenCalled();
-    expect(store.upsertAccount).not.toHaveBeenCalled();
+    expect(store.updateNewEmailCheckpoint).not.toHaveBeenCalled();
   });
 
   it("returns markdown bodies with truncation metadata and attachment metadata only", async () => {

@@ -58,10 +58,10 @@ export class OutlookClientFactory {
           );
           if (nextTokens.msalCache !== tokens.msalCache) {
             store
-              .upsertAccount({
-                ...fresh,
-                tokens: nextTokens as unknown as Record<string, unknown>,
-              })
+              .updateTokens(
+                account.email,
+                nextTokens as unknown as Record<string, unknown>,
+              )
               .catch(() => {
                 /* swallow — next call will refresh again */
               });

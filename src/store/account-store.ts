@@ -52,6 +52,8 @@ export interface OpenOptions {
 const FILE_NAME = "accounts.json.enc";
 
 export class AccountStore {
+  private readonly writeLocks = new Map<string, Promise<void>>();
+
   private constructor(
     private readonly filePath: string,
     private readonly key: Buffer,
@@ -91,22 +93,92 @@ export class AccountStore {
   }
 
   async upsertAccount(rec: AccountRecord): Promise<AccountRecord> {
-    const norm = rec.email.trim().toLowerCase();
-    const next: AccountRecord = { ...rec, email: norm };
-    const idx = this.data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
-    if (idx >= 0) this.data.accounts[idx] = next;
-    else this.data.accounts.push(next);
-    await this.flush();
-    return { ...next };
+    return this.runSerial(rec.email, async () => {
+      const norm = rec.email.trim().toLowerCase();
+      const next: AccountRecord = { ...rec, email: norm };
+      const idx = this.data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
+      if (idx >= 0) this.data.accounts[idx] = next;
+      else this.data.accounts.push(next);
+      await this.flush();
+      return { ...next };
+    });
+  }
+
+  async updateTokens(
+    email: string,
+    tokens: AccountRecord["tokens"],
+  ): Promise<AccountRecord | undefined> {
+    return this.runSerial(email, async () => {
+      const norm = email.trim().toLowerCase();
+      const idx = this.data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
+      if (idx < 0) return undefined;
+      const current = this.data.accounts[idx]!;
+      const next: AccountRecord = { ...current, tokens };
+      this.data.accounts[idx] = next;
+      await this.flush();
+      return { ...next };
+    });
+  }
+
+  async updateNewEmailCheckpoint(
+    email: string,
+    checkpoint: NonNullable<AccountRecord["newEmailCheckpoint"]>,
+  ): Promise<AccountRecord | undefined> {
+    return this.runSerial(email, async () => {
+      const norm = email.trim().toLowerCase();
+      const idx = this.data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
+      if (idx < 0) return undefined;
+
+      const current = this.data.accounts[idx]!;
+      const currentCheckpoint = current.newEmailCheckpoint;
+      const mergedCheckpoint = currentCheckpoint?.receivedAt === checkpoint.receivedAt
+        ? {
+            receivedAt: checkpoint.receivedAt,
+            deliveredIdsAtReceivedAt: [
+              ...new Set([
+                ...(currentCheckpoint.deliveredIdsAtReceivedAt ?? []),
+                ...(checkpoint.deliveredIdsAtReceivedAt ?? []),
+              ]),
+            ],
+          }
+        : checkpoint;
+      const next: AccountRecord = {
+        ...current,
+        newEmailCheckpoint: mergedCheckpoint,
+      };
+      this.data.accounts[idx] = next;
+      await this.flush();
+      return { ...next };
+    });
   }
 
   async removeAccount(email: string): Promise<boolean> {
+    return this.runSerial(email, async () => {
+      const norm = email.trim().toLowerCase();
+      const before = this.data.accounts.length;
+      this.data.accounts = this.data.accounts.filter((a) => a.email.toLowerCase() !== norm);
+      if (this.data.accounts.length === before) return false;
+      await this.flush();
+      return true;
+    });
+  }
+
+  private async runSerial<T>(email: string, task: () => Promise<T>): Promise<T> {
     const norm = email.trim().toLowerCase();
-    const before = this.data.accounts.length;
-    this.data.accounts = this.data.accounts.filter((a) => a.email.toLowerCase() !== norm);
-    if (this.data.accounts.length === before) return false;
-    await this.flush();
-    return true;
+    const previous = this.writeLocks.get(norm) ?? Promise.resolve();
+    const run = previous.catch(() => undefined).then(task);
+    const lock = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    this.writeLocks.set(norm, lock);
+    try {
+      return await run;
+    } finally {
+      if (this.writeLocks.get(norm) === lock) {
+        this.writeLocks.delete(norm);
+      }
+    }
   }
 
   private async flush(): Promise<void> {

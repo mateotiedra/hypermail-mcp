@@ -254,9 +254,9 @@ async function initializeCheckpoint(
     .filter((item) => effectiveReceivedAt(item.receivedAt) === receivedAt)
     .map((item) => item.id);
 
-  await store.upsertAccount({
-    ...account,
-    newEmailCheckpoint: { receivedAt, deliveredIdsAtReceivedAt },
+  await store.updateNewEmailCheckpoint(account.email, {
+    receivedAt,
+    deliveredIdsAtReceivedAt,
   });
 }
 
@@ -315,28 +315,14 @@ async function advanceCheckpoint(
   const newest = ordered[ordered.length - 1];
   if (!newest) return;
 
-  const previous = normalizeCheckpoint(account.newEmailCheckpoint);
   const newestTimestamp = newest.timestamp;
   const idsAtNewest = ordered
     .filter((candidate) => candidate.timestamp === newestTimestamp)
     .map((candidate) => candidate.summary.id);
 
-  let deliveredIdsAtReceivedAt = idsAtNewest;
-  if (previous?.receivedAt === newestTimestamp) {
-    deliveredIdsAtReceivedAt = [
-      ...new Set([
-        ...(previous.deliveredIdsAtReceivedAt ?? []),
-        ...idsAtNewest,
-      ]),
-    ];
-  }
-
-  await store.upsertAccount({
-    ...account,
-    newEmailCheckpoint: {
-      receivedAt: newestTimestamp,
-      deliveredIdsAtReceivedAt,
-    },
+  await store.updateNewEmailCheckpoint(account.email, {
+    receivedAt: newestTimestamp,
+    deliveredIdsAtReceivedAt: idsAtNewest,
   });
 }
 
