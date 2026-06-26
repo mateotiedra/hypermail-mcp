@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.11** — Fixed Outlook reply/forward drafts whose Graph-generated
+> quoted bodies are plain text by escaping them and patching the draft as HTML,
+> so newly composed HTML replies no longer render as raw text.
+>
 > **v0.7.10** — Fixed an account-store race where Gmail/Outlook token
 > refreshes could overwrite `get_new_emails` checkpoints. Checkpoint updates now
 > preserve token data and merge delivered IDs at the same timestamp. `edit_draft`
