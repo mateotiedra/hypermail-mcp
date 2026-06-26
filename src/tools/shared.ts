@@ -161,6 +161,30 @@ export function escapeHtml(text: string): string {
     .replace(/\n/g, "<br>");
 }
 
+export function applyExactTextEdit(
+  content: string,
+  oldText: string,
+  newText: string,
+): string {
+  if (oldText.length === 0) {
+    throw new Error("old_text must not be empty");
+  }
+
+  const first = content.indexOf(oldText);
+  if (first === -1) {
+    throw new Error("old_text was not found in the current draft body");
+  }
+
+  const second = content.indexOf(oldText, first + oldText.length);
+  if (second !== -1) {
+    throw new Error(
+      "old_text matched multiple sections in the current draft body; provide a more specific selection",
+    );
+  }
+
+  return content.slice(0, first) + newText + content.slice(first + oldText.length);
+}
+
 // ── thread boundary detection ──
 
 /**

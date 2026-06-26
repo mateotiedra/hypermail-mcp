@@ -7,6 +7,7 @@ import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { EmailProvider, SendInput } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
+import { MIME_TYPES } from "./mime-types.js";
 import {
   ok,
   fail,
@@ -14,7 +15,7 @@ import {
   emailAddrSchema,
   composeBody,
   shouldRegister,
-  findThreadBoundary,
+  applyExactTextEdit,
 } from "./shared.js";
 
 export function registerComposeTools(
@@ -26,32 +27,6 @@ export function registerComposeTools(
   },
 ): void {
   const { store, registry, tools } = ctx;
-
-  const MIME_TYPES: Record<string, string> = {
-    ".pdf": "application/pdf",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".webp": "image/webp",
-    ".txt": "text/plain",
-    ".html": "text/html",
-    ".css": "text/css",
-    ".csv": "text/csv",
-    ".json": "application/json",
-    ".xml": "application/xml",
-    ".zip": "application/zip",
-    ".gz": "application/gzip",
-    ".tar": "application/x-tar",
-    ".doc": "application/msword",
-    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".xls": "application/vnd.ms-excel",
-    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    ".mp3": "audio/mpeg",
-    ".mp4": "video/mp4",
-  };
 
   const sendEmailSchema = z.object({
     account: z.string().email(),
@@ -268,22 +243,45 @@ export function registerComposeTools(
     cc: z.array(emailAddrSchema).optional(),
     bcc: z.array(emailAddrSchema).optional(),
     subject: z.string().optional(),
-    body: z.string().optional(),
+    old_text: z
+      .string()
+      .min(1)
+      .optional()
+      .describe(
+        "Exact current HTML section to replace in the draft body. " +
+          "Copy this from `draftHtml` or from `read_email` with format='html'. " +
+          "Must match exactly once; unselected content is preserved.",
+      ),
+    new_text: z
+      .string()
+      .optional()
+      .describe(
+        "Replacement content for `old_text`. The replacement is composed " +
+          "using `format` and `include_signature`, then inserted exactly " +
+          "where `old_text` matched.",
+      ),
+    body: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated alias for `new_text`. Body-only full replacement is " +
+          "not supported; provide `old_text` with this field.",
+      ),
     format: z
       .enum(["html", "markdown"])
       .optional()
       .describe(
-        "Body format. Only meaningful when `body` is also provided. " +
-          "'html' sends the body as-is (must be valid HTML). " +
-          "'markdown' converts the body from Markdown to HTML for clean rendering on the recipient side.",
+        "Replacement format. Only meaningful when `new_text` or deprecated " +
+          "`body` is also provided. 'html' inserts the replacement as-is " +
+          "(must be valid HTML). 'markdown' converts the replacement from Markdown to HTML.",
       ),
     include_signature: z
       .boolean()
       .optional()
       .describe(
-        "Whether to re-apply the account's saved HTML signature to the body. " +
-          "If true, don't include a signature in the body param. " +
-          "Only meaningful when `body` is also provided. " +
+        "Whether to append the account's saved HTML signature to the " +
+          "replacement section. If true, don't include a signature in " +
+          "`new_text`/`body`. Only meaningful when replacement content is provided. " +
           "Returns an error if true but no signature is configured for this account.",
       ),
     new_attachments: z
@@ -329,11 +327,14 @@ export function registerComposeTools(
       {
         description:
           "Edit an existing draft email by ID. Only the fields you provide " +
-          "are updated — unmentioned fields stay unchanged. When `body` is " +
-          "provided and `include_signature` is true, the account's signature " +
-          "is re-applied. Returns the draft ID and the draft's updated HTML " +
-          "body content (`draftHtml`). Before sending, inspect `draftHtml` " +
-          "to verify the draft looks correct. " +
+          "are updated — unmentioned fields stay unchanged. Body edits work " +
+          "like an exact text edit: provide `old_text` copied from the current " +
+          "draft HTML and `new_text` to replace that exact section. The match " +
+          "must occur exactly once, and all unselected content — including " +
+          "reply/forward history — is preserved. Deprecated `body` is accepted " +
+          "only as an alias for `new_text` when `old_text` is also provided. " +
+          "Returns the draft ID and the draft's updated HTML body content " +
+          "(`draftHtml`). Before sending, inspect `draftHtml` to verify the draft looks correct. " +
           "Does not support changing `inReplyTo` or `forwardMessageId` — " +
           "those are set at creation time via `draft_email`. " +
           "Disabled in --read-only mode.",
@@ -344,51 +345,68 @@ export function registerComposeTools(
         const a = args as EditDraftArgs;
         try {
           const { provider, account } = registry.resolveByEmail(a.account);
-          if (a.include_signature && !account.signature) {
+          const hasNewText = a.new_text !== undefined;
+          const hasBodyAlias = a.body !== undefined;
+          const hasOldText = a.old_text !== undefined;
+          if (hasNewText && hasBodyAlias) {
+            return fail("Provide only one of new_text or deprecated body, not both.");
+          }
+          if (hasBodyAlias && !hasOldText) {
+            return fail(
+              "Body-only full replacement is no longer supported. " +
+                "Provide old_text copied from the current draft HTML and use body as the replacement, or use new_text.",
+            );
+          }
+          if (hasNewText && !hasOldText) {
+            return fail("new_text requires old_text so only the selected section is edited.");
+          }
+          if (hasOldText && !hasNewText && !hasBodyAlias) {
+            return fail("old_text requires new_text with the replacement content.");
+          }
+
+          const replacementText = a.new_text ?? a.body;
+          if (replacementText !== undefined && a.include_signature && !account.signature) {
             return fail(
               "include_signature is true but no signature is configured for this account. " +
                 "Set up a signature first with set_account_settings.",
             );
           }
+
           let bodyPayload: string | undefined;
           let isHtmlPayload: boolean | undefined;
-          if (a.body !== undefined) {
+          if (replacementText !== undefined) {
+            const existing = await provider.readEmail(account, a.id);
+            const existingBody = existing.bodyHtml ?? existing.bodyText ?? "";
             const composed = composeBody({
-              body: a.body,
+              body: replacementText,
               format: a.format ?? "html",
               signature: account.signature,
               style: account.style,
               includeSignature: !!a.include_signature,
             });
-            bodyPayload = composed.body;
+            bodyPayload = applyExactTextEdit(existingBody, a.old_text ?? "", composed.body);
             isHtmlPayload = composed.isHtml;
           }
 
-          // Preserve quoted thread when editing reply/forward drafts.
-          // Uses multi-strategy detection: marker → regex spacer → pattern fallback.
-          if (bodyPayload !== undefined) {
-            try {
-              const existing = await provider.readEmail(account, a.id);
-              const existingHtml = existing.bodyHtml ?? "";
-              const boundary = findThreadBoundary(existingHtml);
-              if (boundary !== null) {
-                // Replace only the old answer; keep the spacer + marker + thread.
-                bodyPayload = bodyPayload + existingHtml.slice(boundary.answerEnd);
-              }
-            } catch {
-              // If we can't read the existing draft, proceed with the new
-              // body as-is (no thread to preserve).
-            }
-          }
+          const hasDraftUpdate =
+            a.to !== undefined ||
+            a.cc !== undefined ||
+            a.bcc !== undefined ||
+            a.subject !== undefined ||
+            bodyPayload !== undefined;
 
-          const res = await provider.updateDraft(account, a.id, {
-            to: a.to,
-            cc: a.cc,
-            bcc: a.bcc,
-            subject: a.subject,
-            body: bodyPayload,
-            isHtml: isHtmlPayload,
-          });
+          let currentId = a.id;
+          if (hasDraftUpdate) {
+            const res = await provider.updateDraft(account, currentId, {
+              to: a.to,
+              cc: a.cc,
+              bcc: a.bcc,
+              subject: a.subject,
+              body: bodyPayload,
+              isHtml: isHtmlPayload,
+            });
+            currentId = res.id;
+          }
 
           // Handle new attachments
           const newAttachmentIds: string[] = [];
@@ -400,11 +418,12 @@ export function registerComposeTools(
                 MIME_TYPES[ext] ?? "application/octet-stream";
               const attRes = await provider.addAttachmentToDraft(
                 account,
-                res.id,
+                currentId,
                 att.name ?? basename(att.filePath),
                 fileData.toString("base64"),
                 contentType,
               );
+              currentId = attRes.id;
               newAttachmentIds.push(attRes.attachment.id);
             }
           }
@@ -415,17 +434,17 @@ export function registerComposeTools(
             for (const attId of a.remove_attachments) {
               await provider.removeAttachmentFromDraft(
                 account,
-                res.id,
+                currentId,
                 attId,
               );
               removedIds.push(attId);
             }
           }
 
-          const draft = await provider.readEmail(account, res.id);
+          const draft = await provider.readEmail(account, currentId);
           const result = {
             edited: true as const,
-            id: res.id,
+            id: currentId,
             draftHtml: draft.bodyHtml ?? "",
           };
           return ok(result, result);
