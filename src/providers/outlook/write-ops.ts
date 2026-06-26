@@ -6,6 +6,19 @@ import { convertInlineImages, type InlineAttachment, toRecipient } from "./helpe
 /** Hidden HTML comment placed at the thread boundary to survive Graph HTML normalization. */
 export const THREAD_MARKER = "<!-- hypermail-thread-boundary -->";
 
+function isTextBody(contentType: string | undefined): boolean {
+  return contentType?.toLowerCase() === "text";
+}
+
+function textToHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\r\n|\r|\n/g, "<br>");
+}
+
 /**
  * Creates a draft from a reference message (forward or reply), prepends our
  * composed body before the existing content, and attaches inline images.
@@ -24,8 +37,10 @@ export async function buildDraftFromReference(
   const draftMsg: { body?: { content?: string; contentType?: string } } =
     await client.api(`/me/messages/${draft.id}`).select("body").get();
 
-  const draftBody = draftMsg.body?.content ?? "";
-  const draftContentType = draftMsg.body?.contentType ?? "HTML";
+  const rawDraftBody = draftMsg.body?.content ?? "";
+  const draftBody = isTextBody(draftMsg.body?.contentType)
+    ? textToHtml(rawDraftBody)
+    : rawDraftBody;
   const spacer = '<div style="line-height:12px"><br></div>';
   const prepend = converted.body + spacer + THREAD_MARKER;
   const finalBody = draftBody.includes("<body")
@@ -33,7 +48,7 @@ export async function buildDraftFromReference(
     : prepend + draftBody;
 
   await client.api(`/me/messages/${draft.id}`).patch({
-    body: { contentType: draftContentType, content: finalBody },
+    body: { contentType: "HTML", content: finalBody },
   });
 
   for (const att of converted.attachments) {
