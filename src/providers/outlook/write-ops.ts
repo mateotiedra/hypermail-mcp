@@ -19,6 +19,36 @@ function textToHtml(text: string): string {
     .replace(/\r\n|\r|\n/g, "<br>");
 }
 
+function hasMeaningfulHtmlTag(html: string): boolean {
+  return /<\/?(?:p|div|br|blockquote|table|thead|tbody|tfoot|tr|td|th|ul|ol|li|a|span|font|b|strong|em|i|u|img|hr|pre)\b/i.test(html);
+}
+
+function wrapQuotedHistory(content: string): string {
+  return `<blockquote style="margin:0 0 0 .8ex;border-left:1px solid #ccc;padding-left:1ex">${content}</blockquote>`;
+}
+
+function normalizeDraftBody(content: string, contentType: string | undefined): string {
+  if (isTextBody(contentType)) return textToHtml(content);
+  if (contentType?.toLowerCase() !== "html") return content;
+
+  const bodyMatch = /(<body\b[^>]*>)([\s\S]*?)(<\/body>)/i.exec(content);
+  const inner = bodyMatch ? (bodyMatch[2] ?? "") : content;
+  if (inner.trim() === "" || hasMeaningfulHtmlTag(inner)) return content;
+
+  const normalized = wrapQuotedHistory(textToHtml(inner));
+  if (!bodyMatch) return normalized;
+
+  const bodyOpen = bodyMatch[1] ?? "";
+  const bodyClose = bodyMatch[3] ?? "";
+  return (
+    content.slice(0, bodyMatch.index) +
+    bodyOpen +
+    normalized +
+    bodyClose +
+    content.slice(bodyMatch.index + bodyMatch[0].length)
+  );
+}
+
 /**
  * Creates a draft from a reference message (forward or reply), prepends our
  * composed body before the existing content, and attaches inline images.
@@ -38,9 +68,10 @@ export async function buildDraftFromReference(
     await client.api(`/me/messages/${draft.id}`).select("body").get();
 
   const rawDraftBody = draftMsg.body?.content ?? "";
-  const draftBody = isTextBody(draftMsg.body?.contentType)
-    ? textToHtml(rawDraftBody)
-    : rawDraftBody;
+  const draftBody = normalizeDraftBody(
+    rawDraftBody,
+    draftMsg.body?.contentType,
+  );
   const spacer = '<div style="line-height:12px"><br></div>';
   const prepend = converted.body + spacer + THREAD_MARKER;
   const finalBody = draftBody.includes("<body")

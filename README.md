@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.12** — Hardened Outlook reply/forward draft formatting when
+> Microsoft Graph labels generated thread history as HTML but returns
+> plain/unstructured text. Such histories are now defensively normalized with
+> escaped content and line breaks so quoted messages remain readable.
+>
 > **v0.7.11** — Fixed Outlook reply/forward drafts whose Graph-generated
 > quoted bodies are plain text by escaping them and patching the draft as HTML,
 > so newly composed HTML replies no longer render as raw text.
