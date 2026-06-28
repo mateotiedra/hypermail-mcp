@@ -33,6 +33,7 @@ import {
   saveDraft,
   updateDraft,
   moveEmail,
+  trashEmail,
   sendDraft,
   addAttachmentToDraft,
   removeAttachmentFromDraft,
@@ -95,6 +96,10 @@ export class ImapProvider implements EmailProvider {
 
   async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void> {
     return moveEmail(this.clients, account, id, destinationId);
+  }
+
+  async trashEmail(account: AccountRecord, id: string): Promise<void> {
+    return trashEmail(this.clients, account, id);
   }
 
   async sendDraft(account: AccountRecord, id: string): Promise<{ id: string }> {

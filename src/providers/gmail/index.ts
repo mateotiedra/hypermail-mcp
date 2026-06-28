@@ -38,6 +38,7 @@ import {
   saveDraft,
   updateDraft,
   moveEmail,
+  trashEmail,
   sendDraft,
   addAttachmentToDraft,
   removeAttachmentFromDraft,
@@ -260,6 +261,13 @@ export class GmailProvider implements EmailProvider {
     destinationId: string,
   ): Promise<void> {
     return moveEmail(this.clients, account, id, destinationId);
+  }
+
+  async trashEmail(
+    account: AccountRecord,
+    id: string,
+  ): Promise<void> {
+    return trashEmail(this.clients, account, id);
   }
 
   async sendDraft(

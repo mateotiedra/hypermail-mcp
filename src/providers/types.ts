@@ -221,6 +221,8 @@ export interface EmailProvider {
    * "deleteditems", "inbox") or a custom folder ID.
    */
   moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void>;
+  /** Move a message to the provider-native trash/deleted-items location. */
+  trashEmail(account: AccountRecord, id: string): Promise<void>;
   /**
    * Send an existing draft message by ID.
    * Returns the message ID.

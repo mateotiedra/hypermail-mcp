@@ -12,9 +12,11 @@ import {
   decodeId,
   encodeId,
   ImapEnvelope,
+  isTrashFolderAlias,
   resolveFolder,
+  resolveTrashMailbox,
 } from "./helpers.js";
-import type { BodyNode } from "./helpers.js";
+import type { BodyNode, ImapMailboxEntry } from "./helpers.js";
 import {
   findAttachmentInMime,
   removeMimePart,
@@ -190,12 +192,33 @@ export async function moveEmail(
   id: string,
   destinationId: string,
 ): Promise<void> {
+  if (isTrashFolderAlias(destinationId)) {
+    return trashEmail(clients, account, id);
+  }
+
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
   const dest = resolveFolder(destinationId);
 
   return client.withMailbox(folder, async (imap) => {
     await imap.messageMove(uid, dest, { uid: true });
+  });
+}
+
+export async function trashEmail(
+  clients: ImapClientFactory,
+  account: AccountRecord,
+  id: string,
+): Promise<void> {
+  const client = clients.get(account);
+  const { folder, uid } = decodeId(id);
+  const imap = await client.getImap();
+  const dest = resolveTrashMailbox(
+    (await imap.list()) as Iterable<ImapMailboxEntry>,
+  );
+
+  return client.withMailbox(folder, async (lockedImap) => {
+    await lockedImap.messageMove(uid, dest, { uid: true });
   });
 }
 

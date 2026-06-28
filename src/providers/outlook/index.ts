@@ -197,6 +197,10 @@ export class OutlookProvider implements EmailProvider {
     return moveEmail(this.clients.get(account), account, id, destinationId);
   }
 
+  async trashEmail(account: AccountRecord, id: string): Promise<void> {
+    return moveEmail(this.clients.get(account), account, id, "deleteditems");
+  }
+
   async sendDraft(account: AccountRecord, id: string): Promise<{ id: string }> {
     return sendDraft(this.clients.get(account), account, id);
   }

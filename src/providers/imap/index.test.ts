@@ -3,6 +3,8 @@ import {
   encodeId,
   decodeId,
   resolveFolder,
+  isTrashFolderAlias,
+  resolveTrashMailbox,
   clampLimit,
   findAttachments,
   findPartByType,
@@ -62,6 +64,27 @@ describe("resolveFolder", () => {
 
   it("passes through unknown names", () => {
     expect(resolveFolder("CustomFolder")).toBe("CustomFolder");
+  });
+});
+
+describe("trash mailbox resolution", () => {
+  it("detects trash aliases", () => {
+    expect(isTrashFolderAlias("deleteditems")).toBe(true);
+    expect(isTrashFolderAlias("Trash")).toBe(true);
+    expect(isTrashFolderAlias("Archive")).toBe(false);
+  });
+
+  it("uses the server-advertised special-use trash mailbox", () => {
+    expect(
+      resolveTrashMailbox([
+        { path: "Archive", specialUse: "\\Archive" },
+        { path: "Deleted Messages", specialUse: "\\Trash" },
+      ]),
+    ).toBe("Deleted Messages");
+  });
+
+  it("falls back to Trash when no special-use trash mailbox is advertised", () => {
+    expect(resolveTrashMailbox([{ path: "Archive" }])).toBe("Trash");
   });
 });
 

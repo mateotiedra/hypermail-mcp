@@ -39,6 +39,13 @@ export function registerOrganizeTools(
     return ok(data, data);
   }
 
+  async function trashMessage(args: { account: string; id: string }) {
+    const { provider, account } = registry.resolveByEmail(args.account);
+    await provider.trashEmail(account, args.id);
+    const data = { trashed: true as const, id: args.id };
+    return ok(data, data);
+  }
+
   // ---------- archive ----------
 
   const archiveMoveSchema = z.object({
@@ -88,7 +95,7 @@ export function registerOrganizeTools(
       },
       async (args) => {
         try {
-          return await moveToWellKnown(args, "deleteditems", "trashed");
+          return await trashMessage(args);
         } catch (err) {
           return fail(errMsg(err));
         }

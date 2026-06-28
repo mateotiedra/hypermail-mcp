@@ -17,6 +17,26 @@ export function resolveFolder(wellKnownOrPath: string): string {
   return WELL_KNOWN_TO_IMAP[wellKnownOrPath.toLowerCase()] ?? wellKnownOrPath;
 }
 
+export function isTrashFolderAlias(wellKnownOrPath: string): boolean {
+  const lower = wellKnownOrPath.toLowerCase();
+  return lower === "deleteditems" || lower === "trash";
+}
+
+export function resolveTrashMailbox(
+  mailboxes: Iterable<ImapMailboxEntry>,
+): string {
+  for (const mailbox of mailboxes) {
+    const specialUse = mailbox.specialUse?.toLowerCase();
+    if (specialUse === "\\trash") return mailbox.path;
+
+    const flags = mailbox.flags ? Array.from(mailbox.flags) : [];
+    if (flags.some((flag) => flag.toLowerCase() === "\\trash")) {
+      return mailbox.path;
+    }
+  }
+  return "Trash";
+}
+
 // ---------- generic ----------
 
 export function clampLimit(v: number | undefined, dflt: number, max: number): number {
@@ -163,6 +183,7 @@ export interface ImapMailboxEntry {
   path: string;
   name?: string;
   specialUse?: string;
+  flags?: Set<string> | string[];
   delimiter?: string;
   listed?: boolean;
   subscribed?: boolean;

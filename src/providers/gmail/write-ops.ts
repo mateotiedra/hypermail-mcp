@@ -181,12 +181,21 @@ export async function updateDraft(
   return { id: updated.data.message?.id ?? updated.data.id ?? id };
 }
 
+export function isTrashDestination(destinationId: string): boolean {
+  const lower = destinationId.toLowerCase();
+  return lower === "deleteditems" || lower === "trash";
+}
+
 export async function moveEmail(
   clients: GmailClientFactory,
   account: AccountRecord,
   id: string,
   destinationId: string,
 ): Promise<void> {
+  if (isTrashDestination(destinationId)) {
+    return trashEmail(clients, account, id);
+  }
+
   const { gmail } = clients.get(account);
   const { addLabelIds, removeLabelIds } =
     resolveLabelsForMove(destinationId);
@@ -195,6 +204,18 @@ export async function moveEmail(
     userId: "me",
     id,
     requestBody: { addLabelIds, removeLabelIds },
+  });
+}
+
+export async function trashEmail(
+  clients: GmailClientFactory,
+  account: AccountRecord,
+  id: string,
+): Promise<void> {
+  const { gmail } = clients.get(account);
+  await gmail.users.messages.trash({
+    userId: "me",
+    id,
   });
 }
 
