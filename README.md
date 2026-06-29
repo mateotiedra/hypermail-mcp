@@ -3,6 +3,12 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.13** — Hardened `get_new_emails` against duplicate delivery when
+> multiple MCP processes share the same encrypted account store. Store writes
+> now reload and merge under a cross-process lock, checkpoints are monotonic,
+> and new-email batches are atomically claimed before being returned. `trash_email`
+> also now uses provider-native trash operations for Gmail and IMAP trash aliases.
+>
 > **v0.7.12** — Hardened Outlook reply/forward draft formatting when
 > Microsoft Graph labels generated thread history as HTML but returns
 > plain/unstructured text. Such histories are now defensively normalized with

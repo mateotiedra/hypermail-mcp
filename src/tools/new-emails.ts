@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { ResolvedTools } from "../config.js";
 import type { EmailProvider, EmailFull, EmailSummary } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
-import type { AccountRecord, AccountStore } from "../store/account-store.js";
+import type { AccountRecord, AccountStore, NewEmailClaimCandidate } from "../store/account-store.js";
 import { selectBody } from "../html-to-markdown.js";
 import {
   attachmentMetaOutputSchema,
@@ -268,14 +268,31 @@ async function hydrateAndAdvance(
 ): Promise<NewEmailOutput[]> {
   if (selected.length === 0) return [];
 
-  const emails: NewEmailOutput[] = [];
+  const hydrated: Array<{
+    candidate: Candidate;
+    email: NewEmailOutput;
+    fullId: string;
+  }> = [];
+
   for (const candidate of selected) {
     const full = await provider.readEmail(account, candidate.summary.id);
-    emails.push(formatNewEmail(account.email, full, candidate.summary));
+    hydrated.push({
+      candidate,
+      email: formatNewEmail(account.email, full, candidate.summary),
+      fullId: full.id,
+    });
   }
 
-  await advanceCheckpoint(store, account, selected);
-  return emails;
+  const claims: NewEmailClaimCandidate[] = hydrated.map(({ candidate, fullId }) => ({
+    summaryId: candidate.summary.id,
+    receivedAt: candidate.timestamp,
+    ids: [candidate.summary.id, fullId],
+  }));
+  const claimed = new Set(await store.claimNewEmails(account.email, claims));
+
+  return hydrated
+    .filter(({ candidate }) => claimed.has(candidate.summary.id))
+    .map(({ email }) => email);
 }
 
 function formatNewEmail(
@@ -304,26 +321,6 @@ function formatNewEmail(
     bodyTruncated,
     bodyOriginalLength: body.length,
   };
-}
-
-async function advanceCheckpoint(
-  store: AccountStore,
-  account: AccountRecord,
-  selected: Candidate[],
-): Promise<void> {
-  const ordered = oldestCandidatesFirst(selected);
-  const newest = ordered[ordered.length - 1];
-  if (!newest) return;
-
-  const newestTimestamp = newest.timestamp;
-  const idsAtNewest = ordered
-    .filter((candidate) => candidate.timestamp === newestTimestamp)
-    .map((candidate) => candidate.summary.id);
-
-  await store.updateNewEmailCheckpoint(account.email, {
-    receivedAt: newestTimestamp,
-    deliveredIdsAtReceivedAt: idsAtNewest,
-  });
 }
 
 function normalizeCheckpoint(

@@ -18,14 +18,20 @@ function account(overrides: Partial<AccountRecord> = {}): AccountRecord {
   };
 }
 
-async function withStore<T>(fn: (store: AccountStore) => Promise<T>): Promise<T> {
+async function withDataDir<T>(fn: (dataDir: string) => Promise<T>): Promise<T> {
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "hypermail-account-store-"));
   try {
-    const store = await AccountStore.open({ dataDir, key });
-    return await fn(store);
+    return await fn(dataDir);
   } finally {
     await fs.rm(dataDir, { recursive: true, force: true });
   }
+}
+
+async function withStore<T>(fn: (store: AccountStore) => Promise<T>): Promise<T> {
+  return withDataDir(async (dataDir) => {
+    const store = await AccountStore.open({ dataDir, key });
+    return await fn(store);
+  });
 }
 
 describe("AccountStore", () => {
@@ -51,6 +57,87 @@ describe("AccountStore", () => {
       expect(updated?.newEmailCheckpoint).toEqual({
         receivedAt: "2026-01-02T00:00:00.000Z",
         deliveredIdsAtReceivedAt: ["m1"],
+      });
+    });
+  });
+
+  it("preserves checkpoints when a stale store updates tokens", async () => {
+    await withDataDir(async (dataDir) => {
+      const stale = await AccountStore.open({ dataDir, key });
+      await stale.upsertAccount(account());
+      const fresh = await AccountStore.open({ dataDir, key });
+
+      await fresh.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-02T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["m1"],
+      });
+      await stale.updateTokens("a@example.com", { refreshed: true });
+
+      const reopened = await AccountStore.open({ dataDir, key });
+      expect(reopened.getAccount("a@example.com")).toMatchObject({
+        tokens: { refreshed: true },
+        newEmailCheckpoint: {
+          receivedAt: "2026-01-02T00:00:00.000Z",
+          deliveredIdsAtReceivedAt: ["m1"],
+        },
+      });
+    });
+  });
+
+  it("unions same-timestamp delivered IDs across stale store instances", async () => {
+    await withDataDir(async (dataDir) => {
+      const first = await AccountStore.open({ dataDir, key });
+      await first.upsertAccount(account({
+        newEmailCheckpoint: {
+          receivedAt: "2026-01-01T00:00:00.000Z",
+          deliveredIdsAtReceivedAt: ["a"],
+        },
+      }));
+      const stale = await AccountStore.open({ dataDir, key });
+      const fresh = await AccountStore.open({ dataDir, key });
+
+      await fresh.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["b"],
+      });
+      await stale.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["c"],
+      });
+
+      const reopened = await AccountStore.open({ dataDir, key });
+      expect(reopened.getAccount("a@example.com")?.newEmailCheckpoint).toEqual({
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["a", "b", "c"],
+      });
+    });
+  });
+
+  it("does not regress a newer checkpoint from a stale store", async () => {
+    await withDataDir(async (dataDir) => {
+      const first = await AccountStore.open({ dataDir, key });
+      await first.upsertAccount(account({
+        newEmailCheckpoint: {
+          receivedAt: "2026-01-01T00:00:00.000Z",
+          deliveredIdsAtReceivedAt: ["old"],
+        },
+      }));
+      const stale = await AccountStore.open({ dataDir, key });
+      const fresh = await AccountStore.open({ dataDir, key });
+
+      await fresh.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-03T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["new"],
+      });
+      await stale.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-02T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["stale"],
+      });
+
+      const reopened = await AccountStore.open({ dataDir, key });
+      expect(reopened.getAccount("a@example.com")?.newEmailCheckpoint).toEqual({
+        receivedAt: "2026-01-03T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["new"],
       });
     });
   });

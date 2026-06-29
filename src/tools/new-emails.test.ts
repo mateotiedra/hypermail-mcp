@@ -1,7 +1,11 @@
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
 import { describe, expect, it, vi } from "vitest";
 
 import { registerNewEmailTool } from "./new-emails.js";
-import type { AccountRecord, AccountStore } from "../store/account-store.js";
+import { AccountStore, type AccountRecord, type NewEmailClaimCandidate } from "../store/account-store.js";
 import type { EmailProvider, EmailSummary } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
@@ -22,6 +26,54 @@ function account(email: string, checkpoint?: AccountRecord["newEmailCheckpoint"]
 
 function summary(id: string, receivedAt: string, subject = id): EmailSummary {
   return { id, subject, receivedAt, folder: "inbox" };
+}
+
+function normalizeTimestamp(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const ms = Date.parse(value);
+  if (!Number.isFinite(ms)) return undefined;
+  return new Date(ms).toISOString();
+}
+
+function uniqueIds(ids: string[]): string[] {
+  return [...new Set(ids.filter((id) => id.length > 0))];
+}
+
+function mergeCheckpoint(
+  current: AccountRecord["newEmailCheckpoint"],
+  incoming: AccountRecord["newEmailCheckpoint"],
+): AccountRecord["newEmailCheckpoint"] {
+  const currentAt = normalizeTimestamp(current?.receivedAt);
+  const incomingAt = normalizeTimestamp(incoming?.receivedAt);
+  if (!incomingAt) return currentAt
+    ? { receivedAt: currentAt, deliveredIdsAtReceivedAt: uniqueIds(current?.deliveredIdsAtReceivedAt ?? []) }
+    : undefined;
+  if (!currentAt || incomingAt > currentAt) {
+    return { receivedAt: incomingAt, deliveredIdsAtReceivedAt: uniqueIds(incoming?.deliveredIdsAtReceivedAt ?? []) };
+  }
+  if (incomingAt < currentAt) {
+    return { receivedAt: currentAt, deliveredIdsAtReceivedAt: uniqueIds(current?.deliveredIdsAtReceivedAt ?? []) };
+  }
+  return {
+    receivedAt: currentAt,
+    deliveredIdsAtReceivedAt: uniqueIds([
+      ...(current?.deliveredIdsAtReceivedAt ?? []),
+      ...(incoming?.deliveredIdsAtReceivedAt ?? []),
+    ]),
+  };
+}
+
+function isDelivered(
+  checkpoint: AccountRecord["newEmailCheckpoint"],
+  receivedAt: string,
+  ids: string[],
+): boolean {
+  const checkpointAt = normalizeTimestamp(checkpoint?.receivedAt);
+  if (!checkpointAt) return false;
+  if (receivedAt < checkpointAt) return true;
+  if (receivedAt > checkpointAt) return false;
+  const delivered = new Set(checkpoint?.deliveredIdsAtReceivedAt ?? []);
+  return ids.some((id) => delivered.has(id));
 }
 
 function memoryStore(initial: AccountRecord[]): AccountStore {
@@ -49,21 +101,35 @@ function memoryStore(initial: AccountRecord[]): AccountStore {
     ) => {
       const rec = records.get(email.toLowerCase());
       if (!rec) return undefined;
-      const current = rec.newEmailCheckpoint;
-      const merged = current?.receivedAt === checkpoint.receivedAt
-        ? {
-            receivedAt: checkpoint.receivedAt,
-            deliveredIdsAtReceivedAt: [
-              ...new Set([
-                ...(current.deliveredIdsAtReceivedAt ?? []),
-                ...(checkpoint.deliveredIdsAtReceivedAt ?? []),
-              ]),
-            ],
-          }
-        : checkpoint;
+      const merged = mergeCheckpoint(rec.newEmailCheckpoint, checkpoint);
       const next = { ...rec, newEmailCheckpoint: merged };
       records.set(email.toLowerCase(), next);
       return { ...next };
+    }),
+    claimNewEmails: vi.fn(async (email: string, candidates: NewEmailClaimCandidate[]) => {
+      const rec = records.get(email.toLowerCase());
+      if (!rec) return [];
+      let checkpoint = rec.newEmailCheckpoint;
+      const claimed: string[] = [];
+      const ordered = [...candidates].sort((a, b) => {
+        const byTimestamp = (normalizeTimestamp(a.receivedAt) ?? a.receivedAt)
+          .localeCompare(normalizeTimestamp(b.receivedAt) ?? b.receivedAt);
+        if (byTimestamp !== 0) return byTimestamp;
+        return a.summaryId.localeCompare(b.summaryId);
+      });
+      for (const candidate of ordered) {
+        const receivedAt = normalizeTimestamp(candidate.receivedAt);
+        if (!receivedAt) continue;
+        const ids = uniqueIds([candidate.summaryId, ...candidate.ids]);
+        if (isDelivered(checkpoint, receivedAt, ids)) continue;
+        claimed.push(candidate.summaryId);
+        checkpoint = mergeCheckpoint(checkpoint, {
+          receivedAt,
+          deliveredIdsAtReceivedAt: ids,
+        });
+      }
+      records.set(email.toLowerCase(), { ...rec, newEmailCheckpoint: checkpoint });
+      return claimed;
     }),
   } as unknown as AccountStore;
 }
@@ -173,7 +239,7 @@ describe("get_new_emails", () => {
     const data = structured(await handler({ account: acct.email, limit: 2 }));
 
     expect((data.emails as Array<{ id: string }>).map((email) => email.id)).toEqual(["1", "2"]);
-    expect(store.updateNewEmailCheckpoint).toHaveBeenLastCalledWith(acct.email, {
+    expect(store.getAccount(acct.email)?.newEmailCheckpoint).toEqual({
       receivedAt: "2026-01-03T00:00:00.000Z",
       deliveredIdsAtReceivedAt: ["2"],
     });
@@ -231,10 +297,11 @@ describe("get_new_emails", () => {
     const data = structured(await handler({ account: acct.email, limit: 1 }));
 
     expect((data.emails as Array<{ id: string }>).map((email) => email.id)).toEqual(["b"]);
-    expect(store.updateNewEmailCheckpoint).toHaveBeenLastCalledWith(acct.email, {
+    expect(store.claimNewEmails).toHaveBeenLastCalledWith(acct.email, [{
+      summaryId: "b",
       receivedAt: "2026-01-01T00:00:00.000Z",
-      deliveredIdsAtReceivedAt: ["b"],
-    });
+      ids: ["b", "b"],
+    }]);
     expect(store.getAccount(acct.email)?.newEmailCheckpoint?.deliveredIdsAtReceivedAt).toEqual(["a", "b"]);
   });
 
@@ -268,7 +335,7 @@ describe("get_new_emails", () => {
     const result = await handler({ account: acct.email });
 
     expect(result).toMatchObject({ isError: true });
-    expect(store.updateNewEmailCheckpoint).not.toHaveBeenCalled();
+    expect(store.claimNewEmails).not.toHaveBeenCalled();
   });
 
   it("supports limit 0 without reading or advancing initialized accounts", async () => {
@@ -285,6 +352,77 @@ describe("get_new_emails", () => {
     expect(data).toMatchObject({ count: 0, emails: [], errors: [] });
     expect(prov.readEmail).not.toHaveBeenCalled();
     expect(store.updateNewEmailCheckpoint).not.toHaveBeenCalled();
+  });
+
+  it("claims concurrent hydrated candidates only once across store instances", async () => {
+    const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "hypermail-new-emails-"));
+    try {
+      const base = await AccountStore.open({ dataDir, key: Buffer.alloc(32, 7) });
+      const acct = await base.upsertAccount(account("a@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["cursor"],
+      }));
+      const items = [
+        summary("new", "2026-01-02T00:00:00.000Z"),
+        summary("cursor", "2026-01-01T00:00:00.000Z"),
+      ];
+
+      let readCount = 0;
+      let releaseReads!: () => void;
+      const bothRead = new Promise<void>((resolve) => {
+        releaseReads = resolve;
+      });
+      const blockedProvider = (): EmailProvider => ({
+        id: "imap",
+        listEmails: vi.fn(async (_account: AccountRecord, listOpts) => {
+          const skip = listOpts.skip ?? 0;
+          const limit = listOpts.limit ?? 25;
+          return {
+            items: items.slice(skip, skip + limit),
+            hasMore: skip + limit < items.length,
+          };
+        }),
+        readEmail: vi.fn(async (_account: AccountRecord, id: string) => {
+          readCount += 1;
+          if (readCount === 2) releaseReads();
+          await bothRead;
+          const match = items.find((item) => item.id === id)!;
+          return { ...match, bodyText: `body ${id}` };
+        }),
+      } as unknown as EmailProvider);
+
+      const storeA = await AccountStore.open({ dataDir, key: Buffer.alloc(32, 7) });
+      const storeB = await AccountStore.open({ dataDir, key: Buffer.alloc(32, 7) });
+      const registryFor = (store: AccountStore, prov: EmailProvider): Registry => ({
+        get: vi.fn(() => prov),
+        resolveByEmail: vi.fn((email: string) => {
+          const stored = store.getAccount(email);
+          if (!stored) throw new Error(`no account registered for "${email}"`);
+          return { account: stored, provider: prov };
+        }),
+        list: vi.fn(() => [prov]),
+      } as unknown as Registry);
+      const handlerA = registerHandler(storeA, registryFor(storeA, blockedProvider()));
+      const handlerB = registerHandler(storeB, registryFor(storeB, blockedProvider()));
+
+      const [first, second] = await Promise.all([
+        handlerA({ account: acct.email, limit: 1 }),
+        handlerB({ account: acct.email, limit: 1 }),
+      ]);
+      const delivered = [
+        ...((structured(first).emails as Array<{ id: string }>).map((email) => email.id)),
+        ...((structured(second).emails as Array<{ id: string }>).map((email) => email.id)),
+      ];
+
+      expect(delivered.filter((id) => id === "new")).toHaveLength(1);
+      const reopened = await AccountStore.open({ dataDir, key: Buffer.alloc(32, 7) });
+      expect(reopened.getAccount(acct.email)?.newEmailCheckpoint).toEqual({
+        receivedAt: "2026-01-02T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["new"],
+      });
+    } finally {
+      await fs.rm(dataDir, { recursive: true, force: true });
+    }
   });
 
   it("returns markdown bodies with truncation metadata and attachment metadata only", async () => {
