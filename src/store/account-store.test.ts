@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { createLogger } from "../logger.js";
 import { AccountStore, type AccountRecord } from "./account-store.js";
 
 const key = Buffer.alloc(32, 7);
@@ -214,6 +215,38 @@ describe("AccountStore", () => {
           receivedAt: "2026-01-01T00:00:00.000Z",
           deliveredIdsAtReceivedAt: ["m1"],
         },
+      });
+    });
+  });
+
+  it("emits debug logs for token, checkpoint, and new-email claim writes", async () => {
+    await withDataDir(async (dataDir) => {
+      const lines: string[] = [];
+      const logger = createLogger({ enabled: true, write: (line) => lines.push(line) });
+      const store = await AccountStore.open({ dataDir, key, logger });
+
+      await store.upsertAccount(account());
+      await store.updateTokens("a@example.com", { refreshed: true });
+      await store.updateNewEmailCheckpoint("a@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["m1"],
+      });
+      await store.claimNewEmails("a@example.com", [{
+        summaryId: "m2",
+        receivedAt: "2026-01-02T00:00:00.000Z",
+        ids: ["m2"],
+      }]);
+
+      const events = lines.map((line) =>
+        (JSON.parse(line.replace(/^\[hypermail-mcp\] debug /, "")) as { event: string }).event,
+      );
+      expect(events).toContain("updateTokens");
+      expect(events).toContain("updateNewEmailCheckpoint");
+      expect(events).toContain("claimNewEmails");
+      expect(events).toContain("flush");
+      expect(store.getAccount("a@example.com")?.newEmailCheckpoint).toEqual({
+        receivedAt: "2026-01-02T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: ["m2"],
       });
     });
   });

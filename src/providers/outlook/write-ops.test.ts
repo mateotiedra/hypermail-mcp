@@ -1,14 +1,17 @@
 import type { Client } from "@microsoft/microsoft-graph-client";
 import { describe, expect, it } from "vitest";
 
-import { buildDraftFromReference, THREAD_MARKER } from "./write-ops.js";
+import { buildDraftFromReference, THREAD_MARKER, updateDraft } from "./write-ops.js";
 
 interface PatchCall {
   endpoint: string;
   payload: unknown;
+  headers?: Record<string, string>;
 }
 
 class FakeGraphRequest {
+  private readonly requestHeaders: Record<string, string> = {};
+
   constructor(
     private readonly endpoint: string,
     private readonly draftBody: { content?: string; contentType?: string },
@@ -16,6 +19,11 @@ class FakeGraphRequest {
   ) {}
 
   select(_fields: string): this {
+    return this;
+  }
+
+  header(name: string, value: string): this {
+    this.requestHeaders[name] = value;
     return this;
   }
 
@@ -27,8 +35,13 @@ class FakeGraphRequest {
     return { body: this.draftBody };
   }
 
-  async patch(payload: unknown): Promise<void> {
-    this.patches.push({ endpoint: this.endpoint, payload });
+  async patch(payload: unknown): Promise<{ id: string }> {
+    const call: PatchCall = { endpoint: this.endpoint, payload };
+    if (Object.keys(this.requestHeaders).length > 0) {
+      call.headers = { ...this.requestHeaders };
+    }
+    this.patches.push(call);
+    return { id: "draft-1" };
   }
 }
 
@@ -44,6 +57,42 @@ function fakeClient(draftBody: { content?: string; contentType?: string }): {
   } as unknown as Client;
   return { client, patches };
 }
+
+describe("updateDraft", () => {
+  it("requests the updated Graph representation when patching drafts", async () => {
+    const { client, patches } = fakeClient({});
+
+    const res = await updateDraft(
+      client,
+      {
+        email: "user@example.com",
+        provider: "outlook",
+        tokens: {},
+        addedAt: "2026-01-01T00:00:00.000Z",
+      },
+      "draft-1",
+      {
+        subject: "Updated subject",
+        body: "<p>Updated body</p>",
+        isHtml: true,
+      },
+    );
+
+    expect(res).toEqual({ id: "draft-1" });
+    expect(patches).toHaveLength(1);
+    expect(patches[0]).toEqual({
+      endpoint: "/me/messages/draft-1",
+      headers: { Prefer: "return=representation" },
+      payload: {
+        subject: "Updated subject",
+        body: {
+          contentType: "HTML",
+          content: "<p>Updated body</p>",
+        },
+      },
+    });
+  });
+});
 
 describe("buildDraftFromReference", () => {
   it("patches plain-text reply drafts as HTML and escapes the quoted text", async () => {

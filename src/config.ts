@@ -35,6 +35,7 @@ export interface AppConfig {
   http: HttpConfig;
   tools?: ToolsConfig;
   providers?: ProvidersConfig;
+  debugLogging: boolean;
 }
 
 export interface LoadConfigResult {

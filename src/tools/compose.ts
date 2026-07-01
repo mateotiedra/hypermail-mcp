@@ -12,11 +12,20 @@ import {
   ok,
   fail,
   errMsg,
-  emailAddrSchema,
   composeBody,
   shouldRegister,
   applyExactTextEdit,
 } from "./shared.js";
+import {
+  type BodyEditExpectation,
+  readDraftWithVerifiedBody,
+} from "./edit-draft-verify.js";
+import {
+  editDraftSchema,
+  type EditDraftArgs,
+  sendEmailSchema,
+  type SendEmailArgs,
+} from "./compose-schemas.js";
 
 export function registerComposeTools(
   server: McpServer,
@@ -27,73 +36,6 @@ export function registerComposeTools(
   },
 ): void {
   const { store, registry, tools } = ctx;
-
-  const sendEmailSchema = z.object({
-    account: z.string().email(),
-    to: z.array(emailAddrSchema).min(1),
-    cc: z.array(emailAddrSchema).optional(),
-    bcc: z.array(emailAddrSchema).optional(),
-    subject: z.string(),
-    body: z.string(),
-    format: z
-      .enum(["html", "markdown"])
-      .describe(
-        "Body format. 'html' sends the body as-is (must be valid HTML). " +
-          "'markdown' converts the body from Markdown to HTML for clean rendering on the recipient side.",
-      ),
-    include_signature: z
-      .boolean()
-      .describe(
-        "Whether to append the account's saved HTML signature to the email. " +
-          "If true, don't include a signature in the body param to avoid double signature. " +
-          "Returns an error if true but no signature is configured for this account.",
-      ),
-    inReplyTo: z
-      .union([z.string(), z.literal(false)])
-      .describe(
-        "Message ID to reply to. When set, sends as a threaded reply " +
-          "which includes the quoted thread history automatically. " +
-          "Set to `false` for a new email (not a reply).",
-      ),
-    replyAll: z
-      .boolean()
-      .default(false)
-      .optional()
-      .describe(
-        "When true and `inReplyTo` is set, reply to all recipients " +
-          "instead of just the sender.",
-      ),
-    forwardMessageId: z
-      .string()
-      .optional()
-      .describe(
-        "Message ID to forward. When set, sends as a forward of the " +
-          "specified message, preserving the original content. " +
-          "Mutually exclusive with `inReplyTo`.",
-      ),
-    attachments: z
-      .array(
-        z.object({
-          filePath: z
-            .string()
-            .min(1)
-            .describe("Absolute path to a local file"),
-          name: z
-            .string()
-            .optional()
-            .describe(
-              "Attachment filename. Defaults to the file's basename.",
-            ),
-        }),
-      )
-      .optional()
-      .describe(
-        "File attachments to include. The server reads the files from " +
-          "disk and base64-encodes them automatically.",
-      ),
-  });
-
-  type SendEmailArgs = z.infer<typeof sendEmailSchema>;
 
   async function handleSendOrDraft(
     args: SendEmailArgs,
@@ -236,85 +178,6 @@ export function registerComposeTools(
 
   // ---------- edit_draft ----------
 
-  const editDraftSchema = z.object({
-    account: z.string().email(),
-    id: z.string().min(1).describe("Draft message ID to edit"),
-    to: z.array(emailAddrSchema).optional(),
-    cc: z.array(emailAddrSchema).optional(),
-    bcc: z.array(emailAddrSchema).optional(),
-    subject: z.string().optional(),
-    old_text: z
-      .string()
-      .min(1)
-      .optional()
-      .describe(
-        "Exact current HTML section to replace in the draft body. " +
-          "Copy this from `draftHtml` or from `read_email` with format='html'. " +
-          "Must match exactly once; unselected content is preserved.",
-      ),
-    new_text: z
-      .string()
-      .optional()
-      .describe(
-        "Replacement content for `old_text`. The replacement is composed " +
-          "using `format` and `include_signature`, then inserted exactly " +
-          "where `old_text` matched.",
-      ),
-    body: z
-      .string()
-      .optional()
-      .describe(
-        "Deprecated alias for `new_text`. Body-only full replacement is " +
-          "not supported; provide `old_text` with this field.",
-      ),
-    format: z
-      .enum(["html", "markdown"])
-      .optional()
-      .describe(
-        "Replacement format. Only meaningful when `new_text` or deprecated " +
-          "`body` is also provided. 'html' inserts the replacement as-is " +
-          "(must be valid HTML). 'markdown' converts the replacement from Markdown to HTML.",
-      ),
-    include_signature: z
-      .boolean()
-      .optional()
-      .describe(
-        "Whether to append the account's saved HTML signature to the " +
-          "replacement section. If true, don't include a signature in " +
-          "`new_text`/`body`. Only meaningful when replacement content is provided. " +
-          "Returns an error if true but no signature is configured for this account.",
-      ),
-    new_attachments: z
-      .array(
-        z.object({
-          filePath: z
-            .string()
-            .min(1)
-            .describe("Absolute path to a local file"),
-          name: z
-            .string()
-            .optional()
-            .describe(
-              "Attachment filename. Defaults to the file's basename.",
-            ),
-        }),
-      )
-      .optional()
-      .describe(
-        "New file attachments to add to the draft. The server reads " +
-          "the files from disk and base64-encodes them automatically.",
-      ),
-    remove_attachments: z
-      .array(z.string().min(1))
-      .optional()
-      .describe(
-        "Attachment IDs to remove from the draft. Get attachment IDs " +
-          "from read_email.",
-      ),
-  });
-
-  type EditDraftArgs = z.infer<typeof editDraftSchema>;
-
   const editDraftOutputSchema = {
     edited: z.literal(true),
     id: z.string(),
@@ -374,6 +237,7 @@ export function registerComposeTools(
 
           let bodyPayload: string | undefined;
           let isHtmlPayload: boolean | undefined;
+          let bodyExpectation: BodyEditExpectation | undefined;
           if (replacementText !== undefined) {
             const existing = await provider.readEmail(account, a.id);
             const existingBody = existing.bodyHtml ?? existing.bodyText ?? "";
@@ -386,6 +250,11 @@ export function registerComposeTools(
             });
             bodyPayload = applyExactTextEdit(existingBody, a.old_text ?? "", composed.body);
             isHtmlPayload = composed.isHtml;
+            bodyExpectation = {
+              expectedBody: bodyPayload,
+              oldText: a.old_text ?? "",
+              replacementBody: composed.body,
+            };
           }
 
           const hasDraftUpdate =
@@ -441,7 +310,39 @@ export function registerComposeTools(
             }
           }
 
-          const draft = await provider.readEmail(account, currentId);
+          let draft;
+          if (bodyExpectation) {
+            draft = await readDraftWithVerifiedBody(
+              provider,
+              account,
+              currentId,
+              bodyExpectation,
+            );
+
+            if (!draft && provider.id === "outlook" && bodyPayload !== undefined) {
+              const res = await provider.updateDraft(account, currentId, {
+                body: bodyPayload,
+                isHtml: isHtmlPayload,
+              });
+              currentId = res.id;
+              draft = await readDraftWithVerifiedBody(
+                provider,
+                account,
+                currentId,
+                bodyExpectation,
+              );
+            }
+
+            if (!draft) {
+              return fail(
+                "Draft body edit was not observable after saving. " +
+                  "Retry edit_draft, or recreate the draft with draft_email before sending.",
+              );
+            }
+          } else {
+            draft = await provider.readEmail(account, currentId);
+          }
+
           const result = {
             edited: true as const,
             id: currentId,

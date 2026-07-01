@@ -5,8 +5,10 @@ import { randomUUID } from "node:crypto";
 import { createServer as createHttpServer, type IncomingMessage, type ServerResponse } from "node:http";
 
 import { AccountStore } from "./store/account-store.js";
+import { resolveDataDir } from "./store/crypto.js";
 import { buildRegistry, type Registry } from "./providers/registry.js";
 import { registerTools } from "./tools/index.js";
+import { createLogger } from "./logger.js";
 import { VERSION } from "./version.js";
 import { DEFAULT_GMAIL_OAUTH_CALLBACK_PATH } from "./providers/gmail/auth.js";
 import type { AppConfig, ResolvedTools } from "./config.js";
@@ -19,7 +21,16 @@ export interface ServerOptions {
 
 export async function startServer(opts: ServerOptions): Promise<void> {
   const { config } = opts;
-  const store = await AccountStore.open({ dataDir: config.dataDir });
+  const logger = createLogger({ enabled: config.debugLogging });
+  const dataDir = resolveDataDir(config.dataDir);
+  logger.debug("server", "startup", {
+    version: VERSION,
+    transport: config.transport,
+    dataDir,
+    toolsEnabled: config.tools?.enabled ?? null,
+    toolsDisabled: config.tools?.disabled ?? null,
+  });
+  const store = await AccountStore.open({ dataDir, logger });
   const registry = buildRegistry({ store, providers: config.providers });
   const tools: ResolvedTools = resolveTools(config);
 
@@ -30,7 +41,7 @@ export async function startServer(opts: ServerOptions): Promise<void> {
       { name: "hypermail-mcp", version: VERSION },
       { capabilities: { tools: {}, logging: {} } },
     );
-    registerTools(s, { store, registry, tools });
+    registerTools(s, { store, registry, tools, logger });
     return s;
   };
 

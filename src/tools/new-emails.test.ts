@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { registerNewEmailTool } from "./new-emails.js";
+import { createLogger, type Logger } from "../logger.js";
 import { AccountStore, type AccountRecord, type NewEmailClaimCandidate } from "../store/account-store.js";
 import type { EmailProvider, EmailSummary } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
@@ -172,14 +173,14 @@ function registry(accounts: AccountRecord[], providers: Record<string, EmailProv
   } as unknown as Registry;
 }
 
-function registerHandler(store: AccountStore, reg: Registry): Handler {
+function registerHandler(store: AccountStore, reg: Registry, logger?: Logger): Handler {
   let handler: Handler | undefined;
   const server = {
     registerTool: vi.fn((_name: string, _config: unknown, cb: Handler) => {
       handler = cb;
     }),
   };
-  registerNewEmailTool(server as never, { store, registry: reg, tools });
+  registerNewEmailTool(server as never, { store, registry: reg, tools, logger });
   if (!handler) throw new Error("handler was not registered");
   return handler;
 }
@@ -243,6 +244,36 @@ describe("get_new_emails", () => {
       receivedAt: "2026-01-03T00:00:00.000Z",
       deliveredIdsAtReceivedAt: ["2"],
     });
+  });
+
+  it("emits debug logs for get_new_emails decisions when enabled", async () => {
+    const acct = account("a@example.com", {
+      receivedAt: "2026-01-01T00:00:00.000Z",
+      deliveredIdsAtReceivedAt: ["cursor"],
+    });
+    const store = memoryStore([acct]);
+    const prov = provider([
+      summary("1", "2026-01-02T00:00:00.000Z"),
+      summary("cursor", "2026-01-01T00:00:00.000Z"),
+    ]);
+    const lines: string[] = [];
+    const logger = createLogger({ enabled: true, write: (line) => lines.push(line) });
+    const handler = registerHandler(store, registry([acct], { [acct.email]: prov }), logger);
+
+    const data = structured(await handler({ account: acct.email, limit: 1 }));
+
+    expect(data.count).toBe(1);
+    const events = lines.map((line) =>
+      (JSON.parse(line.replace(/^\[hypermail-mcp\] debug /, "")) as { event: string }).event,
+    );
+    expect(events).toEqual(expect.arrayContaining([
+      "start",
+      "candidatesCollected",
+      "selected",
+      "hydrated",
+      "claimed",
+      "end",
+    ]));
   });
 
   it("returns empty when no initialized-account emails are new", async () => {

@@ -98,6 +98,7 @@ Core environment variables:
   HYPERMAIL_HTTP_HOST
   HYPERMAIL_TOOLS_ENABLED
   HYPERMAIL_TOOLS_DISABLED
+  HYPERMAIL_DEBUG=1|true|yes|on|debug
 
 Provider environment variables:
   HYPERMAIL_OUTLOOK_CLIENT_ID

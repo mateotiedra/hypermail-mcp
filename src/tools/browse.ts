@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
 import type { AccountStore } from "../store/account-store.js";
+import type { Logger } from "../logger.js";
 import { selectBody } from "../html-to-markdown.js";
 import {
   ok,
@@ -22,9 +23,10 @@ export function registerBrowseTools(
     store: AccountStore;
     registry: Registry;
     tools: ResolvedTools;
+    logger?: Logger;
   },
 ): void {
-  const { store, registry, tools } = ctx;
+  const { store, registry, tools, logger } = ctx;
 
   // ---------- email ops ----------
 
@@ -82,7 +84,7 @@ export function registerBrowseTools(
     );
   }
 
-  registerNewEmailTool(server, { store, registry, tools });
+  registerNewEmailTool(server, { store, registry, tools, logger });
 
   if (shouldRegister("search_emails", tools)) {
     server.registerTool(

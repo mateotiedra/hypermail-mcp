@@ -1,4 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 import { registerComposeTools } from "./compose.js";
 import type { ResolvedTools } from "../config.js";
@@ -49,6 +52,10 @@ function structured(result: unknown): Record<string, unknown> | undefined {
 function errorText(result: unknown): string | undefined {
   return (result as { content?: Array<{ text: string }> }).content?.[0]?.text;
 }
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("edit_draft", () => {
   it("replaces only old_text and preserves reply history", async () => {
@@ -138,6 +145,92 @@ describe("edit_draft", () => {
     expect(result).toMatchObject({ isError: true });
     expect(errorText(result)).toContain("old_text matched multiple sections");
     expect(provider.updateDraft).not.toHaveBeenCalled();
+  });
+
+  it("fails when a body edit is not observable after saving", async () => {
+    vi.useFakeTimers();
+    const provider = {
+      id: "gmail",
+      readEmail: vi.fn(async () => ({
+        id: "draft-1",
+        subject: "Subject",
+        bodyHtml: "<p>Old answer</p>",
+      })),
+      updateDraft: vi.fn(async (_account: AccountRecord, id: string) => ({ id })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider);
+
+    const pending = handler({
+      account: account.email,
+      id: "draft-1",
+      old_text: "<p>Old answer</p>",
+      new_text: "<p>New answer</p>",
+      format: "html",
+    });
+    await vi.runAllTimersAsync();
+    const result = await pending;
+
+    expect(result).toMatchObject({ isError: true });
+    expect(errorText(result)).toContain("Draft body edit was not observable");
+    expect(structured(result)).toBeUndefined();
+  });
+
+  it("replays Outlook body updates after stale attachment handling", async () => {
+    vi.useFakeTimers();
+    const dir = mkdtempSync(join(tmpdir(), "hypermail-compose-test-"));
+    const filePath = join(dir, "note.txt");
+    writeFileSync(filePath, "attachment");
+
+    try {
+      const originalHtml = "<p>Old answer</p>";
+      const updatedHtml = "<p>New answer</p>";
+      let currentHtml = originalHtml;
+      let updateCalls = 0;
+      const provider = {
+        id: "outlook",
+        readEmail: vi.fn(async () => ({
+          id: "draft-1",
+          subject: "Subject",
+          bodyHtml: currentHtml,
+        })),
+        updateDraft: vi.fn(async (_account: AccountRecord, id: string, update) => {
+          updateCalls += 1;
+          if (updateCalls > 1) currentHtml = update.body ?? currentHtml;
+          return { id };
+        }),
+        addAttachmentToDraft: vi.fn(async (_account, draftId: string) => ({
+          id: draftId,
+          attachment: { id: "att-1", name: "note.txt" },
+        })),
+      } as unknown as EmailProvider;
+      const handler = registerHandler(provider);
+
+      const pending = handler({
+        account: account.email,
+        id: "draft-1",
+        old_text: originalHtml,
+        new_text: updatedHtml,
+        format: "html",
+        new_attachments: [{ filePath }],
+      });
+      await vi.runAllTimersAsync();
+      const result = await pending;
+
+      expect(provider.addAttachmentToDraft).toHaveBeenCalled();
+      expect(provider.updateDraft).toHaveBeenCalledTimes(2);
+      expect(provider.updateDraft).toHaveBeenLastCalledWith(
+        account,
+        "draft-1",
+        expect.objectContaining({ body: updatedHtml, isHtml: true }),
+      );
+      expect(structured(result)).toMatchObject({
+        edited: true,
+        id: "draft-1",
+        draftHtml: updatedHtml,
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("does not call updateDraft for attachment-only edits", async () => {

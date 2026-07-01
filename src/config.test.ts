@@ -12,6 +12,7 @@ const MANAGED_KEYS = [
   "HYPERMAIL_HTTP_HOST",
   "HYPERMAIL_TOOLS_DISABLED",
   "HYPERMAIL_TOOLS_ENABLED",
+  "HYPERMAIL_DEBUG",
   "HYPERMAIL_OUTLOOK_CLIENT_ID",
   "HYPERMAIL_OUTLOOK_TENANT_ID",
   "HYPERMAIL_GMAIL_CLIENT_ID",
@@ -66,6 +67,7 @@ describe("loadConfig — env-only resolution", () => {
     expect(config.tools).toBeUndefined();
     expect(config.providers).toBeUndefined();
     expect(config.dataDir).toBeUndefined();
+    expect(config.debugLogging).toBe(false);
     expect(warnings).toContain(
       "HYPERMAIL_KEY is not set; a local generated key will be used. Set HYPERMAIL_KEY explicitly for portable hosted deployments.",
     );
@@ -195,6 +197,30 @@ describe("loadConfig — env-only resolution", () => {
     process.env.HYPERMAIL_DATA_DIR = "/custom/data";
     const cfg = load();
     expect(cfg.dataDir).toBe("/custom/data");
+  });
+
+  it("enables debug logging from truthy HYPERMAIL_DEBUG values", () => {
+    for (const value of ["1", "true", "yes", "on", "debug", "TRUE"]) {
+      cleanEnv();
+      process.env.HYPERMAIL_DEBUG = value;
+      expect(load().debugLogging).toBe(true);
+    }
+  });
+
+  it("keeps debug logging disabled by default and for falsey HYPERMAIL_DEBUG values", () => {
+    expect(load().debugLogging).toBe(false);
+    for (const value of ["", "0", "false", "no", "off", "FALSE"]) {
+      cleanEnv();
+      process.env.HYPERMAIL_DEBUG = value;
+      expect(load().debugLogging).toBe(false);
+    }
+  });
+
+  it("warns and disables debug logging for invalid HYPERMAIL_DEBUG values", () => {
+    process.env.HYPERMAIL_DEBUG = "maybe";
+    const { config, warnings } = loadConfig();
+    expect(config.debugLogging).toBe(false);
+    expect(warnings).toContain("Invalid HYPERMAIL_DEBUG; debug logging disabled.");
   });
 
   it("CLI dataDir overrides env", () => {

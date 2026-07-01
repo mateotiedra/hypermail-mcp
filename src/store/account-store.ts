@@ -8,6 +8,8 @@ import {
   resolveKey,
   writeAtomic,
 } from "./crypto.js";
+import type { Logger } from "../logger.js";
+import { noopLogger } from "../logger.js";
 
 /**
  * One stored account. `tokens` is provider-specific (e.g. serialized MSAL cache
@@ -53,6 +55,7 @@ export interface OpenOptions {
   /** Inject the encryption key directly (mostly for tests). Otherwise resolved
    *  from `HYPERMAIL_KEY` env, then OS keychain, then auto-generated. */
   key?: Buffer;
+  logger?: Logger;
 }
 
 const FILE_NAME = "accounts.json.enc";
@@ -70,6 +73,7 @@ export class AccountStore {
     private readonly filePath: string,
     private readonly key: Buffer,
     private data: StoreFile,
+    private readonly logger: Logger,
   ) {
     this.lockPath = `${filePath}.lock`;
   }
@@ -91,7 +95,12 @@ export class AccountStore {
         throw err;
       }
     }
-    return new AccountStore(filePath, key, data);
+    const logger = opts.logger ?? noopLogger;
+    logger.debug("account-store", "open", {
+      filePath,
+      accountCount: data.accounts.length,
+    });
+    return new AccountStore(filePath, key, data, logger);
   }
 
   listAccounts(): AccountRecord[] {
@@ -121,6 +130,13 @@ export class AccountStore {
 
       if (idx >= 0) data.accounts[idx] = next;
       else data.accounts.push(next);
+      this.logger.debug("account-store", "upsertAccount", {
+        email: norm,
+        existed: idx >= 0,
+        checkpointReceivedAt: mergedCheckpoint?.receivedAt ?? null,
+        deliveredIdCount: mergedCheckpoint?.deliveredIdsAtReceivedAt?.length ?? 0,
+        changed: true,
+      });
       return { result: { ...next }, changed: true };
     }));
   }
@@ -132,10 +148,25 @@ export class AccountStore {
     return this.runSerial(email, async () => this.updateLocked((data) => {
       const norm = email.trim().toLowerCase();
       const idx = data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
-      if (idx < 0) return { result: undefined, changed: false };
+      if (idx < 0) {
+        this.logger.debug("account-store", "updateTokens", {
+          email: norm,
+          found: false,
+          changed: false,
+        });
+        return { result: undefined, changed: false };
+      }
       const current = data.accounts[idx]!;
       const next: AccountRecord = { ...current, tokens };
       data.accounts[idx] = next;
+      this.logger.debug("account-store", "updateTokens", {
+        email: norm,
+        found: true,
+        fieldCount: Object.keys(tokens).length,
+        storedCheckpointReceivedAt: current.newEmailCheckpoint?.receivedAt ?? null,
+        storedDeliveredIdCount: current.newEmailCheckpoint?.deliveredIdsAtReceivedAt?.length ?? 0,
+        changed: true,
+      });
       return { result: { ...next }, changed: true };
     }));
   }
@@ -147,20 +178,47 @@ export class AccountStore {
     return this.runSerial(email, async () => this.updateLocked((data) => {
       const norm = email.trim().toLowerCase();
       const idx = data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
-      if (idx < 0) return { result: undefined, changed: false };
+      if (idx < 0) {
+        this.logger.debug("account-store", "updateNewEmailCheckpoint", {
+          email: norm,
+          found: false,
+          incomingReceivedAt: checkpoint.receivedAt,
+          incomingDeliveredIdCount: checkpoint.deliveredIdsAtReceivedAt?.length ?? 0,
+          changed: false,
+        });
+        return { result: undefined, changed: false };
+      }
 
       const current = data.accounts[idx]!;
       const mergedCheckpoint = mergeNewEmailCheckpoints(
         current.newEmailCheckpoint,
         checkpoint,
       );
-      if (!mergedCheckpoint) return { result: { ...current }, changed: false };
+      if (!mergedCheckpoint) {
+        this.logger.debug("account-store", "updateNewEmailCheckpoint", {
+          email: norm,
+          found: true,
+          incomingReceivedAt: checkpoint.receivedAt,
+          incomingDeliveredIdCount: checkpoint.deliveredIdsAtReceivedAt?.length ?? 0,
+          changed: false,
+        });
+        return { result: { ...current }, changed: false };
+      }
 
       const next: AccountRecord = {
         ...current,
         newEmailCheckpoint: mergedCheckpoint,
       };
       data.accounts[idx] = next;
+      this.logger.debug("account-store", "updateNewEmailCheckpoint", {
+        email: norm,
+        found: true,
+        currentReceivedAt: current.newEmailCheckpoint?.receivedAt ?? null,
+        incomingReceivedAt: checkpoint.receivedAt,
+        mergedReceivedAt: mergedCheckpoint.receivedAt,
+        mergedDeliveredIdCount: mergedCheckpoint.deliveredIdsAtReceivedAt?.length ?? 0,
+        changed: true,
+      });
       return { result: { ...next }, changed: true };
     }));
   }
@@ -172,7 +230,17 @@ export class AccountStore {
     return this.runSerial(email, async () => this.updateLocked((data) => {
       const norm = email.trim().toLowerCase();
       const idx = data.accounts.findIndex((a) => a.email.toLowerCase() === norm);
-      if (idx < 0 || candidates.length === 0) return { result: [], changed: false };
+      if (idx < 0 || candidates.length === 0) {
+        this.logger.debug("account-store", "claimNewEmails", {
+          email: norm,
+          found: idx >= 0,
+          candidateCount: candidates.length,
+          candidateIds: candidates.map((candidate) => candidate.summaryId),
+          claimedCount: 0,
+          changed: false,
+        });
+        return { result: [], changed: false };
+      }
 
       const account = data.accounts[idx]!;
       let checkpoint = normalizeCheckpoint(account.newEmailCheckpoint);
@@ -197,13 +265,37 @@ export class AccountStore {
         });
       }
 
-      if (claimed.length === 0 || !checkpoint) return { result: claimed, changed: false };
+      if (claimed.length === 0 || !checkpoint) {
+        this.logger.debug("account-store", "claimNewEmails", {
+          email: norm,
+          found: true,
+          candidateCount: candidates.length,
+          candidateIds: candidates.map((candidate) => candidate.summaryId),
+          claimedCount: claimed.length,
+          claimedIds: claimed,
+          checkpointReceivedAt: checkpoint?.receivedAt ?? null,
+          deliveredIdCount: checkpoint?.deliveredIdsAtReceivedAt?.length ?? 0,
+          changed: false,
+        });
+        return { result: claimed, changed: false };
+      }
 
       const next: AccountRecord = {
         ...account,
         newEmailCheckpoint: checkpoint,
       };
       data.accounts[idx] = next;
+      this.logger.debug("account-store", "claimNewEmails", {
+        email: norm,
+        found: true,
+        candidateCount: candidates.length,
+        candidateIds: candidates.map((candidate) => candidate.summaryId),
+        claimedCount: claimed.length,
+        claimedIds: claimed,
+        checkpointReceivedAt: checkpoint.receivedAt,
+        deliveredIdCount: checkpoint.deliveredIdsAtReceivedAt?.length ?? 0,
+        changed: true,
+      });
       return { result: claimed, changed: true };
     }));
   }
@@ -213,7 +305,12 @@ export class AccountStore {
       const norm = email.trim().toLowerCase();
       const before = data.accounts.length;
       data.accounts = data.accounts.filter((a) => a.email.toLowerCase() !== norm);
-      return { result: data.accounts.length !== before, changed: data.accounts.length !== before };
+      const changed = data.accounts.length !== before;
+      this.logger.debug("account-store", "removeAccount", {
+        email: norm,
+        changed,
+      });
+      return { result: changed, changed };
     }));
   }
 
@@ -261,6 +358,10 @@ export class AccountStore {
   private async flush(): Promise<void> {
     const buf = encrypt(this.data, this.key);
     await writeAtomic(this.filePath, buf);
+    this.logger.debug("account-store", "flush", {
+      filePath: this.filePath,
+      accountCount: this.data.accounts.length,
+    });
   }
 
   private async withFileLock<T>(task: () => Promise<T>): Promise<T> {
@@ -269,11 +370,15 @@ export class AccountStore {
       return await task();
     } finally {
       await fs.rm(this.lockPath, { recursive: true, force: true });
+      this.logger.debug("account-store", "lockReleased", {
+        lockPath: this.lockPath,
+      });
     }
   }
 
   private async acquireFileLock(): Promise<void> {
     const startedAt = Date.now();
+    let loggedWait = false;
     while (true) {
       try {
         await fs.mkdir(this.lockPath, { mode: 0o700 });
@@ -282,12 +387,26 @@ export class AccountStore {
           `${process.pid}\n${new Date().toISOString()}\n`,
           { mode: 0o600 },
         );
+        this.logger.debug("account-store", "lockAcquired", {
+          lockPath: this.lockPath,
+          waitedMs: Date.now() - startedAt,
+        });
         return;
       } catch (err: unknown) {
         if ((err as NodeJS.ErrnoException).code !== "EEXIST") throw err;
 
+        if (!loggedWait) {
+          this.logger.debug("account-store", "lockWait", {
+            lockPath: this.lockPath,
+          });
+          loggedWait = true;
+        }
         await this.removeStaleLock();
         if (Date.now() - startedAt > LOCK_TIMEOUT_MS) {
+          this.logger.debug("account-store", "lockTimeout", {
+            lockPath: this.lockPath,
+            waitedMs: Date.now() - startedAt,
+          });
           throw new Error(`timed out waiting for account store lock: ${this.lockPath}`);
         }
         await delay(LOCK_RETRY_MS);
@@ -300,6 +419,10 @@ export class AccountStore {
       const stat = await fs.stat(this.lockPath);
       if (Date.now() - stat.mtimeMs > LOCK_STALE_MS) {
         await fs.rm(this.lockPath, { recursive: true, force: true });
+        this.logger.debug("account-store", "staleLockRemoved", {
+          lockPath: this.lockPath,
+          staleMs: Date.now() - stat.mtimeMs,
+        });
       }
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;

@@ -210,11 +210,12 @@ export async function updateDraft(
     }
   }
 
-  await client
+  const updated = (await client
     .api(`/me/messages/${encodeURIComponent(id)}`)
-    .patch(payload);
+    .header("Prefer", "return=representation")
+    .patch(payload)) as { id?: string } | undefined;
 
-  return { id };
+  return { id: updated?.id ?? id };
 }
 
 export async function addAttachmentToDraft(

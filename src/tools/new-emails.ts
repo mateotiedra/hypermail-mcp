@@ -5,6 +5,8 @@ import type { ResolvedTools } from "../config.js";
 import type { EmailProvider, EmailFull, EmailSummary } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { AccountRecord, AccountStore, NewEmailClaimCandidate } from "../store/account-store.js";
+import type { Logger } from "../logger.js";
+import { noopLogger } from "../logger.js";
 import { selectBody } from "../html-to-markdown.js";
 import {
   attachmentMetaOutputSchema,
@@ -55,9 +57,9 @@ interface NewEmailOutput {
 
 export function registerNewEmailTool(
   server: McpServer,
-  ctx: { store: AccountStore; registry: Registry; tools: ResolvedTools },
+  ctx: { store: AccountStore; registry: Registry; tools: ResolvedTools; logger?: Logger },
 ): void {
-  const { store, registry, tools } = ctx;
+  const { store, registry, tools, logger = noopLogger } = ctx;
   if (!shouldRegister("get_new_emails", tools)) return;
 
   const newEmailOutputSchema = z.object({
@@ -114,24 +116,50 @@ export function registerNewEmailTool(
     },
     async (args) => {
       const limit = args.limit ?? DEFAULT_LIMIT;
+      logger.debug("get-new-emails", "start", {
+        account: args.account ?? null,
+        limit,
+      });
 
       if (args.account) {
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
-          const result = await collectCandidatesForAccount(store, provider, account);
+          const result = await collectCandidatesForAccount(store, provider, account, logger);
           const selected = oldestCandidatesFirst(result.candidates).slice(0, limit);
+          logger.debug("get-new-emails", "selected", {
+            account: result.account.email,
+            candidateCount: result.candidates.length,
+            selectedCount: selected.length,
+            selectedIds: selected.map((candidate) => candidate.summary.id),
+            selectedReceivedAt: selected.map((candidate) => candidate.timestamp),
+            limit,
+          });
           const emails = limit === 0
             ? []
-            : await hydrateAndAdvance(store, provider, result.account, selected);
+            : await hydrateAndAdvance(store, provider, result.account, selected, logger);
           const data = { count: emails.length, emails, errors: [] };
+          logger.debug("get-new-emails", "end", {
+            account: result.account.email,
+            returnedCount: emails.length,
+            errorCount: 0,
+          });
           return ok(data, data);
         } catch (err) {
+          logger.debug("get-new-emails", "error", {
+            account: args.account,
+            message: errMsg(err),
+          });
           return fail(errMsg(err));
         }
       }
 
       const accounts = store.listAccounts();
       if (accounts.length === 0) {
+        logger.debug("get-new-emails", "end", {
+          accountCount: 0,
+          returnedCount: 0,
+          errorCount: 1,
+        });
         return fail("no accounts registered. Call add_account first.");
       }
 
@@ -143,16 +171,28 @@ export function registerNewEmailTool(
       for (const stored of accounts) {
         try {
           const { provider, account } = registry.resolveByEmail(stored.email);
-          const result = await collectCandidatesForAccount(store, provider, account);
+          const result = await collectCandidatesForAccount(store, provider, account, logger);
           providersByEmail.set(result.account.email, provider);
           accountsByEmail.set(result.account.email, result.account);
           collected.push(...result.candidates);
         } catch (err) {
+          logger.debug("get-new-emails", "accountError", {
+            account: stored.email,
+            message: errMsg(err),
+          });
           errors.push({ account: stored.email, message: errMsg(err) });
         }
       }
 
       const selected = oldestCandidatesFirst(collected).slice(0, limit);
+      logger.debug("get-new-emails", "selected", {
+        accountCount: accounts.length,
+        candidateCount: collected.length,
+        selectedCount: selected.length,
+        selectedIds: selected.map((candidate) => candidate.summary.id),
+        selectedReceivedAt: selected.map((candidate) => candidate.timestamp),
+        limit,
+      });
       const emails: NewEmailOutput[] = [];
 
       if (limit > 0) {
@@ -174,9 +214,14 @@ export function registerNewEmailTool(
                 provider,
                 account,
                 accountCandidates,
+                logger,
               )),
             );
           } catch (err) {
+            logger.debug("get-new-emails", "accountError", {
+              account: email,
+              message: errMsg(err),
+            });
             errors.push({ account: email, message: errMsg(err) });
           }
         }
@@ -184,6 +229,11 @@ export function registerNewEmailTool(
 
       const orderedEmails = emails.sort(compareNewEmailOutputOldestFirst);
       const data = { count: orderedEmails.length, emails: orderedEmails, errors };
+      logger.debug("get-new-emails", "end", {
+        accountCount: accounts.length,
+        returnedCount: orderedEmails.length,
+        errorCount: errors.length,
+      });
       return ok(data, data);
     },
   );
@@ -193,10 +243,16 @@ async function collectCandidatesForAccount(
   store: AccountStore,
   provider: EmailProvider,
   account: AccountRecord,
+  logger: Logger,
 ): Promise<AccountCandidates> {
   const checkpoint = normalizeCheckpoint(account.newEmailCheckpoint);
   if (!checkpoint) {
-    await initializeCheckpoint(store, provider, account);
+    await initializeCheckpoint(store, provider, account, logger);
+    logger.debug("get-new-emails", "candidatesCollected", {
+      account: account.email,
+      initialized: true,
+      candidateCount: 0,
+    });
     return { account, candidates: [] };
   }
 
@@ -233,6 +289,15 @@ async function collectCandidatesForAccount(
     skip += items.length;
   }
 
+  logger.debug("get-new-emails", "candidatesCollected", {
+    account: account.email,
+    initialized: false,
+    checkpointReceivedAt: checkpoint.receivedAt,
+    deliveredIdCount: checkpoint.deliveredIdsAtReceivedAt?.length ?? 0,
+    candidateCount: candidates.length,
+    candidateIds: candidates.map((candidate) => candidate.summary.id),
+    candidateReceivedAt: candidates.map((candidate) => candidate.timestamp),
+  });
   return { account, candidates };
 }
 
@@ -240,6 +305,7 @@ async function initializeCheckpoint(
   store: AccountStore,
   provider: EmailProvider,
   account: AccountRecord,
+  logger: Logger,
 ): Promise<void> {
   const { items } = await provider.listEmails(account, {
     folder: "inbox",
@@ -258,6 +324,11 @@ async function initializeCheckpoint(
     receivedAt,
     deliveredIdsAtReceivedAt,
   });
+  logger.debug("get-new-emails", "checkpointInitialized", {
+    account: account.email,
+    receivedAt,
+    deliveredIdCount: deliveredIdsAtReceivedAt.length,
+  });
 }
 
 async function hydrateAndAdvance(
@@ -265,8 +336,17 @@ async function hydrateAndAdvance(
   provider: EmailProvider,
   account: AccountRecord,
   selected: Candidate[],
+  logger: Logger,
 ): Promise<NewEmailOutput[]> {
-  if (selected.length === 0) return [];
+  if (selected.length === 0) {
+    logger.debug("get-new-emails", "hydrated", {
+      account: account.email,
+      selectedCount: 0,
+      hydratedCount: 0,
+      claimedCount: 0,
+    });
+    return [];
+  }
 
   const hydrated: Array<{
     candidate: Candidate;
@@ -288,7 +368,19 @@ async function hydrateAndAdvance(
     receivedAt: candidate.timestamp,
     ids: [candidate.summary.id, fullId],
   }));
+  logger.debug("get-new-emails", "hydrated", {
+    account: account.email,
+    selectedCount: selected.length,
+    hydratedCount: hydrated.length,
+  });
   const claimed = new Set(await store.claimNewEmails(account.email, claims));
+  logger.debug("get-new-emails", "claimed", {
+    account: account.email,
+    claimCount: claims.length,
+    claimedCount: claimed.size,
+    claimIds: claims.map((claim) => claim.summaryId),
+    claimedIds: [...claimed],
+  });
 
   return hydrated
     .filter(({ candidate }) => claimed.has(candidate.summary.id))

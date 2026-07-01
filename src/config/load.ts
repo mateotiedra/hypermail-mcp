@@ -18,6 +18,7 @@ const ENV_HTTP_PORT = "HYPERMAIL_HTTP_PORT";
 const ENV_HTTP_HOST = "HYPERMAIL_HTTP_HOST";
 const ENV_TOOLS_DISABLED = "HYPERMAIL_TOOLS_DISABLED";
 const ENV_TOOLS_ENABLED = "HYPERMAIL_TOOLS_ENABLED";
+const ENV_DEBUG = "HYPERMAIL_DEBUG";
 const ENV_OUTLOOK_CLIENT_ID = "HYPERMAIL_OUTLOOK_CLIENT_ID";
 const ENV_OUTLOOK_TENANT_ID = "HYPERMAIL_OUTLOOK_TENANT_ID";
 const ENV_GMAIL_CLIENT_ID = "HYPERMAIL_GMAIL_CLIENT_ID";
@@ -69,6 +70,16 @@ function parseStringArray(value: string | undefined): string[] | undefined {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+}
+
+function resolveDebugLogging(warnings: string[]): boolean {
+  const value = envRaw(ENV_DEBUG);
+  if (value === undefined || value.trim() === "") return false;
+  const lower = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on", "debug"].includes(lower)) return true;
+  if (["0", "false", "no", "off"].includes(lower)) return false;
+  warnings.push(`Invalid ${ENV_DEBUG}; debug logging disabled.`);
+  return false;
 }
 
 // ── Validation ──
@@ -179,6 +190,7 @@ export function loadConfig(cliOverrides: CliOverrides = {}): LoadConfigResult {
   const tools = resolveToolsConfig();
   const providers = resolveProvidersConfig();
   const dataDir = cliOverrides.dataDir ?? optionalEnvString(ENV_DATA_DIR);
+  const debugLogging = resolveDebugLogging(warnings);
 
   if (!optionalEnvString(ENV_KEY)) {
     warnings.push(
@@ -193,6 +205,7 @@ export function loadConfig(cliOverrides: CliOverrides = {}): LoadConfigResult {
       http,
       tools,
       providers,
+      debugLogging,
     },
     warnings,
   };
