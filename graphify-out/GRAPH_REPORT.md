@@ -1,16 +1,16 @@
-# Graph Report - hyper-email-mcp-1  (2026-07-03)
+# Graph Report - hyper-email-mcp-0  (2026-07-03)
 
 ## Corpus Check
-- 73 files · ~40,816 words
+- 76 files · ~42,278 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 630 nodes · 1476 edges · 30 communities (28 shown, 2 thin omitted)
+- 651 nodes · 1523 edges · 26 communities (24 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `23abe9f0`
+- Built from commit: `dd35f6c9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,11 +26,7 @@
 - [[_COMMUNITY_Community 8|Community 8]]
 - [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 10|Community 10]]
-- [[_COMMUNITY_Community 11|Community 11]]
 - [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 13|Community 13]]
-- [[_COMMUNITY_Community 14|Community 14]]
-- [[_COMMUNITY_Community 15|Community 15]]
 - [[_COMMUNITY_Community 16|Community 16]]
 - [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Community 18|Community 18]]
@@ -43,8 +39,8 @@
 - [[_COMMUNITY_Community 25|Community 25]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `AccountRecord` - 87 edges
-2. `AccountStore` - 39 edges
+1. `AccountRecord` - 90 edges
+2. `AccountStore` - 40 edges
 3. `GmailProvider` - 25 edges
 4. `OutlookProvider` - 24 edges
 5. `ImapProvider` - 23 edges
@@ -59,8 +55,8 @@
   src/store/account-store.ts → src/logger.ts
 - `registerHandler()` --calls--> `registerNewEmailTool()`  [EXTRACTED]
   src/tools/new-emails.test.ts → src/tools/new-emails.ts
-- `main()` --calls--> `startServer()`  [EXTRACTED]
-  src/cli.ts → src/server.ts
+- `registerHandlers()` --calls--> `registerAccountTools()`  [EXTRACTED]
+  src/tools/accounts.test.ts → src/tools/accounts.ts
 - `load()` --calls--> `loadConfig()`  [EXTRACTED]
   src/config.test.ts → src/config/load.ts
 - `BuildRegistryOptions` --references--> `ProvidersConfig`  [EXTRACTED]
@@ -69,35 +65,35 @@
 ## Import Cycles
 - None detected.
 
-## Communities (30 total, 2 thin omitted)
+## Communities (26 total, 2 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
-Nodes (29): ParsedPayload, GmailProvider, ImapProvider, OutlookProvider, AttachmentContent, AttachmentInput, CompleteAddAccountInput, CompleteAddAccountResult (+21 more)
+Nodes (28): ParsedPayload, GmailProvider, ImapProvider, OutlookProvider, AttachmentInput, CompleteAddAccountInput, CompleteAddAccountResult, CreateFolderInput (+20 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.07
-Nodes (54): Registry, ProviderId, ResolvedTools, htmlToMarkdown(), selectBody(), turndown, Logger, markdownToHtml() (+46 more)
+Cohesion: 0.06
+Nodes (60): Registry, ProviderId, ResolvedTools, htmlToMarkdown(), selectBody(), turndown, Logger, markdownToHtml() (+52 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.06
-Nodes (59): acquireAccessToken(), AuthorizationCodeBegin, AuthorizationCodeBeginOptions, AuthorizationCodeCompletionInput, base64Url(), beginAuthorizationCode(), buildOAuth2Client(), codeChallenge() (+51 more)
+Nodes (63): acquireAccessToken(), AuthorizationCodeBegin, AuthorizationCodeBeginOptions, AuthorizationCodeCompletionInput, base64Url(), beginAuthorizationCode(), buildOAuth2Client(), codeChallenge() (+55 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.05
-Nodes (50): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildPca(), DEFAULT_SCOPES, DeviceCodeBegin, isSerializedTokens(), makeConfig() (+42 more)
+Cohesion: 0.06
+Nodes (45): acquireAccessToken(), awaitDeviceCodeReady(), beginDeviceCode(), buildPca(), DEFAULT_SCOPES, DeviceCodeBegin, isSerializedTokens(), makeConfig() (+37 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.08
-Nodes (45): addAccount(), completeAddAccount(), extractTokens(), ImapClient, ImapClientFactory, ImapTokens, isImapTokens(), createFolder() (+37 more)
+Cohesion: 0.06
+Nodes (56): addAccount(), completeAddAccount(), extractTokens(), ImapClient, ImapClientFactory, ImapTokens, isImapTokens(), createFolder() (+48 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.12
-Nodes (28): envRaw(), loadConfig(), optionalEnvString(), parsePositiveInteger(), parseStringArray(), parseTransportEnv(), resolveDebugLogging(), resolveHttpConfig() (+20 more)
+Cohesion: 0.09
+Nodes (40): envRaw(), loadConfig(), optionalEnvString(), parsePositiveInteger(), parseStringArray(), parseTransportEnv(), resolveDebugLogging(), resolveHttpConfig() (+32 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.14
-Nodes (5): GmailProviderOptions, OutlookProviderOptions, BuildRegistryOptions, AccountStore, delay()
+Cohesion: 0.07
+Nodes (23): GmailProviderOptions, OutlookProviderOptions, BuildRegistryOptions, AccountStore, compareTimestamp(), delay(), isAlreadyDelivered(), mergeNewEmailCheckpoints() (+15 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.10
@@ -112,28 +108,12 @@ Cohesion: 0.12
 Nodes (14): bugs, url, description, engines, node, files, keywords, license (+6 more)
 
 ### Community 10 - "Community 10"
-Cohesion: 0.16
-Nodes (8): NewEmailClaimCandidate, Handler, isDelivered(), mergeCheckpoint(), normalizeTimestamp(), registerHandler(), tools, uniqueIds()
-
-### Community 11 - "Community 11"
-Cohesion: 0.24
-Nodes (13): buildRegistry(), AppConfig, resolveTools(), escapeHtml(), firstHeader(), handleGmailOAuthCallback(), HttpSession, requestBaseUrl() (+5 more)
+Cohesion: 0.09
+Nodes (17): createLogger(), CreateLoggerOptions, LogFields, noopLogger, sanitizeFields(), sanitizeValue(), NewEmailClaimCandidate, key (+9 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.15
 Nodes (12): 1. Create the Application, 2. Set the encryption key, 3. Configure persistent storage, 4. Add a domain, 5. Deploy, 6. Verify, Connecting clients, Deploy hypermail-mcp to Dokploy (+4 more)
-
-### Community 13 - "Community 13"
-Cohesion: 0.21
-Nodes (9): createLogger(), CreateLoggerOptions, LogFields, noopLogger, sanitizeFields(), sanitizeValue(), key, withDataDir() (+1 more)
-
-### Community 14 - "Community 14"
-Cohesion: 0.24
-Nodes (11): compareTimestamp(), isAlreadyDelivered(), mergeNewEmailCheckpoints(), NewEmailCheckpoint, normalizeCheckpoint(), normalizeTimestamp(), OpenOptions, StoreFile (+3 more)
-
-### Community 15 - "Community 15"
-Cohesion: 0.23
-Nodes (6): decrypt(), parseEnvKey(), resolveKey(), MANAGED_KEYS, tryKeytarGet(), tryKeytarSet()
 
 ### Community 16 - "Community 16"
 Cohesion: 0.17
@@ -168,24 +148,24 @@ Cohesion: 0.67
 Nodes (3): repository, type, url
 
 ## Knowledge Gaps
-- **136 isolated node(s):** `Path`, `int`, `jobs`, `name`, `version` (+131 more)
+- **140 isolated node(s):** `Why`, `Claude Desktop / Claude Code`, `As a hosted HTTP server`, `Docker`, `Development` (+135 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AccountRecord` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 10`, `Community 13`, `Community 14`?**
-  _High betweenness centrality (0.161) - this node is a cross-community bridge._
-- **Why does `AccountStore` connect `Community 6` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 10`, `Community 11`, `Community 13`, `Community 14`, `Community 15`?**
+- **Why does `AccountRecord` connect `Community 0` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 6`, `Community 10`?**
+  _High betweenness centrality (0.183) - this node is a cross-community bridge._
+- **Why does `AccountStore` connect `Community 6` to `Community 1`, `Community 2`, `Community 3`, `Community 4`, `Community 5`, `Community 10`?**
   _High betweenness centrality (0.074) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `Community 16` to `Community 9`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
-- **What connects `Path`, `int`, `jobs` to the rest of the system?**
-  _136 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.029) - this node is a cross-community bridge._
+- **What connects `Why`, `Claude Desktop / Claude Code`, `As a hosted HTTP server` to the rest of the system?**
+  _140 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.051201671891327065 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05132317562149158 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.0747871158830063 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06376726417866588 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.06012176560121765 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05627705627705628 - nodes in this community are weakly interconnected._
