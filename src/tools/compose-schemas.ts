@@ -12,7 +12,8 @@ export const sendEmailSchema = z.object({
   format: z
     .enum(["html", "markdown"])
     .describe(
-      "Body format. 'html' sends the body as-is (must be valid HTML). " +
+      "Body format. 'html' sends the body as-is (must be valid HTML); " +
+        "multiline plain text with format='html' is rejected, so use 'markdown' for paragraphs or add tags like <p>/<br>. " +
         "'markdown' converts the body from Markdown to HTML for clean rendering on the recipient side.",
     ),
   include_signature: z
@@ -101,7 +102,8 @@ export const editDraftSchema = z.object({
     .describe(
       "Replacement format. Only meaningful when `new_text` or deprecated " +
         "`body` is also provided. 'html' inserts the replacement as-is " +
-        "(must be valid HTML). 'markdown' converts the replacement from Markdown to HTML.",
+        "(must be valid HTML); multiline plain text with format='html' is rejected, so use 'markdown' for paragraphs or add tags like <p>/<br>. " +
+        "'markdown' converts the replacement from Markdown to HTML.",
     ),
   include_signature: z
     .boolean()
