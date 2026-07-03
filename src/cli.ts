@@ -1,6 +1,7 @@
 import { startServer } from "./server.js";
 import { loadConfig } from "./config.js";
 import { generateKey, helpText, parseArgs } from "./cli-args.js";
+import { VERSION } from "./version.js";
 
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2));
@@ -12,6 +13,11 @@ async function main(): Promise<void> {
 
   if (opts.help) {
     process.stdout.write(helpText());
+    return;
+  }
+
+  if (opts.version) {
+    process.stdout.write(`${VERSION}\n`);
     return;
   }
 

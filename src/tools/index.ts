@@ -34,5 +34,5 @@ export function registerTools(
   registerBrowseTools(server, { store, registry, tools, logger });
   registerFolderTools(server, { registry, tools });
   registerOrganizeTools(server, { registry, tools });
-  registerComposeTools(server, { store, registry, tools });
+  registerComposeTools(server, { store, registry, tools, logger });
 }

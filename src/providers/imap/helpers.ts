@@ -37,6 +37,21 @@ export function resolveTrashMailbox(
   return "Trash";
 }
 
+export function resolveDraftMailbox(
+  mailboxes: Iterable<ImapMailboxEntry>,
+): string {
+  for (const mailbox of mailboxes) {
+    const specialUse = mailbox.specialUse?.toLowerCase();
+    if (specialUse === "\\drafts") return mailbox.path;
+
+    const flags = mailbox.flags ? Array.from(mailbox.flags) : [];
+    if (flags.some((flag) => flag.toLowerCase() === "\\drafts")) {
+      return mailbox.path;
+    }
+  }
+  return "Drafts";
+}
+
 // ---------- generic ----------
 
 export function clampLimit(v: number | undefined, dflt: number, max: number): number {

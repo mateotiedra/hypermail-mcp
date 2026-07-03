@@ -8,11 +8,12 @@ import type { ResolvedTools } from "../config.js";
 import type { EmailProvider } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
 import type { AccountRecord, AccountStore } from "../store/account-store.js";
+import { createLogger, type Logger } from "../logger.js";
 
 type Handler = (args: Record<string, unknown>) => Promise<unknown>;
 
 const tools: ResolvedTools = {
-  enabledTools: new Set(["edit_draft"]),
+  enabledTools: new Set(["draft_email", "edit_draft"]),
   disabledTools: null,
 };
 
@@ -23,7 +24,11 @@ const account: AccountRecord = {
   addedAt: "2026-01-01T00:00:00.000Z",
 };
 
-function registerHandler(provider: EmailProvider): Handler {
+function registerHandler(
+  provider: EmailProvider,
+  toolName = "edit_draft",
+  logger?: Logger,
+): Handler {
   const handlers = new Map<string, Handler>();
   const server = {
     registerTool: vi.fn((name: string, _config: unknown, cb: Handler) => {
@@ -38,10 +43,11 @@ function registerHandler(provider: EmailProvider): Handler {
     store: {} as AccountStore,
     registry,
     tools,
+    logger,
   });
 
-  const handler = handlers.get("edit_draft");
-  if (!handler) throw new Error("edit_draft was not registered");
+  const handler = handlers.get(toolName);
+  if (!handler) throw new Error(`${toolName} was not registered`);
   return handler;
 }
 
@@ -55,6 +61,115 @@ function errorText(result: unknown): string | undefined {
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+describe("draft_email", () => {
+  it("returns draftHtml when readback succeeds", async () => {
+    const provider = {
+      id: "outlook",
+      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      readEmail: vi.fn(async () => ({
+        id: "draft-1",
+        subject: "Subject",
+        bodyHtml: "<p>Draft body</p>",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "draft_email");
+
+    const result = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Subject",
+      body: "Draft body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: false,
+    });
+
+    expect(provider.saveDraft).toHaveBeenCalledWith(
+      account,
+      expect.objectContaining({
+        subject: "Subject",
+        body: expect.stringContaining("Draft body"),
+        isHtml: true,
+        inReplyTo: false,
+      }),
+    );
+    expect(provider.readEmail).toHaveBeenCalledWith(account, "draft-1");
+    expect(structured(result)).toMatchObject({
+      draft: true,
+      id: "draft-1",
+      draftHtml: "<p>Draft body</p>",
+    });
+  });
+
+  it("returns the draft id with a warning when readback fails", async () => {
+    const provider = {
+      id: "outlook",
+      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      readEmail: vi.fn(async () => {
+        throw new Error("Id is malformed.");
+      }),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "draft_email");
+
+    const result = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Subject",
+      body: "Draft body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: false,
+    });
+
+    expect(result).not.toMatchObject({ isError: true });
+    expect(provider.readEmail).toHaveBeenCalledWith(account, "draft-1");
+    expect(structured(result)).toMatchObject({
+      draft: true,
+      id: "draft-1",
+      warning: expect.stringContaining("Draft was created"),
+      draftReadbackError: "Id is malformed.",
+    });
+  });
+
+  it("emits sanitized debug logs for draft readback failures", async () => {
+    const lines: string[] = [];
+    const logger = createLogger({ enabled: true, write: (line) => lines.push(line) });
+    const provider = {
+      id: "outlook",
+      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      readEmail: vi.fn(async () => {
+        throw new Error("Id is malformed.");
+      }),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "draft_email", logger);
+
+    const result = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Secret subject should not be logged",
+      body: "SECRET BODY SHOULD NOT BE LOGGED",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: false,
+    });
+
+    expect(structured(result)).toMatchObject({ draft: true, id: "draft-1" });
+    const logText = lines.join("\n");
+    expect(logText).not.toContain("SECRET BODY");
+    expect(logText).not.toContain("Secret subject");
+    const events = lines.map((line) =>
+      (JSON.parse(line.replace(/^\[hypermail-mcp\] debug /, "")) as { event: string }).event,
+    );
+    expect(events).toEqual(expect.arrayContaining([
+      "start",
+      "composed",
+      "attachmentsProcessed",
+      "providerActionSuccess",
+      "draftReadbackError",
+    ]));
+  });
 });
 
 describe("edit_draft", () => {

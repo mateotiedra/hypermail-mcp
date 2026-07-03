@@ -19,8 +19,9 @@ function clientsFor(client: unknown): ImapClientFactory {
 describe("IMAP saveDraft", () => {
   it("appends a simple draft directly to Drafts", async () => {
     const append = vi.fn(async () => ({ uid: 123 }));
+    const list = vi.fn(async () => []);
     const client = {
-      run: vi.fn(async (fn) => fn({ append })),
+      run: vi.fn(async (fn) => fn({ append, list })),
       withMailbox: vi.fn(),
     };
 
@@ -50,8 +51,9 @@ describe("IMAP saveDraft", () => {
       .fn()
       .mockRejectedValueOnce(commandFailed)
       .mockResolvedValueOnce({ uid: 124 });
+    const list = vi.fn(async () => []);
     const client = {
-      run: vi.fn(async (fn) => fn({ append })),
+      run: vi.fn(async (fn) => fn({ append, list })),
       withMailbox: vi.fn(),
     };
 
@@ -80,8 +82,9 @@ describe("IMAP saveDraft", () => {
       serverResponseCode: "TRYCREATE",
     });
     const append = vi.fn().mockRejectedValue(commandFailed);
+    const list = vi.fn(async () => []);
     const client = {
-      run: vi.fn(async (fn) => fn({ append })),
+      run: vi.fn(async (fn) => fn({ append, list })),
       withMailbox: vi.fn(),
     };
 
@@ -114,8 +117,9 @@ describe("IMAP saveDraft", () => {
       appendedRaw = raw;
       return { uid: 125 };
     });
+    const list = vi.fn(async () => []);
     const client = {
-      run: vi.fn(async (fn) => fn({ append })),
+      run: vi.fn(async (fn) => fn({ append, list })),
       withMailbox: vi.fn(async (_folder, fn) =>
         fn({
           fetchOne: async () => ({
@@ -139,5 +143,32 @@ describe("IMAP saveDraft", () => {
     expect(client.withMailbox).toHaveBeenCalledWith("Archive", expect.any(Function));
     expect(appendedRaw).toContain("Forwarded message");
     expect(appendedRaw).toContain("ORIGINAL");
+  });
+
+  it("uses the advertised Drafts special-use mailbox", async () => {
+    const append = vi.fn(async () => ({ uid: 126 }));
+    const list = vi.fn(async () => [
+      { path: "INBOX" },
+      { path: "INBOX/Drafts", specialUse: "\\Drafts" },
+    ]);
+    const client = {
+      run: vi.fn(async (fn) => fn({ append, list })),
+      withMailbox: vi.fn(),
+    };
+
+    const result = await saveDraft(clientsFor(client), account, {
+      to: [{ address: "recipient@example.com" }],
+      subject: "Draft subject",
+      body: "<p>Hello</p>",
+      isHtml: true,
+      inReplyTo: false,
+    });
+
+    expect(result).toEqual({ id: "INBOX/Drafts/126" });
+    expect(append).toHaveBeenCalledWith(
+      "INBOX/Drafts",
+      expect.stringContaining("Draft subject"),
+      ["\\Draft"],
+    );
   });
 });

@@ -3,6 +3,13 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.16** — Hardened `draft_email` after successful draft creation:
+> if post-save readback fails, the tool now returns the created draft ID with
+> `warning` and `draftReadbackError` instead of losing the draft behind an
+> error. Compose operations also emit sanitized `HYPERMAIL_DEBUG` stage logs,
+> IMAP drafts now use the server-advertised `\\Drafts` mailbox when present,
+> and the CLI supports `--version`.
+>
 > **v0.7.15** — Hardened IMAP draft creation: drafts now append directly to
 > the Drafts mailbox, retry without the `\\Draft` flag when an IMAP server
 > rejects flagged APPEND, and preserve IMAP reply/forward context in drafts the
@@ -205,7 +212,7 @@ Hypermail uses flat `HYPERMAIL_*` environment variables as the source of truth.
 There is no runtime config file. CLI flags only override transport, host, port,
 and data directory for a single invocation.
 
-CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--help`.
+CLI flags: `--http`, `--port`, `--host`, `--data-dir`, `--version`, `--help`.
 
 Subcommands: `hypermail-mcp generate-key` — generate a base64 32-byte key for
 `HYPERMAIL_KEY`.
@@ -284,7 +291,7 @@ account store.
 | `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). |
 | `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. |
 | `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`; multiline plain text with `format: "html"` is rejected, so use `"markdown"` for paragraphs or add tags like `<p>`/`<br>`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. `attachments` is an optional array of `{filePath, name?}` — files are read from disk and encoded automatically. |
-| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and HTML body (`draftHtml`). `inReplyTo` is required — set to `false` for new emails. |
+| `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and, when readback succeeds, HTML body (`draftHtml`). If the draft is created but readback fails, returns the draft ID with `warning` and `draftReadbackError` so callers can retry `read_email` or continue with `send_draft`. `inReplyTo` is required — set to `false` for new emails. |
 | `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `old_text?`, `new_text?`, `body?`, `format?`, `include_signature?`, `new_attachments?`, `remove_attachments?` | Edit an existing draft by ID. Body edits require exact selected-section replacement: copy `old_text` from the current draft HTML (`draftHtml` or `read_email` with `format: "html"`) and provide `new_text`; the match must occur exactly once, and unselected content such as reply/forward history is preserved. Deprecated `body` is only an alias for `new_text` when `old_text` is also provided; body-only full replacement is rejected. Multiline plain-text replacements with `format: "html"` are rejected; use `"markdown"` for paragraphs or add tags like `<p>`/`<br>`. Body edits are re-read after saving; if the updated body is not observable after retries, the tool returns an error instead of reporting success. `new_attachments` adds files (`{filePath, name?}[]`); `remove_attachments` removes by attachment ID (`string[]`). Returns the updated draft ID, HTML body (`draftHtml`), and attachment metadata. |
 | `send_draft` | `account`, `id` | Send an existing draft email by ID. Use with draft IDs returned by `draft_email` or `edit_draft`. |
 | `list_folders` | `account`, `parentFolderId?` | List available mail folders. Returns top-level folders by default, or children of `parentFolderId`. |

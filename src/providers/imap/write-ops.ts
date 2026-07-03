@@ -14,6 +14,7 @@ import {
   encodeId,
   ImapEnvelope,
   isTrashFolderAlias,
+  resolveDraftMailbox,
   resolveFolder,
   resolveTrashMailbox,
 } from "./helpers.js";
@@ -54,10 +55,13 @@ export async function saveDraft(
   msg: SendInput,
 ): Promise<{ id: string }> {
   const client = clients.get(account);
-  const folder = "Drafts";
   const rawMsg = await buildRawMessage(client, account, msg);
+  let folder = "Drafts";
   try {
-    const result = await client.run((imap) => appendDraft(imap, folder, rawMsg));
+    const result = await client.run(async (imap) => {
+      folder = resolveDraftMailbox((await imap.list()) as Iterable<ImapMailboxEntry>);
+      return appendDraft(imap, folder, rawMsg);
+    });
     return { id: encodeId(folder, appendUid(result, folder)) };
   } catch (err) {
     throw imapOperationError(`failed to save IMAP draft to ${folder}`, err);

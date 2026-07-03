@@ -5,6 +5,7 @@ import type { CliOverrides } from "./config.js";
 export type ParsedArgs = {
   command?: "generate-key";
   help: boolean;
+  version: boolean;
   overrides: CliOverrides;
 };
 
@@ -21,11 +22,17 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (argv.length > 1) {
       throw new Error(`Unknown argument for generate-key: ${argv[1]}`);
     }
-    return { command: "generate-key", help: false, overrides: {} };
+    return {
+      command: "generate-key",
+      help: false,
+      version: false,
+      overrides: {},
+    };
   }
 
   const out: ParsedArgs = {
     help: false,
+    version: false,
     overrides: {},
   };
 
@@ -57,6 +64,9 @@ export function parseArgs(argv: string[]): ParsedArgs {
       case "--help":
         out.help = true;
         break;
+      case "--version":
+        out.version = true;
+        break;
       default:
         if (arg.startsWith("-")) {
           throw new Error(`Unknown option: ${arg}`);
@@ -84,6 +94,7 @@ Options:
   --port <n>          HTTP port (default: 3000)
   --host <addr>       HTTP bind address (default: 127.0.0.1)
   --data-dir <path>   Where to store the encrypted accounts file
+  --version           Show package version
   -h, --help          Show this help
 
 Configuration:

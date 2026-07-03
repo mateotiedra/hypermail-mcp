@@ -7,6 +7,7 @@ import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
 import type { EmailProvider, SendInput } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
+import type { Logger } from "../logger.js";
 import { MIME_TYPES } from "./mime-types.js";
 import {
   ok,
@@ -33,9 +34,10 @@ export function registerComposeTools(
     store: AccountStore;
     registry: Registry;
     tools: ResolvedTools;
+    logger?: Logger;
   },
 ): void {
-  const { store, registry, tools } = ctx;
+  const { store, registry, tools, logger } = ctx;
 
   async function handleSendOrDraft(
     args: SendEmailArgs,
@@ -49,6 +51,17 @@ export function registerComposeTools(
   ) {
     try {
       const { provider, account } = registry.resolveByEmail(args.account);
+      logger?.debug("compose", "start", {
+        tool: toolName,
+        account: account.email,
+        provider: provider.id,
+        toCount: args.to.length,
+        ccCount: args.cc?.length ?? 0,
+        bccCount: args.bcc?.length ?? 0,
+        hasReply: !!args.inReplyTo,
+        hasForward: !!args.forwardMessageId,
+        attachmentCount: args.attachments?.length ?? 0,
+      });
       if (args.include_signature && !account.signature) {
         return fail(
           "include_signature is true but no signature is configured for this account. " +
@@ -60,6 +73,14 @@ export function registerComposeTools(
         format: args.format,
         signature: account.signature,
         style: account.style,
+        includeSignature: args.include_signature,
+      });
+      logger?.debug("compose", "composed", {
+        tool: toolName,
+        account: account.email,
+        provider: provider.id,
+        format: args.format,
+        isHtml: composed.isHtml,
         includeSignature: args.include_signature,
       });
       if (args.inReplyTo && args.forwardMessageId) {
@@ -81,6 +102,12 @@ export function registerComposeTools(
           };
         });
       }
+      logger?.debug("compose", "attachmentsProcessed", {
+        tool: toolName,
+        account: account.email,
+        provider: provider.id,
+        attachmentCount: processedAttachments?.length ?? 0,
+      });
 
       const res = await action(provider, account, {
         to: args.to,
@@ -94,13 +121,44 @@ export function registerComposeTools(
         forwardMessageId: args.forwardMessageId,
         attachments: processedAttachments,
       });
+      logger?.debug("compose", "providerActionSuccess", {
+        tool: toolName,
+        account: account.email,
+        provider: provider.id,
+        hasId: !!res.id,
+      });
       const result: Record<string, unknown> = { [resultKey]: true, ...res };
       if (toolName === "draft_email" && res.id) {
-        const draft = await provider.readEmail(account, res.id);
-        result.draftHtml = draft.bodyHtml;
+        try {
+          const draft = await provider.readEmail(account, res.id);
+          result.draftHtml = draft.bodyHtml;
+          logger?.debug("compose", "draftReadbackSuccess", {
+            tool: toolName,
+            account: account.email,
+            provider: provider.id,
+            hasDraftHtml: draft.bodyHtml !== undefined,
+          });
+        } catch (readErr) {
+          const message = errMsg(readErr);
+          result.warning =
+            "Draft was created, but reading it back for draftHtml failed. " +
+            "Use read_email with the returned id to inspect it, or continue with send_draft if appropriate.";
+          result.draftReadbackError = message;
+          logger?.debug("compose", "draftReadbackError", {
+            tool: toolName,
+            account: account.email,
+            provider: provider.id,
+            message,
+          });
+        }
       }
       return ok(result, result);
     } catch (err) {
+      logger?.debug("compose", "error", {
+        tool: toolName,
+        account: args.account,
+        message: errMsg(err),
+      });
       return fail(errMsg(err));
     }
   }
@@ -146,6 +204,8 @@ export function registerComposeTools(
     draft: z.literal(true),
     id: z.string(),
     draftHtml: z.string().optional(),
+    warning: z.string().optional(),
+    draftReadbackError: z.string().optional(),
   };
 
   if (shouldRegister("draft_email", tools)) {

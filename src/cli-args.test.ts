@@ -16,6 +16,7 @@ describe("parseArgs", () => {
 
     expect(parsed).toEqual({
       help: false,
+      version: false,
       overrides: {
         transport: "http",
         port: 8080,
@@ -32,6 +33,10 @@ describe("parseArgs", () => {
 
   it("parses generate-key subcommand", () => {
     expect(parseArgs(["generate-key"]).command).toBe("generate-key");
+  });
+
+  it("parses version", () => {
+    expect(parseArgs(["--version"]).version).toBe(true);
   });
 
   it("rejects --config", () => {
@@ -61,6 +66,7 @@ describe("generateKey", () => {
 describe("helpText", () => {
   it("documents env-only configuration without --config", () => {
     const text = helpText();
+    expect(text).toContain("--version");
     expect(text).toContain("HYPERMAIL_TRANSPORT=stdio|http");
     expect(text).toContain("HYPERMAIL_DATA_DIR");
     expect(text).not.toContain("--config");
