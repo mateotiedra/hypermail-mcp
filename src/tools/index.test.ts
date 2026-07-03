@@ -118,6 +118,28 @@ describe("composeBody", () => {
         });
         expect(result).toEqual({ body: "<p>Hello world</p>", isHtml: true });
       });
+
+      it("rejects multiline plain text passed as HTML", () => {
+        expect(() =>
+          composeBody({
+            body: "Line 1\n\nLine 2",
+            format: "html",
+            includeSignature: false,
+          }),
+        ).toThrow('format: "html" requires valid HTML');
+      });
+
+      it("allows multiline HTML fragments", () => {
+        const result = composeBody({
+          body: "<p>Line 1</p>\n<p>Line 2</p>",
+          format: "html",
+          includeSignature: false,
+        });
+        expect(result).toEqual({
+          body: "<p>Line 1</p>\n<p>Line 2</p>",
+          isHtml: true,
+        });
+      });
     });
 
     describe("signature injection", () => {
@@ -211,6 +233,17 @@ describe("composeBody", () => {
       });
       expect(result.isHtml).toBe(true);
       expect(result.body).toContain("<strong>world</strong>");
+    });
+
+    it("converts multiline plain text markdown to paragraphs", () => {
+      const result = composeBody({
+        body: "Line 1\n\nLine 2",
+        format: "markdown",
+        includeSignature: false,
+      });
+      expect(result.isHtml).toBe(true);
+      expect(result.body).toContain("<p>Line 1</p>");
+      expect(result.body).toContain("<p>Line 2</p>");
     });
 
     it("converts markdown and appends signature", () => {

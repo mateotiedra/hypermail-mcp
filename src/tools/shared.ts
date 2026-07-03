@@ -114,10 +114,27 @@ export interface ComposeBodyInput {
   includeSignature: boolean;
 }
 
+const meaningfulHtmlTagRe = /<\/?(?:p|div|br|blockquote|table|thead|tbody|tfoot|tr|td|th|ul|ol|li|a|span|font|b|strong|em|i|u|img|hr|pre|h[1-6])\b/i;
+
+function isSuspiciousPlainTextHtml(body: string): boolean {
+  return (
+    body.trim() !== "" &&
+    /\r\n|\r|\n/.test(body) &&
+    !meaningfulHtmlTagRe.test(body)
+  );
+}
+
 export function composeBody(
   input: ComposeBodyInput,
 ): { body: string; isHtml: boolean } {
   const { body, format, signature, style, includeSignature } = input;
+
+  if (format === "html" && isSuspiciousPlainTextHtml(body)) {
+    throw new Error(
+      'format: "html" requires valid HTML for multiline bodies. ' +
+        'Use format: "markdown" for plain text with paragraphs, or add HTML tags such as <p> or <br>.',
+    );
+  }
 
   // Convert markdown to HTML first, then proceed as HTML
   const htmlBody = format === "markdown" ? markdownToHtml(body) : body;

@@ -147,6 +147,31 @@ describe("edit_draft", () => {
     expect(provider.updateDraft).not.toHaveBeenCalled();
   });
 
+  it("rejects multiline plain text replacements passed as HTML", async () => {
+    const provider = {
+      id: "outlook",
+      readEmail: vi.fn(async () => ({
+        id: "draft-1",
+        subject: "Subject",
+        bodyHtml: "<p>Old answer</p>",
+      })),
+      updateDraft: vi.fn(),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider);
+
+    const result = await handler({
+      account: account.email,
+      id: "draft-1",
+      old_text: "<p>Old answer</p>",
+      new_text: "Line 1\n\nLine 2",
+      format: "html",
+    });
+
+    expect(result).toMatchObject({ isError: true });
+    expect(errorText(result)).toContain('format: "html" requires valid HTML');
+    expect(provider.updateDraft).not.toHaveBeenCalled();
+  });
+
   it("fails when a body edit is not observable after saving", async () => {
     vi.useFakeTimers();
     const provider = {
