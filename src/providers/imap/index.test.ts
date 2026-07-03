@@ -13,7 +13,7 @@ import {
   ImapEnvelope,
   BodyNode,
 } from "./helpers.js";
-import { isImapTokens, extractTokens, ImapTokens } from "./client.js";
+import { ImapClient, isImapTokens, extractTokens, ImapTokens } from "./client.js";
 import type { AccountRecord } from "../../store/account-store.js";
 
 // ---------- ID encoding ----------
@@ -287,6 +287,67 @@ describe("isImapTokens", () => {
     expect(isImapTokens({ host: "h", port: 993, secure: true, password: "p", smtpHost: "s", smtpPort: 587 })).toBe(false); // missing user
     expect(isImapTokens({ host: "h", port: 993, secure: true, user: "u", password: "p", smtpPort: 587 })).toBe(false); // missing smtpHost
     expect(isImapTokens({ port: 993, secure: true, user: "u", password: "p", smtpHost: "s", smtpPort: 587 })).toBe(false); // missing host
+  });
+});
+
+describe("ImapClient operation serialization", () => {
+  it("runs direct IMAP operations sequentially", async () => {
+    const client = new ImapClient({
+      host: "imap.example.com",
+      port: 993,
+      secure: true,
+      user: "user@example.com",
+      password: "secret",
+      smtpHost: "smtp.example.com",
+      smtpPort: 587,
+      smtpSecure: false,
+    });
+    (client as unknown as { imap: unknown }).imap = {};
+
+    const order: string[] = [];
+    let releaseFirst: (() => void) | undefined;
+    const firstMayFinish = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+
+    const first = client.run(async () => {
+      order.push("first-start");
+      await firstMayFinish;
+      order.push("first-end");
+    });
+    const second = client.run(async () => {
+      order.push("second-start");
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(order).toEqual(["first-start"]);
+
+    releaseFirst?.();
+    await Promise.all([first, second]);
+    expect(order).toEqual(["first-start", "first-end", "second-start"]);
+  });
+
+  it("serializes mailbox operations and releases locks", async () => {
+    const client = new ImapClient({
+      host: "imap.example.com",
+      port: 993,
+      secure: true,
+      user: "user@example.com",
+      password: "secret",
+      smtpHost: "smtp.example.com",
+      smtpPort: 587,
+      smtpSecure: false,
+    });
+    const releases: string[] = [];
+    (client as unknown as { imap: unknown }).imap = {
+      getMailboxLock: async (mailbox: string) => ({
+        release: () => releases.push(mailbox),
+      }),
+    };
+
+    await client.withMailbox("INBOX", async () => "ok");
+
+    expect(releases).toEqual(["INBOX"]);
   });
 });
 

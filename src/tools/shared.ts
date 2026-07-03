@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ResolvedTools } from "../config.js";
+import type { AccountRecord } from "../store/account-store.js";
 import { markdownToHtml } from "../markdown-to-html.js";
 import { THREAD_MARKER } from "../providers/outlook/write-ops.js";
 
@@ -65,16 +66,36 @@ export const styleOutputSchema = z.object({
   fontColor: z.string().optional(),
 });
 
-/** Full account record including tokens, signature, and style. */
+/** Public account record. Never expose provider tokens or other stored secrets. */
 export const accountFullOutputSchema = z.object({
   email: z.string(),
   provider: providerIdEnum,
   displayName: z.string().optional(),
-  tokens: z.record(z.string(), z.unknown()),
   addedAt: z.string(),
   signature: z.string().optional(),
   style: styleOutputSchema.optional(),
 });
+
+export function publicAccount(account: AccountRecord) {
+  return {
+    email: account.email,
+    provider: account.provider,
+    displayName: account.displayName,
+    addedAt: account.addedAt,
+    signature: account.signature,
+    style: account.style,
+  };
+}
+
+export function publicAccountResult(result: unknown): Record<string, unknown> {
+  if (typeof result !== "object" || result === null) {
+    return { result };
+  }
+  const record = result as Record<string, unknown>;
+  const account = record.account as AccountRecord | undefined;
+  if (!account) return record;
+  return { ...record, account: publicAccount(account) };
+}
 
 export const emailSummaryOutputSchema = z.object({
   id: z.string(),

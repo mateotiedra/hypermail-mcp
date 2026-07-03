@@ -53,6 +53,7 @@ export class ImapClient {
   private imap: ImapFlow | null = null;
   private transporter: Transporter | null = null;
   private connecting: Promise<void> | null = null;
+  private imapQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly tokens: ImapTokens) {}
 
@@ -101,18 +102,32 @@ export class ImapClient {
     return this.transporter;
   }
 
+  /** Run an IMAP operation serially on this account's shared connection. */
+  async run<T>(fn: (imap: ImapFlow) => Promise<T>): Promise<T> {
+    const run = this.imapQueue.catch(() => undefined).then(async () => {
+      const imap = await this.getImap();
+      return fn(imap);
+    });
+    this.imapQueue = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
   /**
    * Acquire a mailbox lock and run `fn` with the mailbox selected.
    * Releases the lock automatically after `fn` completes.
    */
   async withMailbox<T>(mailbox: string, fn: (imap: ImapFlow) => Promise<T>): Promise<T> {
-    const imap = await this.getImap();
-    const lock = await imap.getMailboxLock(mailbox);
-    try {
-      return await fn(imap);
-    } finally {
-      lock.release();
-    }
+    return this.run(async (imap) => {
+      const lock = await imap.getMailboxLock(mailbox);
+      try {
+        return await fn(imap);
+      } finally {
+        lock.release();
+      }
+    });
   }
 
   /** Disconnect IMAP and close the SMTP pool. */

@@ -3,6 +3,16 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.15** — Hardened IMAP draft creation: drafts now append directly to
+> the Drafts mailbox, retry without the `\\Draft` flag when an IMAP server
+> rejects flagged APPEND, and preserve IMAP reply/forward context in drafts the
+> same way `send_email` does. IMAP operations for a single account are serialized
+> to avoid shared-connection races, and IMAP write failures now include safe
+> server response details instead of only `Command failed`. Account setup
+> responses no longer expose stored provider tokens/passwords. Also rejects
+> multiline plain text passed as `format: "html"`, and adds the Hermes
+> `get_new_emails` poller example.
+>
 > **v0.7.14** — Added opt-in `HYPERMAIL_DEBUG` structured stderr logs with
 > redaction for server startup, account-store locking/checkpoint writes, and
 > `get_new_emails` candidate/claim flow. Hardened Outlook `edit_draft` body
@@ -260,8 +270,8 @@ account store.
 | Tool | Inputs | Notes |
 | --- | --- | --- |
 | `list_accounts` | — | Returns registered emails + provider, no secrets. |
-| `add_account` | `provider`, `email?`, `config?` | Starts the provider add flow. Outlook returns a device code; Gmail returns an OAuth URL. Returns `{handle, verification:{type, userCode, verificationUri, expiresAt, message}}`. |
-| `complete_add_account` | `provider`, `handle`, `authorizationResponse?`, `code?`, `state?` | Returns `pending` / `ready` / `expired` / `error`. Gmail accepts a pasted final redirected URL or raw code/state for remote-safe completion. |
+| `add_account` | `provider`, `email?`, `config?` | Starts the provider add flow. Outlook returns a device code; Gmail returns an OAuth URL. Ready account responses include public metadata only and never return stored tokens/passwords. Returns `{handle, verification:{type, userCode, verificationUri, expiresAt, message}}` for pending flows. |
+| `complete_add_account` | `provider`, `handle`, `authorizationResponse?`, `code?`, `state?` | Returns `pending` / `ready` / `expired` / `error`. Ready account responses include public metadata only and never return stored tokens/passwords. Gmail accepts a pasted final redirected URL or raw code/state for remote-safe completion. |
 | `get_account_settings` | `account` | Get signature (HTML) and style preferences for an account. |
 | `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. |
 | `remove_account` | `email` | Deletes tokens for the account. |

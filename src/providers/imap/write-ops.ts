@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto";
 
 import type { AccountRecord } from "../../store/account-store.js";
+import type { ImapFlow } from "imapflow";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
 
 import type {
   DraftUpdateInput,
   SendInput,
 } from "../types.js";
-import { ImapClientFactory } from "./client.js";
+import { ImapClient, ImapClientFactory } from "./client.js";
 import {
   decodeId,
   encodeId,
@@ -31,88 +32,13 @@ export async function sendEmail(
 ): Promise<{ id: string }> {
   const client = clients.get(account);
   const transporter = client.getTransporter();
-
-  const mailOptions: import("nodemailer").SendMailOptions = {
-    from: `${account.displayName ?? ""} <${account.email}>`,
-    to: msg.to
-      .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
-      .join(", "),
-    subject: msg.subject,
-  };
-
-  if (msg.isHtml) {
-    mailOptions.html = msg.body;
-  } else {
-    mailOptions.text = msg.body;
-  }
-  (mailOptions as Record<string, unknown>).attachDataUrls = true;
-
-  if (msg.cc && msg.cc.length > 0) {
-    mailOptions.cc = msg.cc
-      .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
-      .join(", ");
-  }
-  if (msg.bcc && msg.bcc.length > 0) {
-    mailOptions.bcc = msg.bcc
-      .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
-      .join(", ");
-  }
-
-  // Handle reply and forward threading
-  if (msg.inReplyTo || msg.forwardMessageId) {
-    const refId = msg.inReplyTo ?? msg.forwardMessageId;
-    if (refId) {
-      try {
-        const { folder: refFolder, uid: refUid } = decodeId(refId);
-        const refMsg = (await client.withMailbox(refFolder, async (imap) => {
-          return imap.fetchOne(
-            refUid,
-            { envelope: true, source: true },
-            { uid: true },
-          );
-        })) as { envelope?: ImapEnvelope; source?: string | ArrayBuffer };
-
-        if (refMsg?.envelope) {
-          const env = refMsg.envelope as ImapEnvelope;
-          if (msg.inReplyTo && env.messageId && !msg.forwardMessageId) {
-            mailOptions.inReplyTo = env.messageId;
-            (mailOptions as Record<string, unknown>).references =
-              env.messageId;
-          }
-        }
-
-        // Embed forwarded message
-        if (msg.forwardMessageId && refMsg?.source) {
-          const sourceStr =
-            typeof refMsg.source === "string"
-              ? refMsg.source
-              : Buffer.from(refMsg.source as ArrayBuffer).toString("utf-8");
-          const divider =
-            '\n\n<div style="line-height:12px"><br></div>\n\n' +
-            '<div style="border-left:2px solid #ccc; padding-left:8px; ' +
-            'margin-left:0; color:#666">\n' +
-            "---------- Forwarded message ---------<br>" +
-            sourceStr +
-            "\n</div>";
-          if (mailOptions.html) {
-            mailOptions.html += divider;
-          } else if (mailOptions.text) {
-            mailOptions.text +=
-              "\n\n---------- Forwarded message ---------\n" + sourceStr;
-          }
-        }
-      } catch {
-        /* If we can't fetch the referenced message, proceed without threading. */
-      }
-    }
-  }
-
+  const mailOptions = await buildMailOptions(client, account, msg);
   const info = await transporter.sendMail(mailOptions);
 
   // Save a copy to Sent folder
   try {
-    const rawMsg = await buildRawMessage(account, msg, info.messageId);
-    await client.withMailbox("Sent", async (imap) => {
+    const rawMsg = await buildRawMessage(client, account, msg, info.messageId);
+    await client.run(async (imap) => {
       await imap.append("Sent", rawMsg, ["\\Seen"]);
     });
   } catch {
@@ -128,11 +54,14 @@ export async function saveDraft(
   msg: SendInput,
 ): Promise<{ id: string }> {
   const client = clients.get(account);
-  const rawMsg = await buildRawMessage(account, msg);
-  return client.withMailbox("Drafts", async (imap) => {
-    const result = (await imap.append("Drafts", rawMsg, ["\\Draft"])) as { uid: number };
-    return { id: encodeId("Drafts", result.uid) };
-  });
+  const folder = "Drafts";
+  const rawMsg = await buildRawMessage(client, account, msg);
+  try {
+    const result = await client.run((imap) => appendDraft(imap, folder, rawMsg));
+    return { id: encodeId(folder, appendUid(result, folder)) };
+  } catch (err) {
+    throw imapOperationError(`failed to save IMAP draft to ${folder}`, err);
+  }
 }
 
 export async function updateDraft(
@@ -144,46 +73,50 @@ export async function updateDraft(
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
 
-  return client.withMailbox(folder, async (imap) => {
-    const existing = (await imap.fetchOne(
-      uid,
-      { source: true, envelope: true },
-      { uid: true },
-    )) as { source?: string | ArrayBuffer; envelope?: ImapEnvelope };
-    if (!existing?.source) {
-      throw new Error(`draft not found: ${id}`);
-    }
-
-    const origSubject = existing.envelope
-      ? (existing.envelope as ImapEnvelope).subject ?? ""
-      : "";
-
-    const updatedMsg: Record<string, unknown> = {
-      from: `${account.displayName ?? ""} <${account.email}>`,
-      subject: update.subject ?? origSubject,
-      attachDataUrls: true,
-    };
-
-    if (update.body !== undefined) {
-      if (update.isHtml) {
-        updatedMsg.html = update.body;
-      } else {
-        updatedMsg.text = update.body;
+  try {
+    return await client.withMailbox(folder, async (imap) => {
+      const existing = (await imap.fetchOne(
+        uid,
+        { source: true, envelope: true },
+        { uid: true },
+      )) as { source?: string | ArrayBuffer; envelope?: ImapEnvelope };
+      if (!existing?.source) {
+        throw new Error(`draft not found: ${id}`);
       }
-    }
 
-    const raw = await new Promise<Buffer>((resolve, reject) => {
-      const mc = new MailComposer(updatedMsg);
-      mc.compile().build((err: Error | null, buf: Buffer) => {
-        if (err) reject(err);
-        else resolve(buf);
+      const origSubject = existing.envelope
+        ? (existing.envelope as ImapEnvelope).subject ?? ""
+        : "";
+
+      const updatedMsg: Record<string, unknown> = {
+        from: `${account.displayName ?? ""} <${account.email}>`,
+        subject: update.subject ?? origSubject,
+        attachDataUrls: true,
+      };
+
+      if (update.body !== undefined) {
+        if (update.isHtml) {
+          updatedMsg.html = update.body;
+        } else {
+          updatedMsg.text = update.body;
+        }
+      }
+
+      const raw = await new Promise<Buffer>((resolve, reject) => {
+        const mc = new MailComposer(updatedMsg);
+        mc.compile().build((err: Error | null, buf: Buffer) => {
+          if (err) reject(err);
+          else resolve(buf);
+        });
       });
-    });
 
-    await imap.messageDelete(uid, { uid: true });
-  const result = (await imap.append(folder, raw, ["\\Draft"])) as { uid: number };
-    return { id: encodeId(folder, result.uid) };
-  });
+      const result = await appendDraft(imap, folder, raw.toString("utf-8"));
+      await imap.messageDelete(uid, { uid: true });
+      return { id: encodeId(folder, appendUid(result, folder)) };
+    });
+  } catch (err) {
+    throw imapOperationError(`failed to update IMAP draft ${id}`, err);
+  }
 }
 
 export async function moveEmail(
@@ -212,9 +145,8 @@ export async function trashEmail(
 ): Promise<void> {
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
-  const imap = await client.getImap();
-  const dest = resolveTrashMailbox(
-    (await imap.list()) as Iterable<ImapMailboxEntry>,
+  const dest = await client.run(async (imap) =>
+    resolveTrashMailbox((await imap.list()) as Iterable<ImapMailboxEntry>),
   );
 
   return client.withMailbox(folder, async (lockedImap) => {
@@ -272,50 +204,54 @@ export async function addAttachmentToDraft(
   const client = clients.get(account);
   const { folder, uid } = decodeId(draftId);
 
-  return client.withMailbox(folder, async (imap) => {
-    const existing = (await imap.fetchOne(
-      uid,
-      { source: true },
-      { uid: true },
-    )) as { source?: string | ArrayBuffer };
-    if (!existing?.source) {
-      throw new Error(`draft not found: ${draftId}`);
-    }
+  try {
+    return await client.withMailbox(folder, async (imap) => {
+      const existing = (await imap.fetchOne(
+        uid,
+        { source: true },
+        { uid: true },
+      )) as { source?: string | ArrayBuffer };
+      if (!existing?.source) {
+        throw new Error(`draft not found: ${draftId}`);
+      }
 
-    const sourceStr =
-      typeof existing.source === "string"
-        ? existing.source
-        : Buffer.from(existing.source as ArrayBuffer).toString("utf-8");
+      const sourceStr =
+        typeof existing.source === "string"
+          ? existing.source
+          : Buffer.from(existing.source as ArrayBuffer).toString("utf-8");
 
-    const built = await new Promise<Buffer>((resolve, reject) => {
-      const mc = new MailComposer({
-        raw: sourceStr,
-        attachments: [
-          {
-            filename: name,
-            content: Buffer.from(contentBytes, "base64"),
-            contentType: contentType ?? "application/octet-stream",
-          },
-        ],
+      const built = await new Promise<Buffer>((resolve, reject) => {
+        const mc = new MailComposer({
+          raw: sourceStr,
+          attachments: [
+            {
+              filename: name,
+              content: Buffer.from(contentBytes, "base64"),
+              contentType: contentType ?? "application/octet-stream",
+            },
+          ],
+        });
+        mc.compile().build((err: Error | null, buf: Buffer) => {
+          if (err) reject(err);
+          else resolve(buf);
+        });
       });
-      mc.compile().build((err: Error | null, buf: Buffer) => {
-        if (err) reject(err);
-        else resolve(buf);
-      });
+
+      const result = await appendDraft(imap, folder, built.toString("utf-8"));
+      await imap.messageDelete(uid, { uid: true });
+
+      return {
+        id: encodeId(folder, appendUid(result, folder)),
+        attachment: {
+          id: randomUUID(),
+          name,
+          contentType: contentType ?? "application/octet-stream",
+        },
+      };
     });
-
-    await imap.messageDelete(uid, { uid: true });
-  const result = (await imap.append(folder, built, ["\\Draft"])) as { uid: number };
-
-    return {
-      id: encodeId(folder, result.uid),
-      attachment: {
-        id: randomUUID(),
-        name,
-        contentType: contentType ?? "application/octet-stream",
-      },
-    };
-  });
+  } catch (err) {
+    throw imapOperationError(`failed to add attachment to IMAP draft ${draftId}`, err);
+  }
 }
 
 export async function removeAttachmentFromDraft(
@@ -375,12 +311,13 @@ export async function markRead(
   });
 }
 
-async function buildRawMessage(
+async function buildMailOptions(
+  client: ImapClient,
   account: AccountRecord,
   msg: SendInput,
   messageId?: string,
-): Promise<string> {
-  const mailOptions: Record<string, unknown> = {
+): Promise<import("nodemailer").SendMailOptions> {
+  const mailOptions: import("nodemailer").SendMailOptions = {
     from: `${account.displayName ?? ""} <${account.email}>`,
     to: msg.to
       .map((a) => (a.name ? `"${a.name}" <${a.address}>` : a.address))
@@ -406,20 +343,80 @@ async function buildRawMessage(
       .join(", ");
   }
 
-  // Add file attachments from msg.attachments
   if (msg.attachments && msg.attachments.length > 0) {
-    const fileAttachments = msg.attachments.map((att) => ({
+    mailOptions.attachments = msg.attachments.map((att) => ({
       filename: att.name,
       content: Buffer.from(att.contentBytes, "base64"),
       contentType: att.contentType,
     }));
-    mailOptions.attachments = fileAttachments;
   }
 
   if (messageId) {
     mailOptions.messageId = messageId;
   }
 
+  await applyReferenceMessage(client, mailOptions, msg);
+  return mailOptions;
+}
+
+async function applyReferenceMessage(
+  client: ImapClient,
+  mailOptions: import("nodemailer").SendMailOptions,
+  msg: SendInput,
+): Promise<void> {
+  if (!msg.inReplyTo && !msg.forwardMessageId) return;
+
+  const refId = msg.inReplyTo || msg.forwardMessageId;
+  if (!refId) return;
+
+  try {
+    const { folder: refFolder, uid: refUid } = decodeId(refId);
+    const refMsg = (await client.withMailbox(refFolder, async (imap) => {
+      return imap.fetchOne(
+        refUid,
+        { envelope: true, source: true },
+        { uid: true },
+      );
+    })) as { envelope?: ImapEnvelope; source?: string | ArrayBuffer };
+
+    if (refMsg?.envelope) {
+      const env = refMsg.envelope as ImapEnvelope;
+      if (msg.inReplyTo && env.messageId && !msg.forwardMessageId) {
+        mailOptions.inReplyTo = env.messageId;
+        mailOptions.references = env.messageId;
+      }
+    }
+
+    if (msg.forwardMessageId && refMsg?.source) {
+      const sourceStr =
+        typeof refMsg.source === "string"
+          ? refMsg.source
+          : Buffer.from(refMsg.source as ArrayBuffer).toString("utf-8");
+      const divider =
+        '\n\n<div style="line-height:12px"><br></div>\n\n' +
+        '<div style="border-left:2px solid #ccc; padding-left:8px; ' +
+        'margin-left:0; color:#666">\n' +
+        "---------- Forwarded message ---------<br>" +
+        sourceStr +
+        "\n</div>";
+      if (mailOptions.html) {
+        mailOptions.html = `${mailOptions.html}${divider}`;
+      } else if (mailOptions.text) {
+        mailOptions.text = `${mailOptions.text}\n\n---------- Forwarded message ---------\n${sourceStr}`;
+      }
+    }
+  } catch {
+    /* If we can't fetch the referenced message, proceed without threading. */
+  }
+}
+
+async function buildRawMessage(
+  client: ImapClient,
+  account: AccountRecord,
+  msg: SendInput,
+  messageId?: string,
+): Promise<string> {
+  const mailOptions = await buildMailOptions(client, account, msg, messageId);
   return new Promise<string>((resolve, reject) => {
     const mc = new MailComposer(mailOptions);
     mc.compile().build((err: Error | null, buf: Buffer) => {
@@ -427,4 +424,61 @@ async function buildRawMessage(
       else resolve(buf.toString("utf-8"));
     });
   });
+}
+
+async function appendDraft(
+  imap: ImapFlow,
+  folder: string,
+  rawMsg: string,
+): Promise<unknown> {
+  try {
+    return await imap.append(folder, rawMsg, ["\\Draft"]);
+  } catch (err) {
+    if (!isImapCommandFailure(err)) throw err;
+    return imap.append(folder, rawMsg);
+  }
+}
+
+function appendUid(result: unknown, folder: string): number {
+  if (!result || typeof result !== "object") {
+    throw new Error(`IMAP append to ${folder} did not return a UID`);
+  }
+  const uid = Number((result as { uid?: unknown }).uid);
+  if (Number.isFinite(uid) && uid > 0) return uid;
+  throw new Error(`IMAP append to ${folder} did not return a UID`);
+}
+
+function isImapCommandFailure(err: unknown): boolean {
+  const e = err as { responseStatus?: unknown; message?: unknown };
+  return (
+    typeof e.responseStatus === "string" ||
+    (typeof e.message === "string" && e.message.includes("Command failed"))
+  );
+}
+
+function imapOperationError(message: string, err: unknown): Error {
+  const detail = formatImapError(err);
+  return new Error(`${message}: ${detail}`, { cause: err });
+}
+
+function formatImapError(err: unknown): string {
+  const e = err as Record<string, unknown>;
+  const parts: string[] = [];
+  const message = err instanceof Error ? err.message : String(err);
+  if (message) parts.push(message);
+
+  for (const key of ["responseStatus", "responseText", "serverResponseCode", "response"]) {
+    const value = e[key];
+    if (value !== undefined && value !== null) {
+      parts.push(`${key}=${safeErrorValue(value)}`);
+    }
+  }
+
+  return parts.join("; ");
+}
+
+function safeErrorValue(value: unknown): string {
+  const raw = typeof value === "string" ? value : JSON.stringify(value);
+  const text = raw ?? String(value);
+  return text.length > 500 ? `${text.slice(0, 500)}…` : text;
 }

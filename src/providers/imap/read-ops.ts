@@ -239,11 +239,12 @@ export async function listFolders(
   opts: ListFoldersOptions,
 ): Promise<FolderInfo[]> {
   const client = clients.get(account);
-  const imap = await client.getImap();
 
-  const mailboxes = await imap.list({
-    statusQuery: { messages: true, unseen: true, uidNext: true },
-  } as never);
+  const mailboxes = await client.run((imap) =>
+    imap.list({
+      statusQuery: { messages: true, unseen: true, uidNext: true },
+    } as never),
+  );
 
   let results: FolderInfo[] = (
     mailboxes as unknown as ImapMailboxEntry[]

@@ -13,6 +13,7 @@ import {
   providerIdEnum,
   accountSummaryOutputSchema,
   accountFullOutputSchema,
+  publicAccountResult,
   styleOutputSchema,
   shouldRegister,
 } from "./shared.js";
@@ -111,7 +112,8 @@ export function registerAccountTools(
             email: args.email,
             config: args.config,
           });
-          return ok(res, res as unknown as Record<string, unknown>);
+          const data = publicAccountResult(res);
+          return ok(data, data as unknown as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));
         }
@@ -171,7 +173,8 @@ export function registerAccountTools(
             code: args.code,
             state: args.state,
           });
-          return ok(res, res as unknown as Record<string, unknown>);
+          const data = publicAccountResult(res);
+          return ok(data, data as unknown as Record<string, unknown>);
         } catch (err) {
           return fail(errMsg(err));
         }
