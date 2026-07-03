@@ -1,0 +1,21 @@
+{
+  "jobs": [
+    {
+      "id": "example-hypermail-new-email-poller",
+      "name": "hypermail-new-email-poller",
+      "prompt": "Poll Hypermail MCP for at most one new inbox email. The script is the job: it stays silent when no mail is found; if a new email is found, it stores the payload and spawns a Hermes agent to handle it according to the user's memory and policy. Do not recursively schedule jobs.",
+      "skills": [],
+      "script": "hypermail_new_email_poller.py",
+      "no_agent": true,
+      "schedule": {
+        "kind": "interval",
+        "minutes": 1,
+        "display": "every 1m"
+      },
+      "schedule_display": "every 1m",
+      "enabled": true,
+      "deliver": "origin",
+      "enabled_toolsets": ["terminal", "file"]
+    }
+  ]
+}

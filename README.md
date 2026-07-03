@@ -307,6 +307,9 @@ tool on their own schedule, for example every 30–60 seconds.
 All-account calls return partial failures as `errors: [{ account, message }]`
 and still return successful accounts' emails.
 
+See [`examples/hermes/`](examples/hermes/) for a Hermes scheduler integration
+that polls this tool and hands new-email payloads to a Hermes agent.
+
 ## Add-account flows
 
 ### Outlook
