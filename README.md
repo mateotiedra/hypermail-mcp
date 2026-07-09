@@ -3,6 +3,12 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.18** — `search_emails` can now omit `account` to search all
+> registered accounts in parallel, returning account-annotated results plus
+> per-account errors without discarding successful matches. All-account
+> `get_new_emails` polling also collects and hydrates per-account batches in
+> parallel while preserving the global oldest-first limit.
+>
 > **v0.7.17** — Hardened Outlook message IDs returned by `list_emails` and
 > `search_emails`: Outlook reads now request Microsoft Graph immutable IDs,
 > `search_emails` probes results and marks stale/not-found messages with
@@ -291,7 +297,7 @@ account store.
 | `remove_account` | `email` | Deletes tokens for the account. |
 | `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. |
 | `get_new_emails` | `account?`, `limit?` | Pull new inbox emails not previously returned by this tool. `limit` defaults to 10 and is global when `account` is omitted. Returns full markdown bodies with attachment metadata; bodies may be truncated. |
-| `search_emails` | `account`, `query`, `limit?` | KQL on Outlook. |
+| `search_emails` | `account?`, `query`, `limit?` | Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Uses KQL on Outlook. |
 | `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. |
 | `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
 | `archive_email` | `account`, `id` | Move a message to the Archive folder. |
@@ -319,6 +325,8 @@ tool on their own schedule, for example every 30–60 seconds.
 - `account` is optional. When omitted, the tool checks all registered accounts.
 - `limit` defaults to `10`. In all-account mode, the limit is a global total
   across accounts, selected by oldest `receivedAt` first.
+- All-account polling performs per-account candidate collection and hydration in
+  parallel, then returns the combined batch in oldest-first order.
 - First use for an account initializes its checkpoint to the newest inbox email
   and returns no emails for that account.
 - Later calls return emails not previously returned by this tool, oldest first.
