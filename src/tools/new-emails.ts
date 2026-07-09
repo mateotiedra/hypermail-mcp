@@ -168,20 +168,37 @@ export function registerNewEmailTool(
       const providersByEmail = new Map<string, EmailProvider>();
       const accountsByEmail = new Map<string, AccountRecord>();
 
-      for (const stored of accounts) {
-        try {
-          const { provider, account } = registry.resolveByEmail(stored.email);
-          const result = await collectCandidatesForAccount(store, provider, account, logger);
-          providersByEmail.set(result.account.email, provider);
-          accountsByEmail.set(result.account.email, result.account);
-          collected.push(...result.candidates);
-        } catch (err) {
-          logger.debug("get-new-emails", "accountError", {
-            account: stored.email,
-            message: errMsg(err),
-          });
-          errors.push({ account: stored.email, message: errMsg(err) });
+      const collectedByAccount = await Promise.all(
+        accounts.map(async (stored) => {
+          try {
+            const { provider, account } = registry.resolveByEmail(stored.email);
+            const result = await collectCandidatesForAccount(store, provider, account, logger);
+            return {
+              status: "ok" as const,
+              account: result.account,
+              provider,
+              candidates: result.candidates,
+            };
+          } catch (err) {
+            const message = errMsg(err);
+            logger.debug("get-new-emails", "accountError", { account: stored.email, message });
+            return {
+              status: "error" as const,
+              account: stored.email,
+              message,
+            };
+          }
+        }),
+      );
+
+      for (const result of collectedByAccount) {
+        if (result.status === "error") {
+          errors.push({ account: result.account, message: result.message });
+          continue;
         }
+        providersByEmail.set(result.account.email, result.provider);
+        accountsByEmail.set(result.account.email, result.account);
+        collected.push(...result.candidates);
       }
 
       const selected = oldestCandidatesFirst(collected).slice(0, limit);
@@ -203,27 +220,34 @@ export function registerNewEmailTool(
           byAccount.set(candidate.account.email, items);
         }
 
-        for (const [email, accountCandidates] of byAccount) {
-          const provider = providersByEmail.get(email);
-          const account = accountsByEmail.get(email);
-          if (!provider || !account) continue;
-          try {
-            emails.push(
-              ...(await hydrateAndAdvance(
-                store,
-                provider,
-                account,
-                accountCandidates,
-                logger,
-              )),
-            );
-          } catch (err) {
-            logger.debug("get-new-emails", "accountError", {
-              account: email,
-              message: errMsg(err),
-            });
-            errors.push({ account: email, message: errMsg(err) });
+        const hydratedByAccount = await Promise.all(
+          [...byAccount].map(async ([email, accountCandidates]) => {
+            const provider = providersByEmail.get(email);
+            const account = accountsByEmail.get(email);
+            if (!provider || !account) return { status: "ok" as const, emails: [] };
+            try {
+              return {
+                status: "ok" as const,
+                emails: await hydrateAndAdvance(store, provider, account, accountCandidates, logger),
+              };
+            } catch (err) {
+              const message = errMsg(err);
+              logger.debug("get-new-emails", "accountError", { account: email, message });
+              return {
+                status: "error" as const,
+                account: email,
+                message,
+              };
+            }
+          }),
+        );
+
+        for (const result of hydratedByAccount) {
+          if (result.status === "error") {
+            errors.push({ account: result.account, message: result.message });
+            continue;
           }
+          emails.push(...result.emails);
         }
       }
 

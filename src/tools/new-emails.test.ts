@@ -356,6 +356,52 @@ describe("get_new_emails", () => {
     expect(data.errors).toEqual([{ account: c.email, message: "list failed" }]);
   });
 
+  it("starts all-account candidate collection in parallel", async () => {
+    const a = account("a@example.com", { receivedAt: "2026-01-01T00:00:00.000Z", deliveredIdsAtReceivedAt: [] });
+    const b = account("b@example.com", { receivedAt: "2026-01-01T00:00:00.000Z", deliveredIdsAtReceivedAt: [] });
+    const store = memoryStore([a, b]);
+    const started: string[] = [];
+    let resolveBothStarted!: () => void;
+    let releaseLists!: () => void;
+    const bothStarted = new Promise<void>((resolve) => {
+      resolveBothStarted = resolve;
+    });
+    const listsReleased = new Promise<void>((resolve) => {
+      releaseLists = resolve;
+    });
+    const blockingProvider = (acct: AccountRecord, items: EmailSummary[]): EmailProvider => ({
+      ...provider(items),
+      listEmails: vi.fn(async (_account: AccountRecord, listOpts) => {
+        started.push(acct.email);
+        if (started.length === 2) resolveBothStarted();
+        await listsReleased;
+        const skip = listOpts.skip ?? 0;
+        const limit = listOpts.limit ?? 25;
+        return {
+          items: items.slice(skip, skip + limit),
+          hasMore: skip + limit < items.length,
+        };
+      }),
+    } as unknown as EmailProvider);
+    const providers = {
+      [a.email]: blockingProvider(a, [summary("a1", "2026-01-02T00:00:00.000Z")]),
+      [b.email]: blockingProvider(b, [summary("b1", "2026-01-03T00:00:00.000Z")]),
+    };
+    const handler = registerHandler(store, registry([a, b], providers));
+
+    const pending = handler({ limit: 2 });
+    const parallelStarted = await Promise.race([
+      bothStarted.then(() => true),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 25)),
+    ]);
+    releaseLists();
+    const data = structured(await pending);
+
+    expect(parallelStarted).toBe(true);
+    expect(started).toEqual(expect.arrayContaining([a.email, b.email]));
+    expect((data.emails as Array<{ id: string }>).map((email) => email.id)).toEqual(["a1", "b1"]);
+  });
+
   it("fails a single-account call and does not advance when a selected read fails", async () => {
     const checkpoint = { receivedAt: "2026-01-01T00:00:00.000Z", deliveredIdsAtReceivedAt: [] };
     const acct = account("a@example.com", checkpoint);
