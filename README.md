@@ -3,6 +3,13 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.17** — Hardened Outlook message IDs returned by `list_emails` and
+> `search_emails`: Outlook reads now request Microsoft Graph immutable IDs,
+> `search_emails` probes results and marks stale/not-found messages with
+> `stale: true`, and `read_email` / `read_attachment` keep a legacy mutable-ID
+> fallback for older IDs. Graph errors now include structured diagnostic details
+> when available.
+>
 > **v0.7.16** — Hardened `draft_email` after successful draft creation:
 > if post-save readback fails, the tool now returns the created draft ID with
 > `warning` and `draftReadbackError` instead of losing the draft behind an

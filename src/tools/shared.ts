@@ -28,12 +28,47 @@ export function fail(message: string) {
   };
 }
 
+function graphErrorDetails(err: unknown): Record<string, unknown> | undefined {
+  if (typeof err !== "object" || err === null) return undefined;
+  const record = err as Record<string, unknown>;
+  const details: Record<string, unknown> = {};
+
+  for (const key of ["code", "statusCode", "requestId", "date", "innerError"]) {
+    if (record[key] !== undefined) details[key] = record[key];
+  }
+
+  if (typeof record.body === "string") {
+    try {
+      const parsed = JSON.parse(record.body) as unknown;
+      if (typeof parsed === "object" && parsed !== null) {
+        const graphError = (parsed as Record<string, unknown>).error;
+        if (typeof graphError === "object" && graphError !== null) {
+          const graphRecord = graphError as Record<string, unknown>;
+          for (const key of ["code", "message", "innerError"]) {
+            if (graphRecord[key] !== undefined && details[key] === undefined) {
+              details[key] = graphRecord[key];
+            }
+          }
+        }
+      }
+    } catch {
+      // Keep the original message when the body is not JSON.
+    }
+  }
+
+  return Object.keys(details).length > 0 ? details : undefined;
+}
+
 export function errMsg(err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
   if (message.includes("HYPERMAIL_GMAIL_CLIENT_ID")) {
     return "Missing Gmail OAuth configuration: set HYPERMAIL_GMAIL_CLIENT_ID before adding a Gmail account.";
   }
-  return message;
+
+  const details = graphErrorDetails(err);
+  if (!details) return message;
+
+  return `${message}\n${JSON.stringify({ error: details }, null, 2)}`;
 }
 
 // ── shared schemas ──
@@ -107,6 +142,7 @@ export const emailSummaryOutputSchema = z.object({
   isRead: z.boolean().optional(),
   hasAttachments: z.boolean().optional(),
   folder: z.string().optional(),
+  stale: z.boolean().optional(),
 });
 
 export const attachmentMetaOutputSchema = z.object({

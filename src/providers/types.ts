@@ -17,6 +17,8 @@ export interface EmailSummary {
   isRead?: boolean;
   hasAttachments?: boolean;
   folder?: string;
+  /** True when a provider search result points at an item that cannot be read anymore. */
+  stale?: boolean;
 }
 
 export interface EmailFull extends EmailSummary {
