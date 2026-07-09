@@ -13,6 +13,7 @@ import {
 interface GraphCall {
   endpoint: string;
   headers: Record<string, string>;
+  method?: "GET" | "POST";
   select?: string;
   top?: number;
   skip?: number;
@@ -20,6 +21,7 @@ interface GraphCall {
   orderby?: string;
   filter?: string;
   responseType?: unknown;
+  body?: unknown;
 }
 
 type GraphResponse =
@@ -80,7 +82,20 @@ class FakeGraphRequest {
   }
 
   async get(): Promise<unknown> {
-    this.calls.push({ ...this.call, headers: { ...this.call.headers } });
+    return this.respond("GET");
+  }
+
+  async post(body?: unknown): Promise<unknown> {
+    return this.respond("POST", body);
+  }
+
+  private async respond(method: "GET" | "POST", body?: unknown): Promise<unknown> {
+    this.calls.push({
+      ...this.call,
+      method,
+      body,
+      headers: { ...this.call.headers },
+    });
     const queue = this.responses[this.call.endpoint];
     if (!queue || queue.length === 0) {
       throw new Error(`No fake Graph response for ${this.call.endpoint}`);
@@ -161,6 +176,32 @@ describe("Outlook read operations", () => {
     expect(calls[0]?.headers).toEqual({ Prefer: OUTLOOK_IMMUTABLE_ID_PREFER });
   });
 
+  it("falls back from localized folder display names to folder IDs", async () => {
+    const folder = "Éléments envoyés";
+    const folderId = "sentitems-id";
+    const { client, calls } = fakeClient({
+      [`/me/mailFolders/${encodeURIComponent(folder)}/messages`]: [
+        { error: graphError("ErrorInvalidIdMalformed", "Id is malformed.", 400) },
+      ],
+      "/me/mailFolders": [
+        { result: { value: [{ id: folderId, displayName: folder }] } },
+      ],
+      [`/me/mailFolders/${folderId}/messages`]: [
+        { result: { value: [message("sent-1")], "@odata.nextLink": undefined } },
+      ],
+    });
+
+    const res = await listEmails(client, account(), { folder, limit: 5 });
+
+    expect(res.items[0]?.id).toBe("sent-1");
+    expect(res.items[0]?.folder).toBe(folder);
+    expect(calls.map((call) => call.endpoint)).toEqual([
+      `/me/mailFolders/${encodeURIComponent(folder)}/messages`,
+      "/me/mailFolders",
+      `/me/mailFolders/${folderId}/messages`,
+    ]);
+  });
+
   it("requests immutable IDs when reading emails and falls back for legacy mutable IDs", async () => {
     const legacyId = "legacy-1";
     const endpoint = `/me/messages/${legacyId}`;
@@ -184,6 +225,41 @@ describe("Outlook read operations", () => {
     expect(calls[1]?.headers).toEqual({});
   });
 
+  it("translates malformed message IDs before giving up on read", async () => {
+    const malformedId = "malformed-search-id";
+    const translatedId = "immutable-readable-id";
+    const endpoint = `/me/messages/${malformedId}`;
+    const translatedEndpoint = `/me/messages/${translatedId}`;
+    const malformed = graphError("ErrorInvalidIdMalformed", "Id is malformed.", 400);
+    const { client, calls } = fakeClient({
+      [endpoint]: [{ error: malformed }, { error: malformed }],
+      "/me/translateExchangeIds": [
+        {
+          result: {
+            value: [{ sourceId: malformedId, targetId: translatedId }],
+          },
+        },
+      ],
+      [translatedEndpoint]: [{ result: message(translatedId) }],
+    });
+
+    const res = await readEmail(client, account(), malformedId);
+
+    expect(res.id).toBe(translatedId);
+    expect(calls.find((call) => call.endpoint === "/me/translateExchangeIds")).toEqual(
+      expect.objectContaining({
+        method: "POST",
+        body: {
+          inputIds: [malformedId],
+          sourceIdType: "ewsId",
+          targetIdType: "restImmutableEntryId",
+        },
+      }),
+    );
+    expect(calls.at(-1)?.endpoint).toBe(translatedEndpoint);
+    expect(calls.at(-1)?.headers).toEqual({ Prefer: OUTLOOK_IMMUTABLE_ID_PREFER });
+  });
+
   it("uses immutable IDs for attachment metadata and download requests", async () => {
     const messageId = "immutable-1";
     const attachmentId = "attachment-1";
@@ -205,6 +281,29 @@ describe("Outlook read operations", () => {
     ]);
   });
 
+  it("returns translated readable IDs for malformed search results", async () => {
+    const malformedId = "malformed-search-id";
+    const translatedId = "immutable-readable-id";
+    const malformed = graphError("ErrorInvalidIdMalformed", "Id is malformed.", 400);
+    const { client } = fakeClient({
+      "/me/messages": [{ result: { value: [message(malformedId)] } }],
+      [`/me/messages/${malformedId}`]: [{ error: malformed }, { error: malformed }],
+      "/me/translateExchangeIds": [
+        {
+          result: {
+            value: [{ sourceId: malformedId, targetId: translatedId }],
+          },
+        },
+      ],
+      [`/me/messages/${translatedId}`]: [{ result: { id: translatedId } }],
+    });
+
+    const res = await searchEmails(client, account(), "Subject", { limit: 10 });
+
+    expect(res[0]).toEqual(expect.objectContaining({ id: translatedId }));
+    expect(res[0]).not.toHaveProperty("stale");
+  });
+
   it("marks only not-found search results as stale", async () => {
     const staleErr = graphError(
       "ErrorItemNotFound",
@@ -216,6 +315,10 @@ describe("Outlook read operations", () => {
       ],
       "/me/messages/ok-1": [{ result: { id: "ok-1" } }],
       "/me/messages/stale-1": [{ error: staleErr }, { error: staleErr }],
+      "/me/translateExchangeIds": [
+        { result: { value: [] } },
+        { result: { value: [] } },
+      ],
     });
 
     const res = await searchEmails(client, account(), "Subject", { limit: 10 });

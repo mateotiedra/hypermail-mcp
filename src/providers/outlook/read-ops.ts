@@ -16,6 +16,7 @@ import type {
 import {
   clampLimit,
   type GraphAttachment,
+  type GraphFolder,
   type GraphMessage,
   mapRecipient,
   mapSummary,
@@ -47,6 +48,17 @@ const FULL_MESSAGE_SELECT = [
   "hasAttachments",
   "body",
 ].join(",");
+
+type ExchangeSourceIdType = "ewsId" | "restId";
+
+const EXCHANGE_ID_TRANSLATION_SOURCE_TYPES: ExchangeSourceIdType[] = [
+  "ewsId",
+  "restId",
+];
+
+interface TranslateExchangeIdsResponse {
+  value?: Array<{ sourceId?: string; targetId?: string }>;
+}
 
 function graphErrorFields(err: unknown): Array<string | number> {
   if (typeof err !== "object" || err === null) {
@@ -99,6 +111,29 @@ export function isStaleMessageIdError(err: unknown): boolean {
   });
 }
 
+async function translateMessageIdToImmutable(
+  client: Client,
+  id: string,
+): Promise<string | undefined> {
+  for (const sourceIdType of EXCHANGE_ID_TRANSLATION_SOURCE_TYPES) {
+    try {
+      const res = (await client.api("/me/translateExchangeIds").post({
+        inputIds: [id],
+        sourceIdType,
+        targetIdType: "restImmutableEntryId",
+      })) as TranslateExchangeIdsResponse;
+      const targetId = res.value?.find((item) => item.targetId)?.targetId;
+      if (typeof targetId === "string" && targetId !== "" && targetId !== id) {
+        return targetId;
+      }
+    } catch {
+      // Best-effort fallback only: callers keep the original read/probe error.
+    }
+  }
+
+  return undefined;
+}
+
 async function probeMessage(
   client: Client,
   id: string,
@@ -111,10 +146,10 @@ async function probeMessage(
   await req.get();
 }
 
-async function probeSearchResult(client: Client, id: string): Promise<boolean> {
+async function probeSearchResult(client: Client, id: string): Promise<string | undefined> {
   try {
     await probeMessage(client, id, true);
-    return true;
+    return id;
   } catch (err) {
     if (!isStaleMessageIdError(err)) throw err;
   }
@@ -122,33 +157,69 @@ async function probeSearchResult(client: Client, id: string): Promise<boolean> {
   // Backward compatibility for any result ID Graph still returns as a legacy mutable ID.
   try {
     await probeMessage(client, id, false);
-    return true;
+    return id;
   } catch (err) {
-    if (isStaleMessageIdError(err)) return false;
-    throw err;
+    if (!isStaleMessageIdError(err)) throw err;
   }
+
+  const translatedId = await translateMessageIdToImmutable(client, id);
+  if (!translatedId) return undefined;
+
+  try {
+    await probeMessage(client, translatedId, true);
+    return translatedId;
+  } catch (err) {
+    if (!isStaleMessageIdError(err)) throw err;
+    return undefined;
+  }
+}
+
+async function getMessageById(
+  client: Client,
+  id: string,
+  useImmutableIds: boolean,
+): Promise<GraphMessage> {
+  let req = client
+    .api(`/me/messages/${encodeURIComponent(id)}`)
+    .select(FULL_MESSAGE_SELECT);
+  if (useImmutableIds) req = req.header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER);
+  return (await req.get()) as GraphMessage;
 }
 
 async function getMessage(
   client: Client,
   id: string,
 ): Promise<{ message: GraphMessage; useImmutableIds: boolean }> {
+  let lastStaleError: unknown;
+
   try {
-    const message = (await client
-      .api(`/me/messages/${encodeURIComponent(id)}`)
-      .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
-      .select(FULL_MESSAGE_SELECT)
-      .get()) as GraphMessage;
-    return { message, useImmutableIds: true };
+    return { message: await getMessageById(client, id, true), useImmutableIds: true };
   } catch (err) {
     if (!isStaleMessageIdError(err)) throw err;
+    lastStaleError = err;
   }
 
-  const message = (await client
-    .api(`/me/messages/${encodeURIComponent(id)}`)
-    .select(FULL_MESSAGE_SELECT)
-    .get()) as GraphMessage;
-  return { message, useImmutableIds: false };
+  try {
+    return { message: await getMessageById(client, id, false), useImmutableIds: false };
+  } catch (err) {
+    if (!isStaleMessageIdError(err)) throw err;
+    lastStaleError = err;
+  }
+
+  const translatedId = await translateMessageIdToImmutable(client, id);
+  if (translatedId) {
+    try {
+      return {
+        message: await getMessageById(client, translatedId, true),
+        useImmutableIds: true,
+      };
+    } catch (err) {
+      if (!isStaleMessageIdError(err)) throw err;
+      lastStaleError = err;
+    }
+  }
+
+  throw lastStaleError ?? new Error("Message not found");
 }
 
 async function listAttachments(
@@ -193,6 +264,52 @@ async function getAttachmentValue(
   return (await req.get()) as ArrayBuffer;
 }
 
+async function listMessagePage(
+  client: Client,
+  folder: string,
+  limit: number,
+  skip: number,
+  filterParts: string[],
+): Promise<{ value: GraphMessage[]; "@odata.nextLink"?: string }> {
+  let req = client
+    .api(`/me/mailFolders/${encodeURIComponent(folder)}/messages`)
+    .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
+    .top(limit)
+    .skip(skip)
+    .select(MESSAGE_SELECT)
+    .orderby("receivedDateTime DESC");
+
+  if (filterParts.length > 0) req = req.filter(filterParts.join(" and "));
+
+  return (await req.get()) as { value: GraphMessage[]; "@odata.nextLink"?: string };
+}
+
+function normalizeFolderDisplayName(value: string): string {
+  return value
+    .trim()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+async function resolveFolderIdByDisplayName(
+  client: Client,
+  displayName: string,
+): Promise<string | undefined> {
+  const wanted = normalizeFolderDisplayName(displayName);
+  if (!wanted) return undefined;
+
+  const res = (await client
+    .api("/me/mailFolders")
+    .top(100)
+    .select("id,displayName")
+    .get()) as { value?: GraphFolder[] };
+
+  return (res.value ?? []).find(
+    (folder) => normalizeFolderDisplayName(folder.displayName) === wanted,
+  )?.id;
+}
+
 export async function listEmails(
   client: Client,
   account: AccountRecord,
@@ -203,17 +320,16 @@ export async function listEmails(
   const filterParts: string[] = [];
   if (opts.unreadOnly) filterParts.push("isRead eq false");
 
-  let req = client
-    .api(`/me/mailFolders/${encodeURIComponent(folder)}/messages`)
-    .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
-    .top(limit)
-    .skip(opts.skip ?? 0)
-    .select(MESSAGE_SELECT)
-    .orderby("receivedDateTime DESC");
+  let res: { value: GraphMessage[]; "@odata.nextLink"?: string };
+  try {
+    res = await listMessagePage(client, folder, limit, opts.skip ?? 0, filterParts);
+  } catch (err) {
+    if (!isStaleMessageIdError(err)) throw err;
+    const resolvedFolderId = await resolveFolderIdByDisplayName(client, folder);
+    if (!resolvedFolderId || resolvedFolderId === folder) throw err;
+    res = await listMessagePage(client, resolvedFolderId, limit, opts.skip ?? 0, filterParts);
+  }
 
-  if (filterParts.length > 0) req = req.filter(filterParts.join(" and "));
-
-  const res = (await req.get()) as { value: GraphMessage[]; "@odata.nextLink"?: string };
   return {
     items: res.value.map((m) => mapSummary(m, folder)),
     hasMore: !!res["@odata.nextLink"],
@@ -240,8 +356,8 @@ export async function searchEmails(
   const summaries = res.value.map((m) => mapSummary(m));
   return Promise.all(
     summaries.map(async (summary) => {
-      const readable = await probeSearchResult(client, summary.id);
-      return readable ? summary : { ...summary, stale: true };
+      const readableId = await probeSearchResult(client, summary.id);
+      return readableId ? { ...summary, id: readableId } : { ...summary, stale: true };
     }),
   );
 }

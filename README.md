@@ -3,6 +3,13 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.19** — Hardened Outlook ID handling when Microsoft Graph `$search`
+> returns IDs that `/me/messages/{id}` rejects as malformed: `search_emails`
+> now returns a translated readable immutable ID when available, and
+> `read_email` retries malformed/stale IDs through `translateExchangeIds`
+> before failing. `list_emails` also falls back from localized folder display
+> names such as `Éléments envoyés` to the matching Graph folder ID.
+>
 > **v0.7.18** — `search_emails` can now omit `account` to search all
 > registered accounts in parallel, returning account-annotated results plus
 > per-account errors without discarding successful matches. All-account
@@ -295,10 +302,10 @@ account store.
 | `get_account_settings` | `account` | Get signature (HTML) and style preferences for an account. |
 | `set_account_settings` | `account`, `signature?`, `signaturePath?`, `style?` | Set signature HTML (inline or via file path) and font preferences. |
 | `remove_account` | `email` | Deletes tokens for the account. |
-| `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. |
+| `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. Outlook accepts well-known folder names, folder IDs, and falls back from localized display names to matching folder IDs. |
 | `get_new_emails` | `account?`, `limit?` | Pull new inbox emails not previously returned by this tool. `limit` defaults to 10 and is global when `account` is omitted. Returns full markdown bodies with attachment metadata; bodies may be truncated. |
-| `search_emails` | `account?`, `query`, `limit?` | Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Uses KQL on Outlook. |
-| `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. |
+| `search_emails` | `account?`, `query`, `limit?` | Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Uses KQL on Outlook, and normalizes malformed Outlook search-result IDs to readable immutable IDs when possible. |
+| `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. Outlook retries malformed/stale IDs through Graph ID translation before failing. |
 | `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
 | `archive_email` | `account`, `id` | Move a message to the Archive folder. |
 | `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). |
