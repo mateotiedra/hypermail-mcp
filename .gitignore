@@ -8,6 +8,7 @@ dist/
 .DS_Store
 coverage/
 .vitest-cache/
+graphify-out/
 ~/.hypermail-mcp/
 ~/.hypermail-mcp-dev/
 .data/

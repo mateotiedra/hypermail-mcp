@@ -38,10 +38,16 @@ export function registerBrowseTools(
     hasMore: z.boolean(),
   });
 
+  const searchEmailSummaryOutputSchema = emailSummaryOutputSchema.extend({
+    account: z.string(),
+  });
+
   const searchEmailsOutputSchema = z.object({
     account: z.string(),
     count: z.number(),
-    items: z.array(emailSummaryOutputSchema),
+    items: z.array(searchEmailSummaryOutputSchema),
+    accounts: z.array(z.string()).optional(),
+    errors: z.array(z.object({ account: z.string(), message: z.string() })).optional(),
   });
 
   if (shouldRegister("list_emails", tools)) {
@@ -91,29 +97,73 @@ export function registerBrowseTools(
       "search_emails",
       {
         description:
-          "Search emails by free-text query (KQL on Outlook). Returns lightweight summaries.",
+          "Search emails by free-text query (KQL on Outlook). Returns lightweight summaries. " +
+          "Pass `account` to search one account, or omit it to search all registered accounts in parallel.",
         inputSchema: z.object({
-          account: z.string().email(),
+          account: z.string().email().optional(),
           query: z.string().min(1),
           limit: z.number().int().positive().max(100).optional(),
         }),
         outputSchema: searchEmailsOutputSchema,
       },
       async (args) => {
-        try {
-          const { provider, account } = registry.resolveByEmail(args.account);
-          const items = await provider.searchEmails(account, args.query, {
-            limit: args.limit,
-          });
-          const data = {
-            account: account.email,
-            count: items.length,
-            items,
-          };
-          return ok(data, data);
-        } catch (err) {
-          return fail(errMsg(err));
+        if (args.account) {
+          try {
+            const { provider, account } = registry.resolveByEmail(args.account);
+            const items = await provider.searchEmails(account, args.query, {
+              limit: args.limit,
+            });
+            const data = {
+              account: account.email,
+              count: items.length,
+              items: items.map((item) => ({ ...item, account: account.email })),
+              errors: [],
+            };
+            return ok(data, data);
+          } catch (err) {
+            return fail(errMsg(err));
+          }
         }
+
+        const accounts = store.listAccounts();
+        if (accounts.length === 0) {
+          return fail("no accounts registered. Call add_account first.");
+        }
+
+        const results = await Promise.all(
+          accounts.map(async (stored) => {
+            try {
+              const { provider, account } = registry.resolveByEmail(stored.email);
+              const items = await provider.searchEmails(account, args.query, {
+                limit: args.limit,
+              });
+              return {
+                account: account.email,
+                items: items.map((item) => ({ ...item, account: account.email })),
+              };
+            } catch (err) {
+              return {
+                account: stored.email,
+                error: errMsg(err),
+              };
+            }
+          }),
+        );
+
+        const items = results.flatMap((result) => result.items ?? []);
+        const errors = results
+          .filter((result): result is { account: string; error: string } =>
+            "error" in result,
+          )
+          .map((result) => ({ account: result.account, message: result.error }));
+        const data = {
+          account: "all",
+          accounts: accounts.map((account) => account.email),
+          count: items.length,
+          items,
+          errors,
+        };
+        return ok(data, data);
       },
     );
   }
