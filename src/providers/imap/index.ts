@@ -1,4 +1,6 @@
 import type { AccountRecord, AccountStore } from "../../store/account-store.js";
+import type { Logger } from "../../logger.js";
+import { noopLogger } from "../../logger.js";
 import type {
   AddAccountInput,
   AddAccountResult,
@@ -47,9 +49,14 @@ import {
 
 export class ImapProvider implements EmailProvider {
   readonly id = "imap" as const;
-  private readonly clients = new ImapClientFactory();
+  private readonly clients: ImapClientFactory;
 
-  constructor(private readonly store?: AccountStore) {}
+  constructor(
+    private readonly store?: AccountStore,
+    logger: Logger = noopLogger,
+  ) {
+    this.clients = new ImapClientFactory(logger);
+  }
 
   // ---------- account lifecycle ----------
 

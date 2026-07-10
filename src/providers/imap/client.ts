@@ -4,6 +4,13 @@ import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 
 import type { AccountRecord } from "../../store/account-store.js";
+import type { Logger } from "../../logger.js";
+import { noopLogger } from "../../logger.js";
+
+export const IMAP_CONNECTION_TIMEOUT_MS = 15_000;
+export const IMAP_GREETING_TIMEOUT_MS = 15_000;
+export const IMAP_SOCKET_TIMEOUT_MS = 45_000;
+export const IMAP_OPERATION_TIMEOUT_MS = 45_000;
 
 // ---------- token shape ----------
 
@@ -55,7 +62,10 @@ export class ImapClient {
   private connecting: Promise<void> | null = null;
   private imapQueue: Promise<void> = Promise.resolve();
 
-  constructor(private readonly tokens: ImapTokens) {}
+  constructor(
+    private readonly tokens: ImapTokens,
+    private readonly opts: { account?: string; logger?: Logger } = {},
+  ) {}
 
   /** Get (or create) the ImapFlow instance. */
   async getImap(): Promise<ImapFlow> {
@@ -70,20 +80,32 @@ export class ImapClient {
         pass: this.tokens.password,
       },
       logger: false,
+      connectionTimeout: IMAP_CONNECTION_TIMEOUT_MS,
+      greetingTimeout: IMAP_GREETING_TIMEOUT_MS,
+      socketTimeout: IMAP_SOCKET_TIMEOUT_MS,
     });
 
     // Connect on first use and serialise concurrent callers.
     if (!this.connecting) {
-      this.connecting = this.imap
-        .connect()
+      this.log("connectStart");
+      this.connecting = this.withOperationTimeout("connect", this.imap.connect())
+        .then(() => {
+          this.log("connectEnd");
+        })
         .catch((err) => {
+          const normalized = this.normalizeConnectError(err);
+          this.log("connectError", {
+            message: normalized.message,
+            code: imapErrorCode(err) ?? null,
+            authenticationFailed: hasAuthenticationFailedFlag(err),
+          });
           // Clear state so next caller retries
-          this.imap = null;
-          this.connecting = null;
-          throw err;
+          this.resetImap();
+          throw normalized;
         });
     }
     await this.connecting;
+    if (!this.imap) throw new Error("IMAP connection unavailable after connect");
     return this.imap;
   }
 
@@ -112,7 +134,17 @@ export class ImapClient {
       () => undefined,
       () => undefined,
     );
-    return run;
+    try {
+      return await this.withOperationTimeout("operation", run, () => {
+        this.imapQueue = Promise.resolve();
+        this.resetImap();
+      });
+    } catch (err) {
+      if (err instanceof ImapTimeoutError) {
+        this.log("operationTimeout", { message: err.message });
+      }
+      throw err;
+    }
   }
 
   /**
@@ -146,6 +178,111 @@ export class ImapClient {
       this.transporter = null;
     }
   }
+
+  private resetImap(): void {
+    const imap = this.imap;
+    this.imap = null;
+    this.connecting = null;
+    if (imap) {
+      imap.logout().catch(() => {});
+    }
+  }
+
+  private async withOperationTimeout<T>(
+    operation: string,
+    promise: Promise<T>,
+    onTimeout?: () => void,
+  ): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        onTimeout?.();
+        reject(new ImapTimeoutError(this.timeoutMessage(operation)));
+      }, IMAP_OPERATION_TIMEOUT_MS);
+    });
+
+    try {
+      return await Promise.race([promise, timeout]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  private timeoutMessage(operation: string): string {
+    return `IMAP ${operation} timed out after ${IMAP_OPERATION_TIMEOUT_MS}ms for account ${this.accountLabel()} (${this.tokens.host}:${this.tokens.port})`;
+  }
+
+  private accountLabel(): string {
+    return this.opts.account ?? this.tokens.user;
+  }
+
+  private normalizeConnectError(err: unknown): Error {
+    if (!isImapAuthenticationError(err)) {
+      return err instanceof Error ? err : new Error(String(err));
+    }
+
+    const code = imapErrorCode(err);
+    const codeSuffix = code ? ` Provider error code: ${code}.` : "";
+    return new Error(
+      `IMAP authentication failed for account ${this.accountLabel()} ` +
+        `(${this.tokens.host}:${this.tokens.port}). ` +
+        "Verify the password/app-password and IMAP access policy, then re-add or update the account." +
+        codeSuffix,
+      { cause: err },
+    );
+  }
+
+  private log(event: string, fields: Record<string, unknown> = {}): void {
+    (this.opts.logger ?? noopLogger).debug("imap", event, {
+      account: this.accountLabel(),
+      host: this.tokens.host,
+      port: this.tokens.port,
+      ...fields,
+    });
+  }
+}
+
+class ImapTimeoutError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImapTimeoutError";
+  }
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function isImapAuthenticationError(err: unknown): boolean {
+  if (hasAuthenticationFailedFlag(err)) return true;
+  const code = imapErrorCode(err);
+  if (code === "ClosedAfterConnectTLS") return true;
+
+  const message = errorMessage(err).toLowerCase();
+  return (
+    message.includes("authentication failed") ||
+    message.includes("invalid credentials") ||
+    message.includes("login failed")
+  );
+}
+
+function hasAuthenticationFailedFlag(err: unknown): boolean {
+  return readErrorField(err, "authenticationFailed") === true;
+}
+
+function imapErrorCode(err: unknown): string | undefined {
+  const direct = readErrorField(err, "code");
+  if (typeof direct === "string" && direct !== "NoConnection") return direct;
+
+  const nested = readErrorField(readErrorField(err, "error"), "code");
+  if (typeof nested === "string") return nested;
+  if (typeof direct === "string") return direct;
+  return undefined;
+}
+
+function readErrorField(err: unknown, field: string): unknown {
+  if (typeof err !== "object" || err === null) return undefined;
+  return (err as Record<string, unknown>)[field];
 }
 
 // ---------- factory ----------
@@ -157,13 +294,18 @@ export class ImapClient {
 export class ImapClientFactory {
   private readonly cache = new Map<string, ImapClient>();
 
+  constructor(private readonly logger: Logger = noopLogger) {}
+
   get(account: AccountRecord): ImapClient {
     const key = account.email.toLowerCase();
     const existing = this.cache.get(key);
     if (existing) return existing;
 
     const tokens = extractTokens(account);
-    const client = new ImapClient(tokens);
+    const client = new ImapClient(tokens, {
+      account: account.email,
+      logger: this.logger,
+    });
     this.cache.set(key, client);
     return client;
   }

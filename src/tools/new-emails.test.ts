@@ -5,6 +5,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import { registerNewEmailTool } from "./new-emails.js";
+import { ACCOUNT_POLL_TIMEOUT_MS } from "./new-emails-timeout.js";
 import { createLogger, type Logger } from "../logger.js";
 import { AccountStore, type AccountRecord, type NewEmailClaimCandidate } from "../store/account-store.js";
 import type { EmailProvider, EmailSummary } from "../providers/types.js";
@@ -354,6 +355,78 @@ describe("get_new_emails", () => {
       { account: b.email, id: "b1" },
     ]);
     expect(data.errors).toEqual([{ account: c.email, message: "list failed" }]);
+  });
+
+  it("continues all-account polling and reports a timed-out account", async () => {
+    vi.useFakeTimers();
+    try {
+      const healthy = account("healthy@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: [],
+      });
+      const broken = account("broken@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: [],
+      });
+      const store = memoryStore([healthy, broken]);
+      const brokenProvider = {
+        ...provider([]),
+        listEmails: vi.fn(() => new Promise(() => undefined)),
+      } as unknown as EmailProvider;
+      const handler = registerHandler(store, registry([healthy, broken], {
+        [healthy.email]: provider([summary("ok", "2026-01-02T00:00:00.000Z")]),
+        [broken.email]: brokenProvider,
+      }));
+
+      const pending = handler({ limit: 2 });
+      await vi.advanceTimersByTimeAsync(ACCOUNT_POLL_TIMEOUT_MS);
+      const data = structured(await pending);
+
+      expect((data.emails as Array<{ account: string; id: string }>)).toMatchObject([
+        { account: healthy.email, id: "ok" },
+      ]);
+      expect(data.errors).toEqual([
+        {
+          account: broken.email,
+          message: `collect new-email candidates timed out after ${ACCOUNT_POLL_TIMEOUT_MS}ms for account ${broken.email}`,
+        },
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("fails a timed-out single-account poll cleanly", async () => {
+    vi.useFakeTimers();
+    try {
+      const acct = account("broken@example.com", {
+        receivedAt: "2026-01-01T00:00:00.000Z",
+        deliveredIdsAtReceivedAt: [],
+      });
+      const store = memoryStore([acct]);
+      const brokenProvider = {
+        ...provider([]),
+        listEmails: vi.fn(() => new Promise(() => undefined)),
+      } as unknown as EmailProvider;
+      const handler = registerHandler(store, registry([acct], { [acct.email]: brokenProvider }));
+
+      const pending = handler({ account: acct.email });
+      await vi.advanceTimersByTimeAsync(ACCOUNT_POLL_TIMEOUT_MS);
+      const result = await pending;
+
+      expect(result).toMatchObject({
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `collect new-email candidates timed out after ${ACCOUNT_POLL_TIMEOUT_MS}ms for account ${acct.email}`,
+          },
+        ],
+      });
+      expect(store.claimNewEmails).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("starts all-account candidate collection in parallel", async () => {

@@ -3,6 +3,14 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.20** — Hardened long-running IMAP and new-email polling paths:
+> IMAP connections now use explicit connection/greeting/socket/operation
+> timeouts, reset stuck connections, and report post-TLS authentication
+> failures with account-specific remediation guidance. `get_new_emails` now
+> applies per-account timeouts during candidate collection and hydration so one
+> hanging account does not block all-account polling; partial timeout failures
+> are returned alongside successful accounts' emails.
+>
 > **v0.7.19** — Hardened Outlook ID handling when Microsoft Graph `$search`
 > returns IDs that `/me/messages/{id}` rejects as malformed: `search_emails`
 > now returns a translated readable immutable ID when available, and
@@ -344,7 +352,9 @@ tool on their own schedule, for example every 30–60 seconds.
 - `limit: 0` can initialize/check state without fetching message bodies.
 
 All-account calls return partial failures as `errors: [{ account, message }]`
-and still return successful accounts' emails.
+and still return successful accounts' emails. Pollers should continue processing
+returned emails when `errors` is non-empty, and use those entries to notify or
+log which accounts are failing.
 
 See [`examples/hermes/`](examples/hermes/) for a Hermes scheduler integration
 that polls this tool and hands new-email payloads to a Hermes agent.
@@ -372,6 +382,13 @@ that polls this tool and hands new-email payloads to a Hermes agent.
 4. Agent polls `complete_add_account({ provider: "outlook", handle })` until
    it returns `{ "status": "ready", "account": {...} }`.
 5. From then on, any tool can be called with `account: "<that-email>"`.
+
+### IMAP
+
+IMAP accounts are added synchronously with host/user/password settings. If the
+server accepts TCP/TLS but closes during login, Hypermail reports an IMAP
+authentication failure. Check the mailbox password or app-password, confirm IMAP
+access is enabled by the provider, then re-add or update the account.
 
 ### Gmail
 

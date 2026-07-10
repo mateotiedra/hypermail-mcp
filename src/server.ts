@@ -31,7 +31,7 @@ export async function startServer(opts: ServerOptions): Promise<void> {
     toolsDisabled: config.tools?.disabled ?? null,
   });
   const store = await AccountStore.open({ dataDir, logger });
-  const registry = buildRegistry({ store, providers: config.providers });
+  const registry = buildRegistry({ store, providers: config.providers, logger });
   const tools: ResolvedTools = resolveTools(config);
 
   // Factory: creates a fresh McpServer with all tools registered.

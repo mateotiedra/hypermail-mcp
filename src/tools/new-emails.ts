@@ -16,11 +16,16 @@ import {
   ok,
   shouldRegister,
 } from "./shared.js";
+import {
+  compareTimestamp,
+  effectiveReceivedAt,
+  normalizeTimestamp,
+  withAccountPollTimeout,
+} from "./new-emails-timeout.js";
 
 const DEFAULT_LIMIT = 10;
 const BODY_LIMIT = 20_000;
 const PAGE_SIZE = 100;
-const MISSING_RECEIVED_AT = "1970-01-01T00:00:00.000Z";
 
 type NewEmailCheckpoint = NonNullable<AccountRecord["newEmailCheckpoint"]>;
 
@@ -124,7 +129,11 @@ export function registerNewEmailTool(
       if (args.account) {
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
-          const result = await collectCandidatesForAccount(store, provider, account, logger);
+          const result = await withAccountPollTimeout(
+            account.email,
+            "collect new-email candidates",
+            collectCandidatesForAccount(store, provider, account, logger),
+          );
           const selected = oldestCandidatesFirst(result.candidates).slice(0, limit);
           logger.debug("get-new-emails", "selected", {
             account: result.account.email,
@@ -136,7 +145,11 @@ export function registerNewEmailTool(
           });
           const emails = limit === 0
             ? []
-            : await hydrateAndAdvance(store, provider, result.account, selected, logger);
+            : await withAccountPollTimeout(
+                result.account.email,
+                "hydrate new emails",
+                hydrateAndAdvance(store, provider, result.account, selected, logger),
+              );
           const data = { count: emails.length, emails, errors: [] };
           logger.debug("get-new-emails", "end", {
             account: result.account.email,
@@ -172,7 +185,11 @@ export function registerNewEmailTool(
         accounts.map(async (stored) => {
           try {
             const { provider, account } = registry.resolveByEmail(stored.email);
-            const result = await collectCandidatesForAccount(store, provider, account, logger);
+            const result = await withAccountPollTimeout(
+              account.email,
+              "collect new-email candidates",
+              collectCandidatesForAccount(store, provider, account, logger),
+            );
             return {
               status: "ok" as const,
               account: result.account,
@@ -228,7 +245,11 @@ export function registerNewEmailTool(
             try {
               return {
                 status: "ok" as const,
-                emails: await hydrateAndAdvance(store, provider, account, accountCandidates, logger),
+                emails: await withAccountPollTimeout(
+                  email,
+                  "hydrate new emails",
+                  hydrateAndAdvance(store, provider, account, accountCandidates, logger),
+                ),
               };
             } catch (err) {
               const message = errMsg(err);
@@ -450,17 +471,6 @@ function normalizeCheckpoint(
   };
 }
 
-function effectiveReceivedAt(receivedAt: string | undefined): string {
-  return normalizeTimestamp(receivedAt) ?? MISSING_RECEIVED_AT;
-}
-
-function normalizeTimestamp(value: string | undefined): string | null {
-  if (!value) return null;
-  const ms = Date.parse(value);
-  if (!Number.isFinite(ms)) return null;
-  return new Date(ms).toISOString();
-}
-
 function oldestCandidatesFirst(items: Candidate[]): Candidate[] {
   return [...items].sort((a, b) => {
     const byTimestamp = compareTimestamp(a.timestamp, b.timestamp);
@@ -481,8 +491,3 @@ function compareNewEmailOutputOldestFirst(
   return a.id.localeCompare(b.id);
 }
 
-function compareTimestamp(a: string, b: string): number {
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
-}

@@ -1,6 +1,7 @@
 import type { AccountStore, AccountRecord } from "../store/account-store.js";
 import type { EmailProvider, ProviderId } from "./types.js";
 import type { ProvidersConfig } from "../config.js";
+import type { Logger } from "../logger.js";
 import { OutlookProvider } from "./outlook/index.js";
 import { ImapProvider } from "./imap/index.js";
 import { GmailProvider } from "./gmail/index.js";
@@ -14,6 +15,7 @@ export interface Registry {
 export interface BuildRegistryOptions {
   store: AccountStore;
   providers?: ProvidersConfig;
+  logger?: Logger;
 }
 
 export function buildRegistry(opts: BuildRegistryOptions): Registry {
@@ -24,7 +26,7 @@ export function buildRegistry(opts: BuildRegistryOptions): Registry {
     clientId: outlookCfg?.clientId,
     tenantId: outlookCfg?.tenantId,
   }));
-  providers.set("imap", new ImapProvider(opts.store));
+  providers.set("imap", new ImapProvider(opts.store, opts.logger));
   const gmailCfg = opts.providers?.gmail;
   providers.set("gmail", new GmailProvider({
     store: opts.store,
