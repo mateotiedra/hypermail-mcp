@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.21** — `send_email` and `draft_email` now treat the exact string
+> `"false"` for `inReplyTo` as the boolean `false`, so agents that serialize
+> that explicit new-message marker as text can forward with `forwardMessageId`
+> instead of incorrectly triggering the reply/forward exclusivity check.
+>
 > **v0.7.20** — Hardened long-running IMAP and new-email polling paths:
 > IMAP connections now use explicit connection/greeting/socket/operation
 > timeouts, reset stuck connections, and report post-TLS authentication

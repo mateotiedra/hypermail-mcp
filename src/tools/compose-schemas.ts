@@ -24,7 +24,10 @@ export const sendEmailSchema = z.object({
         "Returns an error if true but no signature is configured for this account.",
     ),
   inReplyTo: z
-    .union([z.string(), z.literal(false)])
+    .preprocess(
+      (value) => (value === "false" ? false : value),
+      z.union([z.string(), z.literal(false)]),
+    )
     .describe(
       "Message ID to reply to. When set, sends as a threaded reply " +
         "which includes the quoted thread history automatically. " +

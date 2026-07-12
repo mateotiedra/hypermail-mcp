@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 import { registerComposeTools } from "./compose.js";
+import { sendEmailSchema } from "./compose-schemas.js";
 import type { ResolvedTools } from "../config.js";
 import type { EmailProvider } from "../providers/types.js";
 import type { Registry } from "../providers/registry.js";
@@ -101,6 +102,39 @@ describe("draft_email", () => {
       id: "draft-1",
       draftHtml: "<p>Draft body</p>",
     });
+  });
+
+  it("normalizes inReplyTo \"false\" when forwarding", async () => {
+    const provider = {
+      id: "outlook",
+      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      readEmail: vi.fn(async () => ({
+        id: "draft-1",
+        bodyHtml: "<p>Draft body</p>",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "draft_email");
+    const args = sendEmailSchema.parse({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Forwarded subject",
+      body: "Forwarded body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: "false",
+      forwardMessageId: "message-to-forward",
+    });
+
+    const result = await handler(args);
+
+    expect(result).not.toMatchObject({ isError: true });
+    expect(provider.saveDraft).toHaveBeenCalledWith(
+      account,
+      expect.objectContaining({
+        inReplyTo: false,
+        forwardMessageId: "message-to-forward",
+      }),
+    );
   });
 
   it("returns the draft id with a warning when readback fails", async () => {
