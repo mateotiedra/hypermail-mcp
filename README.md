@@ -3,6 +3,9 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.22** — Fixed IMAP `edit_draft` updates so body-only edits preserve
+> the draft's existing recipients, subject, reply context, and attachments.
+>
 > **v0.7.21** — `send_email` and `draft_email` now treat the exact string
 > `"false"` for `inReplyTo` as the boolean `false`, so agents that serialize
 > that explicit new-message marker as text can forward with `forwardMessageId`
