@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type { AccountRecord } from "../../store/account-store.js";
 import type { ImapFlow } from "imapflow";
+import { simpleParser, type ParsedMail } from "mailparser";
 import MailComposer from "nodemailer/lib/mail-composer/index.js";
 
 import type {
@@ -55,7 +56,7 @@ export async function saveDraft(
   msg: SendInput,
 ): Promise<{ id: string }> {
   const client = clients.get(account);
-  const rawMsg = await buildRawMessage(client, account, msg);
+  const rawMsg = await buildRawMessage(client, account, msg, undefined, true);
   let folder = "Drafts";
   try {
     const result = await client.run(async (imap) => {
@@ -81,42 +82,68 @@ export async function updateDraft(
     return await client.withMailbox(folder, async (imap) => {
       const existing = (await imap.fetchOne(
         uid,
-        { source: true, envelope: true },
+        { source: true },
         { uid: true },
-      )) as { source?: string | ArrayBuffer; envelope?: ImapEnvelope };
+      )) as { source?: string | ArrayBuffer };
       if (!existing?.source) {
         throw new Error(`draft not found: ${id}`);
       }
 
-      const origSubject = existing.envelope
-        ? (existing.envelope as ImapEnvelope).subject ?? ""
-        : "";
-
+      const source =
+        typeof existing.source === "string"
+          ? Buffer.from(existing.source, "utf-8")
+          : Buffer.from(existing.source);
+      const parsed: ParsedMail = await simpleParser(source);
+      const existingHtml = parsed.html === false ? undefined : parsed.html;
+      const text = normalizeBodyLineEndings(
+        update.body !== undefined && !update.isHtml ? update.body : parsed.text,
+      );
+      const html = normalizeBodyLineEndings(
+        update.body !== undefined && update.isHtml ? update.body : existingHtml,
+      );
       const updatedMsg: Record<string, unknown> = {
-        from: `${account.displayName ?? ""} <${account.email}>`,
-        subject: update.subject ?? origSubject,
+        from: addressText(parsed.from) ?? `${account.displayName ?? ""} <${account.email}>`,
+        to: update.to ? formatAddresses(update.to) : addressText(parsed.to),
+        cc: update.cc ? formatAddresses(update.cc) : addressText(parsed.cc),
+        bcc: update.bcc ? formatAddresses(update.bcc) : addressText(parsed.bcc),
+        subject: update.subject ?? parsed.subject ?? "",
+        text,
+        html,
+        inReplyTo: parsed.inReplyTo,
+        references: parsed.references,
+        attachments: parsed.attachments.map((attachment) => ({
+          filename: attachment.filename,
+          content: attachment.content,
+          contentType: attachment.contentType,
+          contentDisposition: attachment.contentDisposition,
+          cid: attachment.cid,
+        })),
         attachDataUrls: true,
       };
 
-      if (update.body !== undefined) {
-        if (update.isHtml) {
-          updatedMsg.html = update.body;
-        } else {
-          updatedMsg.text = update.body;
-        }
-      }
-
       const raw = await new Promise<Buffer>((resolve, reject) => {
         const mc = new MailComposer(updatedMsg);
-        mc.compile().build((err: Error | null, buf: Buffer) => {
+        const compiled = mc.compile();
+        compiled.keepBcc = true;
+        compiled.build((err: Error | null, buf: Buffer) => {
           if (err) reject(err);
           else resolve(buf);
         });
       });
 
       const result = await appendDraft(imap, folder, raw.toString("utf-8"));
+      const appendedUid = appendUid(result, folder);
+      const appended = (await imap.fetchOne(
+        appendedUid,
+        { source: true },
+        { uid: true },
+      )) as { source?: string | ArrayBuffer };
+      if (!appended?.source) {
+        throw new Error(`appended IMAP draft ${encodeId(folder, appendedUid)} is not readable`);
+      }
+
       await imap.messageDelete(uid, { uid: true });
-      return { id: encodeId(folder, appendUid(result, folder)) };
+      return { id: encodeId(folder, appendedUid) };
     });
   } catch (err) {
     throw imapOperationError(`failed to update IMAP draft ${id}`, err);
@@ -315,6 +342,20 @@ export async function markRead(
   });
 }
 
+function formatAddresses(addresses: Array<{ name?: string; address: string }>): string {
+  return addresses
+    .map((address) =>
+      address.name ? `"${address.name}" <${address.address}>` : address.address,
+    )
+    .join(", ");
+}
+
+function addressText(address: ParsedMail["to"]): string | undefined {
+  return Array.isArray(address)
+    ? address.map((entry) => entry.text).join(", ")
+    : address?.text;
+}
+
 async function buildMailOptions(
   client: ImapClient,
   account: AccountRecord,
@@ -419,15 +460,23 @@ async function buildRawMessage(
   account: AccountRecord,
   msg: SendInput,
   messageId?: string,
+  keepBcc = false,
 ): Promise<string> {
   const mailOptions = await buildMailOptions(client, account, msg, messageId);
+
   return new Promise<string>((resolve, reject) => {
     const mc = new MailComposer(mailOptions);
-    mc.compile().build((err: Error | null, buf: Buffer) => {
+    const compiled = mc.compile();
+    compiled.keepBcc = keepBcc;
+    compiled.build((err: Error | null, buf: Buffer) => {
       if (err) reject(err);
       else resolve(buf.toString("utf-8"));
     });
   });
+}
+
+function normalizeBodyLineEndings(value: string | undefined): string | undefined {
+  return value?.replace(/\r?\n/g, "\r\n");
 }
 
 async function appendDraft(

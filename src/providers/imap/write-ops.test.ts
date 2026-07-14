@@ -1,8 +1,11 @@
+import { simpleParser } from "mailparser";
+import type { ParsedMail } from "mailparser";
+import MailComposer from "nodemailer/lib/mail-composer/index.js";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AccountRecord } from "../../store/account-store.js";
 import type { ImapClientFactory } from "./client.js";
-import { saveDraft } from "./write-ops.js";
+import { saveDraft, updateDraft } from "./write-ops.js";
 
 const account: AccountRecord = {
   email: "user@example.com",
@@ -16,7 +19,33 @@ function clientsFor(client: unknown): ImapClientFactory {
   return { get: () => client } as unknown as ImapClientFactory;
 }
 
-describe("IMAP saveDraft", () => {
+async function originalDraftSource(html = "<p>Original body</p>"): Promise<string> {
+  const raw = await new Promise<Buffer>((resolve, reject) => {
+    const message = new MailComposer({
+      from: "User <user@example.com>",
+      to: "Original To <original-to@example.com>",
+      cc: "Original Cc <original-cc@example.com>",
+      bcc: "Original Bcc <original-bcc@example.com>",
+      subject: "Original subject",
+      html,
+      attachments: [{ filename: "original.txt", content: "original attachment" }],
+    }).compile();
+    message.keepBcc = true;
+    message.build((err: Error | null, buf: Buffer) =>
+      err ? reject(err) : resolve(buf),
+    );
+  });
+
+  return raw.toString("utf-8");
+}
+
+function addresses(recipients: ParsedMail["to"]): string[] {
+  return (recipients ? (Array.isArray(recipients) ? recipients : [recipients]) : [])
+    .flatMap(({ value }) => value)
+    .map((recipient) => recipient.address ?? "");
+}
+
+describe("IMAP draft write operations", () => {
   it("appends a simple draft directly to Drafts", async () => {
     const append = vi.fn(async () => ({ uid: 123 }));
     const list = vi.fn(async () => []);
@@ -170,5 +199,136 @@ describe("IMAP saveDraft", () => {
       expect.stringContaining("Draft subject"),
       ["\\Draft"],
     );
+  });
+
+  it("preserves recipients and attachments when updating only a draft body", async () => {
+    const source = await originalDraftSource();
+    let appendedRaw = "";
+    const append = vi.fn(async (_folder, raw: string) => {
+      appendedRaw = raw;
+      return { uid: 101 };
+    });
+    const messageDelete = vi.fn();
+    const client = {
+      withMailbox: vi.fn(async (_folder, fn) =>
+        fn({
+          fetchOne: async () => ({
+            source,
+            envelope: { subject: "Original subject" },
+          }),
+          append,
+          messageDelete,
+        }),
+      ),
+    };
+
+    await updateDraft(clientsFor(client), account, "Drafts/5", {
+      body: "<p>Updated body</p>",
+      isHtml: true,
+    });
+
+    const updated = await simpleParser(appendedRaw);
+    expect(addresses(updated.to)).toEqual(["original-to@example.com"]);
+    expect(addresses(updated.cc)).toEqual(["original-cc@example.com"]);
+    expect(addresses(updated.bcc)).toEqual(["original-bcc@example.com"]);
+    expect(updated.html).toContain("Updated body");
+    expect(updated.attachments).toHaveLength(1);
+    expect(updated.attachments[0]).toMatchObject({
+      filename: "original.txt",
+      content: Buffer.from("original attachment"),
+    });
+  });
+
+  it("changes only supplied To recipients while retaining the draft body and attachments", async () => {
+    const source = await originalDraftSource("<p>Original\nbody</p>");
+    const parsedSource = await simpleParser(source);
+    expect(parsedSource.html).toContain("\n");
+    let appendedRaw = "";
+    const append = vi.fn(async (_folder, raw: string) => {
+      appendedRaw = raw;
+      return { uid: 102 };
+    });
+    const client = {
+      withMailbox: vi.fn(async (_folder, fn) =>
+        fn({
+          fetchOne: async () => ({
+            source,
+            envelope: { subject: "Original subject" },
+          }),
+          append,
+          messageDelete: vi.fn(),
+        }),
+      ),
+    };
+
+    await updateDraft(clientsFor(client), account, "Drafts/5", {
+      to: [{ address: "new-to@example.com" }],
+    });
+
+    const updated = await simpleParser(appendedRaw);
+    expect(addresses(updated.to)).toEqual(["new-to@example.com"]);
+    expect(updated.html).toContain("Original\nbody");
+    expect(updated.attachments).toHaveLength(1);
+    expect(updated.attachments[0]?.filename).toBe("original.txt");
+    expect(appendedRaw).not.toMatch(/(?<!\r)\n/);
+  });
+
+  it("overrides each existing recipient field when recipients are supplied", async () => {
+    const source = await originalDraftSource();
+    let appendedRaw = "";
+    const append = vi.fn(async (_folder, raw: string) => {
+      appendedRaw = raw;
+      return { uid: 103 };
+    });
+    const client = {
+      withMailbox: vi.fn(async (_folder, fn) =>
+        fn({
+          fetchOne: async () => ({
+            source,
+            envelope: { subject: "Original subject" },
+          }),
+          append,
+          messageDelete: vi.fn(),
+        }),
+      ),
+    };
+
+    await updateDraft(clientsFor(client), account, "Drafts/5", {
+      to: [{ address: "replacement-to@example.com" }],
+      cc: [{ address: "replacement-cc@example.com" }],
+      bcc: [{ address: "replacement-bcc@example.com" }],
+    });
+
+    const updated = await simpleParser(appendedRaw);
+    expect(addresses(updated.to)).toEqual(["replacement-to@example.com"]);
+    expect(addresses(updated.cc)).toEqual(["replacement-cc@example.com"]);
+    expect(addresses(updated.bcc)).toEqual(["replacement-bcc@example.com"]);
+  });
+
+  it("does not delete the original when the replacement draft cannot be read", async () => {
+    const source = await originalDraftSource();
+    const fetchOne = vi.fn(async (uid: number) => {
+      if (uid === 5) {
+        return { source, envelope: { subject: "Original subject" } };
+      }
+      return undefined;
+    });
+    const append = vi.fn(async () => ({ uid: 104 }));
+    const messageDelete = vi.fn();
+    const client = {
+      withMailbox: vi.fn(async (_folder, fn) =>
+        fn({ fetchOne, append, messageDelete }),
+      ),
+    };
+
+    await expect(
+      updateDraft(clientsFor(client), account, "Drafts/5", {
+        body: "replacement body",
+        isHtml: false,
+      }),
+    ).rejects.toThrow();
+
+    expect(fetchOne.mock.calls.map(([uid]) => uid)).toContain(104);
+    expect(messageDelete).not.toHaveBeenCalled();
   });
 });
