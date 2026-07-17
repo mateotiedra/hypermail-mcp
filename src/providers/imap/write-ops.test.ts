@@ -39,10 +39,47 @@ async function originalDraftSource(html = "<p>Original body</p>"): Promise<strin
   return raw.toString("utf-8");
 }
 
+async function textOnlyDraftSource(text: string): Promise<string> {
+  const raw = await new Promise<Buffer>((resolve, reject) => {
+    new MailComposer({
+      from: "Original <original@example.com>",
+      to: "User <user@example.com>",
+      subject: "Original subject",
+      text,
+    }).compile().build((err: Error | null, buf: Buffer) =>
+      err ? reject(err) : resolve(buf),
+    );
+  });
+
+  return raw.toString("utf-8");
+}
+
 function addresses(recipients: ParsedMail["to"]): string[] {
   return (recipients ? (Array.isArray(recipients) ? recipients : [recipients]) : [])
     .flatMap(({ value }) => value)
     .map((recipient) => recipient.address ?? "");
+}
+
+function replyHistoryDraftClient(source: string, uid = 125) {
+  let appendedRaw = "";
+  const append = vi.fn(async (_folder, raw: string) => {
+    appendedRaw = raw;
+    return { uid };
+  });
+  const list = vi.fn(async () => []);
+  const client = {
+    run: vi.fn(async (fn) => fn({ append, list })),
+    withMailbox: vi.fn(async (_folder, fn) =>
+      fn({
+        fetchOne: async () => ({
+          envelope: { messageId: "<original@example.com>" },
+          source,
+        }),
+      }),
+    ),
+  };
+
+  return { client, getAppendedRaw: () => appendedRaw };
 }
 
 describe("IMAP draft write operations", () => {
@@ -138,6 +175,62 @@ describe("IMAP draft write operations", () => {
         inReplyTo: false,
       }),
     ).rejects.not.toThrow("SECRET BODY");
+  });
+
+  it("preserves referenced message content in saved reply drafts", async () => {
+    const source = await originalDraftSource(
+      "<p>Clearly identifiable referenced HTML body content</p>",
+    );
+    const { client, getAppendedRaw } = replyHistoryDraftClient(source);
+
+    const result = await saveDraft(clientsFor(client), account, {
+      to: [{ address: "recipient@example.com" }],
+      subject: "Reply draft",
+      body: "<p>Composed response content</p>",
+      isHtml: true,
+      inReplyTo: "INBOX/9",
+    });
+
+    const draft = await simpleParser(getAppendedRaw());
+    expect(result).toEqual({ id: "Drafts/125" });
+    expect(client.withMailbox).toHaveBeenCalledWith("INBOX", expect.any(Function));
+    expect(draft.inReplyTo).toBe("<original@example.com>");
+    expect(draft.references).toBe("<original@example.com>");
+    expect(draft.html).toContain("Composed response content");
+    expect(draft.html).toContain("Clearly identifiable referenced HTML body content");
+  });
+
+  it("quotes a text-only message in an empty HTML reply draft", async () => {
+    const source = await textOnlyDraftSource("Identifiable referenced plain text");
+    const { client, getAppendedRaw } = replyHistoryDraftClient(source, 126);
+
+    await saveDraft(clientsFor(client), account, {
+      to: [{ address: "recipient@example.com" }],
+      subject: "Reply draft",
+      body: "",
+      isHtml: true,
+      inReplyTo: "INBOX/9",
+    });
+
+    const draft = await simpleParser(getAppendedRaw());
+    expect(draft.html).toContain("Identifiable referenced plain text");
+  });
+
+  it("quotes referenced content in plaintext reply drafts", async () => {
+    const source = await textOnlyDraftSource("Identifiable referenced plain text");
+    const { client, getAppendedRaw } = replyHistoryDraftClient(source, 127);
+
+    await saveDraft(clientsFor(client), account, {
+      to: [{ address: "recipient@example.com" }],
+      subject: "Reply draft",
+      body: "New plaintext response",
+      isHtml: false,
+      inReplyTo: "INBOX/9",
+    });
+
+    const draft = await simpleParser(getAppendedRaw());
+    expect(draft.text).toContain("New plaintext response");
+    expect(draft.text).toContain("Identifiable referenced plain text");
   });
 
   it("embeds forwarded message content in saved IMAP drafts", async () => {

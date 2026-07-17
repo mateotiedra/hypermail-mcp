@@ -424,6 +424,12 @@ async function applyReferenceMessage(
       );
     })) as { envelope?: ImapEnvelope; source?: string | ArrayBuffer };
 
+    const source = refMsg?.source
+      ? typeof refMsg.source === "string"
+        ? Buffer.from(refMsg.source, "utf-8")
+        : Buffer.from(refMsg.source)
+      : undefined;
+
     if (refMsg?.envelope) {
       const env = refMsg.envelope as ImapEnvelope;
       if (msg.inReplyTo && env.messageId && !msg.forwardMessageId) {
@@ -432,11 +438,26 @@ async function applyReferenceMessage(
       }
     }
 
-    if (msg.forwardMessageId && refMsg?.source) {
-      const sourceStr =
-        typeof refMsg.source === "string"
-          ? refMsg.source
-          : Buffer.from(refMsg.source as ArrayBuffer).toString("utf-8");
+    if (msg.inReplyTo && source) {
+      const parsed = await simpleParser(source);
+      if (mailOptions.html !== undefined) {
+        const referencedHtml =
+          parsed.html === false
+            ? parsed.textAsHtml ??
+              `<pre>${(parsed.text ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")}</pre>`
+            : parsed.html ?? parsed.textAsHtml;
+        mailOptions.html = `${mailOptions.html}\n\n<div style="line-height:12px"><br></div>\n\n<blockquote>${referencedHtml ?? ""}</blockquote>`;
+      } else if (mailOptions.text !== undefined) {
+        const referencedText = (parsed.text ?? "").replace(/^/gm, "> ");
+        mailOptions.text = `${mailOptions.text}\n\n---------- Original message ---------\n${referencedText}`;
+      }
+    }
+
+    if (msg.forwardMessageId && source) {
+      const sourceStr = source.toString("utf-8");
       const divider =
         '\n\n<div style="line-height:12px"><br></div>\n\n' +
         '<div style="border-left:2px solid #ccc; padding-left:8px; ' +
