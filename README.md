@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.23** — IMAP reply drafts now retain the referenced message as quoted
+> history and canonicalize generated MIME line endings before IMAP APPEND, so
+> servers that reject bare newlines can save reply drafts successfully.
+>
 > **v0.7.22** — Fixed IMAP `edit_draft` updates so body-only edits preserve
 > the draft's existing recipients, subject, reply context, and attachments.
 >

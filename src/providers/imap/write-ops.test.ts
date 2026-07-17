@@ -198,6 +198,7 @@ describe("IMAP draft write operations", () => {
     expect(draft.references).toBe("<original@example.com>");
     expect(draft.html).toContain("Composed response content");
     expect(draft.html).toContain("Clearly identifiable referenced HTML body content");
+    expect(getAppendedRaw()).not.toMatch(/(?<!\r)\n|\r(?!\n)/);
   });
 
   it("quotes a text-only message in an empty HTML reply draft", async () => {
