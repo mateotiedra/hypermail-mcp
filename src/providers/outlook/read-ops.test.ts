@@ -281,6 +281,75 @@ describe("Outlook read operations", () => {
     ]);
   });
 
+  it("builds query-only KQL without changing phrase search behavior", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages": [{ result: { value: [] } }],
+    });
+
+    await searchEmails(client, account(), { query: "quarterly report" });
+
+    expect(calls[0]?.search).toBe('"quarterly report"');
+  });
+
+  it("builds structured-only KQL", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages": [{ result: { value: [] } }],
+    });
+
+    await searchEmails(client, account(), {
+      from: "sender@example.com",
+      to: "recipient@example.com",
+    });
+
+    expect(calls[0]?.search).toBe(
+      '"from:\\"sender@example.com\\" AND to:\\"recipient@example.com\\""',
+    );
+  });
+
+  it("combines query and structured criteria with AND", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages": [{ result: { value: [] } }],
+    });
+
+    await searchEmails(client, account(), {
+      query: "invoice",
+      from: "sender@example.com",
+      to: "recipient@example.com",
+      cc: "copy@example.com",
+    });
+
+    expect(calls[0]?.search).toBe(
+      '"invoice AND from:\\"sender@example.com\\" AND to:\\"recipient@example.com\\" AND (cc:\\"copy@example.com\\" OR bcc:\\"copy@example.com\\")"',
+    );
+  });
+
+  it("groups CC and BCC recipient searches", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages": [{ result: { value: [] } }],
+    });
+
+    await searchEmails(client, account(), { cc: "copy@example.com" });
+
+    expect(calls[0]?.search).toBe(
+      '"(cc:\\"copy@example.com\\" OR bcc:\\"copy@example.com\\")"',
+    );
+  });
+
+  it("escapes KQL quotes and backslashes in search criteria", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages": [{ result: { value: [] } }],
+    });
+
+    await searchEmails(client, account(), {
+      query: 'subject "quoted"',
+      from: "sender\\name@example.com",
+    });
+
+    expect(calls[0]?.search).toBe(
+      '"subject \\"quoted\\" AND from:\\"sender\\\\name@example.com\\""',
+    );
+  });
+
   it("returns translated readable IDs for malformed search results", async () => {
     const malformedId = "malformed-search-id";
     const translatedId = "immutable-readable-id";
@@ -298,7 +367,7 @@ describe("Outlook read operations", () => {
       [`/me/messages/${translatedId}`]: [{ result: { id: translatedId } }],
     });
 
-    const res = await searchEmails(client, account(), "Subject", { limit: 10 });
+    const res = await searchEmails(client, account(), { query: "Subject", limit: 10 });
 
     expect(res[0]).toEqual(expect.objectContaining({ id: translatedId }));
     expect(res[0]).not.toHaveProperty("stale");
@@ -321,7 +390,7 @@ describe("Outlook read operations", () => {
       ],
     });
 
-    const res = await searchEmails(client, account(), "Subject", { limit: 10 });
+    const res = await searchEmails(client, account(), { query: "Subject", limit: 10 });
 
     expect(res[0]).toEqual(expect.objectContaining({ id: "ok-1" }));
     expect(res[0]).not.toHaveProperty("stale");
@@ -340,7 +409,7 @@ describe("Outlook read operations", () => {
       ],
     });
 
-    await expect(searchEmails(client, account(), "Subject", {})).rejects.toThrow(
+    await expect(searchEmails(client, account(), { query: "Subject" })).rejects.toThrow(
       "Graph is unavailable",
     );
   });

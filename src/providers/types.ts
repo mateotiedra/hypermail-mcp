@@ -49,6 +49,11 @@ export interface ListEmailsResult {
 }
 
 export interface SearchEmailsOptions {
+  query?: string;
+  from?: string;
+  to?: string;
+  /** Search both CC and BCC recipients. */
+  cc?: string;
   limit?: number;
 }
 
@@ -191,7 +196,6 @@ export interface EmailProvider {
   listEmails(account: AccountRecord, opts: ListEmailsOptions): Promise<ListEmailsResult>;
   searchEmails(
     account: AccountRecord,
-    query: string,
     opts: SearchEmailsOptions,
   ): Promise<EmailSummary[]>;
   readEmail(account: AccountRecord, id: string): Promise<EmailFull>;

@@ -159,10 +159,9 @@ export class OutlookProvider implements EmailProvider {
 
   async searchEmails(
     account: AccountRecord,
-    query: string,
     opts: SearchEmailsOptions,
   ): Promise<EmailSummary[]> {
-    return searchEmails(this.clients.get(account), account, query, opts);
+    return searchEmails(this.clients.get(account), account, opts);
   }
 
   async readEmail(account: AccountRecord, id: string): Promise<EmailFull> {

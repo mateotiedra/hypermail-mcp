@@ -93,26 +93,44 @@ export function registerBrowseTools(
   registerNewEmailTool(server, { store, registry, tools, logger });
 
   if (shouldRegister("search_emails", tools)) {
+    const criterionSchema = z.string().trim().min(1).optional();
+    const searchEmailsInputSchema = z
+      .object({
+        account: z.string().email().optional(),
+        query: criterionSchema.describe("Optional free-text search query."),
+        from: criterionSchema.describe("Match the sender."),
+        to: criterionSchema.describe("Match a direct recipient."),
+        cc: criterionSchema.describe("Match a CC or BCC recipient."),
+        limit: z.number().int().positive().max(100).optional(),
+      })
+      .refine(
+        (args) => args.query || args.from || args.to || args.cc,
+        { message: "at least one of query, from, to, or cc is required" },
+      );
+
     server.registerTool(
       "search_emails",
       {
         description:
-          "Search emails by free-text query (KQL on Outlook). Returns lightweight summaries. " +
-          "Pass `account` to search one account, or omit it to search all registered accounts in parallel.",
-        inputSchema: z.object({
-          account: z.string().email().optional(),
-          query: z.string().min(1),
-          limit: z.number().int().positive().max(100).optional(),
-        }),
+          "Search emails using optional free text and address filters. `cc` searches both CC and BCC. " +
+          "Supplied criteria are combined with AND. Pass `account` to search one account, or omit it " +
+          "to search all registered accounts in parallel.",
+        inputSchema: searchEmailsInputSchema,
         outputSchema: searchEmailsOutputSchema,
       },
       async (args) => {
+        const searchOptions = {
+          ...(args.query ? { query: args.query } : {}),
+          ...(args.from ? { from: args.from } : {}),
+          ...(args.to ? { to: args.to } : {}),
+          ...(args.cc ? { cc: args.cc } : {}),
+          ...(args.limit ? { limit: args.limit } : {}),
+        };
+
         if (args.account) {
           try {
             const { provider, account } = registry.resolveByEmail(args.account);
-            const items = await provider.searchEmails(account, args.query, {
-              limit: args.limit,
-            });
+            const items = await provider.searchEmails(account, searchOptions);
             const data = {
               account: account.email,
               count: items.length,
@@ -134,9 +152,7 @@ export function registerBrowseTools(
           accounts.map(async (stored) => {
             try {
               const { provider, account } = registry.resolveByEmail(stored.email);
-              const items = await provider.searchEmails(account, args.query, {
-                limit: args.limit,
-              });
+              const items = await provider.searchEmails(account, searchOptions);
               return {
                 account: account.email,
                 items: items.map((item) => ({ ...item, account: account.email })),

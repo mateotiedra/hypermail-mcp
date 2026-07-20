@@ -75,8 +75,8 @@ export class ImapProvider implements EmailProvider {
     return listEmails(this.clients, account, opts);
   }
 
-  async searchEmails(account: AccountRecord, query: string, opts: SearchEmailsOptions): Promise<EmailSummary[]> {
-    return searchEmails(this.clients, account, query, opts);
+  async searchEmails(account: AccountRecord, opts: SearchEmailsOptions): Promise<EmailSummary[]> {
+    return searchEmails(this.clients, account, opts);
   }
 
   async readEmail(account: AccountRecord, id: string): Promise<EmailFull> {

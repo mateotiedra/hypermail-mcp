@@ -213,10 +213,9 @@ export class GmailProvider implements EmailProvider {
 
   async searchEmails(
     account: AccountRecord,
-    query: string,
     opts: SearchEmailsOptions,
   ): Promise<EmailSummary[]> {
-    return searchEmails(this.clients, account, query, opts);
+    return searchEmails(this.clients, account, opts);
   }
 
   async readEmail(account: AccountRecord, id: string): Promise<EmailFull> {

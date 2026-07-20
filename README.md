@@ -3,6 +3,11 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.24** — `search_emails` now accepts provider-neutral `from`, `to`, and
+> `cc` filters in addition to optional free text. Criteria combine with AND,
+> while `cc` searches both CC and BCC recipients consistently across Outlook,
+> Gmail, and IMAP.
+>
 > **v0.7.23** — IMAP reply drafts now retain the referenced message as quoted
 > history and canonicalize generated MIME line endings before IMAP APPEND, so
 > servers that reject bare newlines can save reply drafts successfully.
@@ -324,7 +329,7 @@ account store.
 | `remove_account` | `email` | Deletes tokens for the account. |
 | `list_emails` | `account`, `folder?`, `limit?`, `unreadOnly?`, `skip?` | Defaults: folder=`inbox`, limit=25. Supports pagination via `skip` — response includes `hasMore`. Outlook accepts well-known folder names, folder IDs, and falls back from localized display names to matching folder IDs. |
 | `get_new_emails` | `account?`, `limit?` | Pull new inbox emails not previously returned by this tool. `limit` defaults to 10 and is global when `account` is omitted. Returns full markdown bodies with attachment metadata; bodies may be truncated. |
-| `search_emails` | `account?`, `query`, `limit?` | Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Uses KQL on Outlook, and normalizes malformed Outlook search-result IDs to readable immutable IDs when possible. |
+| `search_emails` | `account?`, `query?`, `from?`, `to?`, `cc?`, `limit?` | Provide at least one of `query`, `from`, `to`, or `cc`; distinct criteria combine with AND. `cc` searches CC or BCC. Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Address filters are provider-agnostic; Outlook search results with malformed IDs are normalized to readable immutable IDs when possible. |
 | `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. Outlook retries malformed/stale IDs through Graph ID translation before failing. |
 | `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
 | `archive_email` | `account`, `id` | Move a message to the Archive folder. |

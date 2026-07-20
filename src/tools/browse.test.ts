@@ -11,11 +11,17 @@ const tools: ResolvedTools = {
   disabledTools: null,
 };
 
-type Handler = (args: {
+interface SearchArgs {
   account?: string;
-  query: string;
+  query?: string;
+  from?: string;
+  to?: string;
+  cc?: string;
   limit?: number;
-}) => Promise<unknown>;
+}
+
+type Handler = (args: SearchArgs) => Promise<unknown>;
+type InputSchema = { parse(input: unknown): SearchArgs };
 
 function account(email: string): AccountRecord {
   return {
@@ -56,15 +62,21 @@ function registry(accounts: AccountRecord[], providers: Record<string, EmailProv
 
 function registerHandler(store: AccountStore, reg: Registry): Handler {
   let handler: Handler | undefined;
+  let inputSchema: InputSchema | undefined;
   const server = {
-    registerTool: vi.fn((name: string, _config: unknown, cb: Handler) => {
-      if (name === "search_emails") handler = cb;
+    registerTool: vi.fn((name: string, config: { inputSchema: InputSchema }, cb: Handler) => {
+      if (name === "search_emails") {
+        handler = cb;
+        inputSchema = config.inputSchema;
+      }
     }),
   };
 
   registerBrowseTools(server as never, { store, registry: reg, tools });
-  if (!handler) throw new Error("search_emails was not registered");
-  return handler;
+  if (!handler || !inputSchema) throw new Error("search_emails was not registered");
+  const registeredHandler = handler;
+  const registeredSchema = inputSchema;
+  return (args) => registeredHandler(registeredSchema.parse(args));
 }
 
 function structured(result: unknown): Record<string, unknown> {
@@ -87,7 +99,10 @@ describe("search_emails", () => {
 
     expect(reg.resolveByEmail).toHaveBeenCalledTimes(1);
     expect(reg.resolveByEmail).toHaveBeenCalledWith(a.email);
-    expect(providerA.searchEmails).toHaveBeenCalledWith(a, "hello", { limit: 5 });
+    expect(providerA.searchEmails).toHaveBeenCalledWith(a, {
+      query: "hello",
+      limit: 5,
+    });
     expect(providerB.searchEmails).not.toHaveBeenCalled();
     expect(data).toEqual({
       account: a.email,
@@ -95,6 +110,44 @@ describe("search_emails", () => {
       items: [{ id: "a1", subject: "hello", account: a.email }],
       errors: [],
     });
+  });
+
+  it("supports structured-only filters and trims their values", async () => {
+    const a = account("a@example.com");
+    const providerA = provider();
+    const handler = registerHandler(store([a]), registry([a], {
+      [a.email]: providerA,
+    }));
+
+    await handler({ account: a.email, from: " Alain ", to: " user@example.com ", cc: " Copy " });
+
+    expect(providerA.searchEmails).toHaveBeenCalledWith(a, {
+      from: "Alain",
+      to: "user@example.com",
+      cc: "Copy",
+    });
+  });
+
+  it("combines free text and structured filters in one options object", async () => {
+    const a = account("a@example.com");
+    const providerA = provider();
+    const handler = registerHandler(store([a]), registry([a], {
+      [a.email]: providerA,
+    }));
+
+    await handler({ account: a.email, query: "invoice", from: "sender@example.com" });
+
+    expect(providerA.searchEmails).toHaveBeenCalledWith(a, {
+      query: "invoice",
+      from: "sender@example.com",
+    });
+  });
+
+  it("rejects calls without a non-empty search criterion", () => {
+    const handler = registerHandler(store([]), registry([], {}));
+
+    expect(() => handler({})).toThrow("at least one of query, from, to, or cc is required");
+    expect(() => handler({ query: "   " })).toThrow();
   });
 
   it("searches all accounts in parallel when account is omitted", async () => {
@@ -129,8 +182,14 @@ describe("search_emails", () => {
     release();
     const data = structured(await result);
 
-    expect(providerA.searchEmails).toHaveBeenCalledWith(a, "invoice", { limit: 10 });
-    expect(providerB.searchEmails).toHaveBeenCalledWith(b, "invoice", { limit: 10 });
+    expect(providerA.searchEmails).toHaveBeenCalledWith(a, {
+      query: "invoice",
+      limit: 10,
+    });
+    expect(providerB.searchEmails).toHaveBeenCalledWith(b, {
+      query: "invoice",
+      limit: 10,
+    });
     expect(data).toEqual({
       account: "all",
       accounts: [a.email, b.email],

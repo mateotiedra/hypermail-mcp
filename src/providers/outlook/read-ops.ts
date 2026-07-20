@@ -336,10 +336,25 @@ export async function listEmails(
   };
 }
 
+function escapeKqlValue(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function buildSearchKql(opts: SearchEmailsOptions): string {
+  const terms: string[] = [];
+  if (opts.query !== undefined) terms.push(escapeKqlValue(opts.query));
+  if (opts.from !== undefined) terms.push(`from:\\"${escapeKqlValue(opts.from)}\\"`);
+  if (opts.to !== undefined) terms.push(`to:\\"${escapeKqlValue(opts.to)}\\"`);
+  if (opts.cc !== undefined) {
+    const cc = escapeKqlValue(opts.cc);
+    terms.push(`(cc:\\"${cc}\\" OR bcc:\\"${cc}\\")`);
+  }
+  return `"${terms.join(" AND ")}"`;
+}
+
 export async function searchEmails(
   client: Client,
   account: AccountRecord,
-  query: string,
   opts: SearchEmailsOptions,
 ): Promise<EmailSummary[]> {
   const limit = clampLimit(opts.limit, 25, 100);
@@ -349,7 +364,7 @@ export async function searchEmails(
     .header("ConsistencyLevel", "eventual")
     .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
     .top(limit)
-    .search(`"${query.replace(/"/g, '\\"')}"`)
+    .search(buildSearchKql(opts))
     .select(MESSAGE_SELECT)
     .get()) as { value: GraphMessage[] };
 

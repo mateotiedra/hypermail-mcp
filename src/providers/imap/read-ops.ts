@@ -88,14 +88,21 @@ export async function listEmails(
 export async function searchEmails(
   clients: ImapClientFactory,
   account: AccountRecord,
-  query: string,
   opts: SearchEmailsOptions,
 ): Promise<EmailSummary[]> {
   const client = clients.get(account);
   const limit = clampLimit(opts.limit, 25, 100);
+  const searchCriteria: Record<string, unknown> = {};
+
+  if (opts.query !== undefined) searchCriteria.text = opts.query;
+  if (opts.from !== undefined) searchCriteria.from = opts.from;
+  if (opts.to !== undefined) searchCriteria.to = opts.to;
+  if (opts.cc !== undefined) {
+    searchCriteria.or = [{ cc: opts.cc }, { bcc: opts.cc }];
+  }
 
   return client.withMailbox("INBOX", async (imap) => {
-    const uids = (await imap.search({ text: query }, { uid: true })) as number[];
+    const uids = (await imap.search(searchCriteria, { uid: true })) as number[];
     uids.sort((a, b) => b - a);
     const pageUids = uids.slice(0, limit);
 

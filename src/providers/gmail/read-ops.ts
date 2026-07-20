@@ -88,10 +88,28 @@ export async function listEmails(
   return { items, hasMore };
 }
 
+function quoteSearchValue(value: string): string {
+  return `"${value.replace(/([\\"])/g, "\\$1")}"`;
+}
+
+function buildSearchQuery(opts: SearchEmailsOptions): string | undefined {
+  const parts = [opts.query];
+
+  if (opts.from) parts.push(`from:${quoteSearchValue(opts.from)}`);
+  if (opts.to) parts.push(`to:${quoteSearchValue(opts.to)}`);
+  if (opts.cc) {
+    const value = quoteSearchValue(opts.cc);
+    parts.push(`(cc:${value} OR bcc:${value})`);
+  }
+
+  return (
+    parts.filter((part): part is string => Boolean(part)).join(" ") || undefined
+  );
+}
+
 export async function searchEmails(
   clients: GmailClientFactory,
   account: AccountRecord,
-  query: string,
   opts: SearchEmailsOptions,
 ): Promise<EmailSummary[]> {
   const { gmail } = clients.get(account);
@@ -99,7 +117,7 @@ export async function searchEmails(
 
   const res = await gmail.users.messages.list({
     userId: "me",
-    q: query,
+    q: buildSearchQuery(opts),
     maxResults: limit,
   });
 
