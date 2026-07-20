@@ -168,6 +168,7 @@ export class GmailProvider implements EmailProvider {
         addedAt: new Date().toISOString(),
       };
       const saved = await this.opts.store.upsertAccount(rec);
+      this.clients.invalidate(saved.email);
       this.pending.delete(handle);
       flow.begin.cancel();
       return { status: "ready", account: saved };

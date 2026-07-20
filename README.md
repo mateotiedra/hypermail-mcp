@@ -3,6 +3,10 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.25** — Gmail reauthorization now replaces any cached client after
+> persisting fresh OAuth credentials, so subsequent operations do not reuse
+> stale credentials and fail with `invalid_grant`.
+>
 > **v0.7.24** — `search_emails` now accepts provider-neutral `from`, `to`, and
 > `cc` filters in addition to optional free text. Criteria combine with AND,
 > while `cc` searches both CC and BCC recipients consistently across Outlook,
