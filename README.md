@@ -3,6 +3,12 @@
 A **Model Context Protocol** server that lets an agent operate any of the user's
 inboxes through a single, unified tool surface.
 
+> **v0.7.26** — Email results now include a provider-native `webUrl` when
+> available, or a per-message `webUrlUnavailableReason`. Links are returned by
+> browse, new-email, attachment, compose, draft, and organization tools. Outlook
+> refreshes post-move IDs and links with an OWA fallback, Gmail returns
+> account-aware links, and generic IMAP reports that web links are unsupported.
+>
 > **v0.7.25** — Gmail reauthorization now replaces any cached client after
 > persisting fresh OAuth credentials, so subsequent operations do not reuse
 > stale credentials and fail with `invalid_grant`.
