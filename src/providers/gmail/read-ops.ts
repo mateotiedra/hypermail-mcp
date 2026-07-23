@@ -23,6 +23,7 @@ import {
   mapHeaderAddr,
   mapSummary,
   mapFolder,
+  gmailMessageWebLink,
   parsePayload,
   pool,
   resolveLabel,
@@ -79,7 +80,7 @@ export async function listEmails(
       metadataHeaders: ["From", "Subject", "To", "Date"],
     });
     const msg = msgRes.data;
-    return mapSummary(msgId, msg.payload?.headers ?? [], {
+    return mapSummary(account, msgId, msg.payload?.headers ?? [], {
       labelIds: msg.labelIds,
       internalDate: msg.internalDate,
     });
@@ -133,7 +134,7 @@ export async function searchEmails(
       metadataHeaders: ["From", "Subject", "To", "Date"],
     });
     const msg = msgRes.data;
-    return mapSummary(msgId, msg.payload?.headers ?? [], {
+    return mapSummary(account, msgId, msg.payload?.headers ?? [], {
       labelIds: msg.labelIds,
       internalDate: msg.internalDate,
     });
@@ -161,7 +162,7 @@ export async function readEmail(
   const headers = msg.payload?.headers ?? [];
   const { bodyText, bodyHtml, attachments } = parsePayload(msg.payload ?? {});
 
-  const summary = mapSummary(id, headers, {
+  const summary = mapSummary(account, id, headers, {
     labelIds: msg.labelIds,
     internalDate: msg.internalDate,
   });
@@ -213,7 +214,12 @@ export async function readAttachment(
   const outPath = pathJoin(tmpdir(), name);
   writeFileSync(outPath, buf);
 
-  return { name, contentType, path: outPath };
+  return {
+    name,
+    contentType,
+    path: outPath,
+    ...gmailMessageWebLink(account, messageId),
+  };
 }
 
 export async function listFolders(

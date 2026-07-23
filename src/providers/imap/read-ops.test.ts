@@ -1,8 +1,12 @@
+import { Readable } from "node:stream";
+import { unlink } from "node:fs/promises";
+
 import { describe, expect, it, vi } from "vitest";
 
 import type { AccountRecord } from "../../store/account-store.js";
 import type { ImapClientFactory } from "./client.js";
-import { searchEmails } from "./read-ops.js";
+import { readAttachment, readEmail, searchEmails } from "./read-ops.js";
+import { IMAP_WEB_URL_UNAVAILABLE_REASON } from "./helpers.js";
 
 const account: AccountRecord = {
   email: "user@example.com",
@@ -92,8 +96,54 @@ describe("IMAP search operations", () => {
       { uid: true },
     );
     expect(result).toEqual([
-      expect.objectContaining({ id: "INBOX/9", subject: "Message 9", isRead: true }),
-      expect.objectContaining({ id: "INBOX/3", subject: "Message 3", isRead: false }),
+      expect.objectContaining({
+        id: "INBOX/9",
+        subject: "Message 9",
+        isRead: true,
+        webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+      }),
+      expect.objectContaining({
+        id: "INBOX/3",
+        subject: "Message 3",
+        isRead: false,
+        webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+      }),
     ]);
+    expect(JSON.stringify(result)).not.toContain("imap://");
+  });
+
+  it("adds the unavailable-link reason to full reads and attachment downloads", async () => {
+    const client = {
+      withMailbox: vi.fn(async (_folder, fn) => fn({
+        fetchOne: vi.fn(async () => ({
+          envelope: { subject: "Message" },
+          flags: new Set(),
+          bodyStructure: {
+            type: "multipart/mixed",
+            childNodes: [
+              { type: "text/plain", part: "1" },
+              {
+                type: "application/pdf",
+                part: "2",
+                disposition: "attachment",
+                dispositionParameters: { filename: "imap-link-test.pdf" },
+              },
+            ],
+          },
+        })),
+        download: vi.fn(async () => ({
+          meta: { contentType: "application/pdf" },
+          content: Readable.from([Buffer.from("file")]),
+        })),
+      })),
+    };
+
+    const full = await readEmail(clientsFor(client), account, "INBOX/5");
+    expect(full.webUrlUnavailableReason).toBe(IMAP_WEB_URL_UNAVAILABLE_REASON);
+
+    const attachment = await readAttachment(clientsFor(client), account, "INBOX/5", "2");
+    expect(attachment.webUrlUnavailableReason).toBe(IMAP_WEB_URL_UNAVAILABLE_REASON);
+    expect(attachment.webUrl).toBeUndefined();
+    await unlink(attachment.path);
   });
 });

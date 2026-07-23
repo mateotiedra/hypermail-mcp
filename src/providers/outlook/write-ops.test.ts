@@ -78,11 +78,14 @@ describe("updateDraft", () => {
       },
     );
 
-    expect(res).toEqual({ id: "draft-1" });
+    expect(res).toEqual({
+      id: "draft-1",
+      webUrlUnavailableReason: "Microsoft Graph did not return an Outlook web link for this message.",
+    });
     expect(patches).toHaveLength(1);
     expect(patches[0]).toEqual({
       endpoint: "/me/messages/draft-1",
-      headers: { Prefer: "return=representation" },
+      headers: { Prefer: 'return=representation, IdType="ImmutableId"' },
       payload: {
         subject: "Updated subject",
         body: {

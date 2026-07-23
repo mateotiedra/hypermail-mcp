@@ -132,7 +132,16 @@ export function publicAccountResult(result: unknown): Record<string, unknown> {
   return { ...record, account: publicAccount(account) };
 }
 
-export const emailSummaryOutputSchema = z.object({
+export const emailWebLinkOutputSchema = z.object({
+  webUrl: z.string().url().optional(),
+  webUrlUnavailableReason: z.string().optional(),
+});
+
+export const emailReferenceOutputSchema = emailWebLinkOutputSchema.extend({
+  id: z.string(),
+});
+
+export const emailSummaryOutputSchema = emailWebLinkOutputSchema.extend({
   id: z.string(),
   subject: z.string(),
   from: emailAddrOutputSchema.optional(),

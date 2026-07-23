@@ -7,7 +7,18 @@ export interface EmailAddress {
   address: string;
 }
 
-export interface EmailSummary {
+export interface EmailWebLinkFields {
+  /** Shareable URL for opening the message in the provider's native web client. */
+  webUrl?: string;
+  /** Best-effort explanation when the provider cannot supply a native web URL. */
+  webUrlUnavailableReason?: string;
+}
+
+export interface EmailReference extends EmailWebLinkFields {
+  id: string;
+}
+
+export interface EmailSummary extends EmailWebLinkFields {
   id: string;
   subject: string;
   from?: EmailAddress;
@@ -151,7 +162,7 @@ export interface AttachmentInput {
   contentType?: string;
 }
 
-export interface AttachmentContent {
+export interface AttachmentContent extends EmailWebLinkFields {
   name: string;
   contentType?: string;
   path: string;
@@ -204,13 +215,13 @@ export interface EmailProvider {
     messageId: string,
     attachmentId: string,
   ): Promise<AttachmentContent>;
-  sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
+  sendEmail(account: AccountRecord, msg: SendInput): Promise<EmailReference>;
   /**
    * Create a draft message from the given input without sending it.
    * Returns the draft message ID so the caller can later find it in the
    * Drafts folder, open it for further editing, or send it manually.
    */
-  saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }>;
+  saveDraft(account: AccountRecord, msg: SendInput): Promise<EmailReference>;
   /**
    * Update an existing draft message by ID. Only the fields present in
    * `update` are patched — the rest are left unchanged.
@@ -220,20 +231,24 @@ export interface EmailProvider {
     account: AccountRecord,
     id: string,
     update: DraftUpdateInput,
-  ): Promise<{ id: string }>;
+  ): Promise<EmailReference>;
   /**
    * Move a message to another folder.
    * `destinationId` can be a well-known folder name (e.g. "archive",
    * "deleteditems", "inbox") or a custom folder ID.
    */
-  moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void>;
+  moveEmail(
+    account: AccountRecord,
+    id: string,
+    destinationId: string,
+  ): Promise<EmailReference>;
   /** Move a message to the provider-native trash/deleted-items location. */
-  trashEmail(account: AccountRecord, id: string): Promise<void>;
+  trashEmail(account: AccountRecord, id: string): Promise<EmailReference>;
   /**
    * Send an existing draft message by ID.
    * Returns the message ID.
    */
-  sendDraft(account: AccountRecord, id: string): Promise<{ id: string }>;
+  sendDraft(account: AccountRecord, id: string): Promise<EmailReference>;
   /**
    * Add a file attachment to an existing draft message.
    * `contentBytes` must be base64-encoded file content.
@@ -257,7 +272,11 @@ export interface EmailProvider {
   ): Promise<void>;
 
   /** Mark a message as read (isRead=true) or unread (isRead=false). */
-  markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void>;
+  markRead(
+    account: AccountRecord,
+    id: string,
+    isRead: boolean,
+  ): Promise<EmailReference>;
 
   /** List mail folders. When parentFolderId is omitted, lists top-level
    *  folders (children of the root). */

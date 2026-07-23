@@ -10,6 +10,7 @@ import type {
   EmailFull,
   EmailSummary,
   FolderInfo,
+  EmailWebLinkFields,
   SendInput,
 } from "../types.js";
 
@@ -151,13 +152,32 @@ export function parsePayload(
   return { bodyText, bodyHtml, attachments };
 }
 
+/** Build a native Gmail link for a Gmail message ID in this account. */
+export function gmailMessageWebLink(
+  account: AccountRecord,
+  messageId: string | null | undefined,
+): EmailWebLinkFields {
+  if (!messageId) {
+    return {
+      webUrlUnavailableReason:
+        "Gmail did not return a usable resulting message ID for a native web link.",
+    };
+  }
+
+  return {
+    webUrl: `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(account.email)}#all/${messageId}`,
+  };
+}
+
 export function mapSummary(
+  account: AccountRecord,
   id: string,
   headers: GmailMessagePart["headers"],
   flags: { labelIds?: (string | null)[] | null; internalDate?: string | null },
 ): EmailSummary {
   return {
     id,
+    ...gmailMessageWebLink(account, id),
     subject: findHeader(headers, "Subject") ?? "",
     from: mapHeaderAddr(findHeader(headers, "From"))[0],
     to: mapHeaderAddr(findHeader(headers, "To")),

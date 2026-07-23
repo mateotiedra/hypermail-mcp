@@ -323,6 +323,16 @@ All "email" tools take an `account` argument — the email address of the inbox
 to operate on. The server resolves the right provider from the encrypted
 account store.
 
+Tools that return or modify an identifiable email include a user-shareable
+`webUrl` for opening that message in the provider's native web client. The URL
+contains no credentials; the person opening it must already have mailbox
+access. When a URL cannot be supplied, the same email/result instead includes
+`webUrlUnavailableReason` (including on every item in collection responses).
+Outlook uses Microsoft Graph's native link and refreshes moved items before
+returning their post-operation ID/link. Gmail links are account-aware but use a
+best-effort, unofficial web route. Generic IMAP has no universal webmail URL, so
+it returns an unsupported reason and never fabricates an `imap://` URL.
+
 | Tool | Inputs | Notes |
 | --- | --- | --- |
 | `list_accounts` | — | Returns registered emails + provider, no secrets. |
@@ -335,10 +345,10 @@ account store.
 | `get_new_emails` | `account?`, `limit?` | Pull new inbox emails not previously returned by this tool. `limit` defaults to 10 and is global when `account` is omitted. Returns full markdown bodies with attachment metadata; bodies may be truncated. |
 | `search_emails` | `account?`, `query?`, `from?`, `to?`, `cc?`, `limit?` | Provide at least one of `query`, `from`, `to`, or `cc`; distinct criteria combine with AND. `cc` searches CC or BCC. Search one account when `account` is provided, or omit it to search all registered accounts in parallel. Returns account-annotated summaries and partial per-account errors. Address filters are provider-agnostic; Outlook search results with malformed IDs are normalized to readable immutable IDs when possible. |
 | `read_email` | `account`, `id`, `format?` | Returns full body + recipients + attachment metadata. `format`: `markdown` (default), `html`, or `text`. Outlook retries malformed/stale IDs through Graph ID translation before failing. |
-| `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path. |
-| `archive_email` | `account`, `id` | Move a message to the Archive folder. |
-| `trash_email` | `account`, `id` | Move a message to Deleted Items (trash). |
-| `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID. |
+| `read_attachment` | `account`, `messageId`, `attachmentId` | Download an attachment to a temporary file and return its path plus the parent message's web link or unavailable reason. |
+| `archive_email` | `account`, `id` | Move a message to the Archive folder and return its post-operation ID/link. |
+| `trash_email` | `account`, `id` | Move a message to Deleted Items (trash) and return its post-operation ID/link. |
+| `move_email` | `account`, `id`, `destination` | Move to any folder by well-known name (`inbox`, `drafts`, etc.) or custom folder ID, returning the post-operation ID/link. |
 | `send_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Send an email. `format` (`"html"` or `"markdown"`) controls body format — Markdown is converted to HTML via `marked`; multiline plain text with `format: "html"` is rejected, so use `"markdown"` for paragraphs or add tags like `<p>`/`<br>`. Appends signature when `include_signature` is true. `inReplyTo` sends as threaded reply; `forwardMessageId` sends as forward. `inReplyTo` is required — set to `false` for new emails. `attachments` is an optional array of `{filePath, name?}` — files are read from disk and encoded automatically. |
 | `draft_email` | `account`, `to[]`, `cc?`, `bcc?`, `subject`, `body`, `format`, `include_signature`, `inReplyTo`, `replyAll?`, `forwardMessageId?`, `attachments?` | Save as draft instead of sending. Same params as `send_email` including `attachments`. Returns the draft message ID and, when readback succeeds, HTML body (`draftHtml`). If the draft is created but readback fails, returns the draft ID with `warning` and `draftReadbackError` so callers can retry `read_email` or continue with `send_draft`. When `inReplyTo` is supplied, the reply draft retains quoted source/thread history in its body as well as conversation threading. `inReplyTo` is required — set to `false` for new emails. |
 | `edit_draft` | `account`, `id`, `to?`, `cc?`, `bcc?`, `subject?`, `old_text?`, `new_text?`, `body?`, `format?`, `include_signature?`, `new_attachments?`, `remove_attachments?` | Edit an existing draft by ID. Body edits require exact selected-section replacement: copy `old_text` from the current draft HTML (`draftHtml` or `read_email` with `format: "html"`) and provide `new_text`; the match must occur exactly once, and unselected content such as reply/forward history is preserved. Deprecated `body` is only an alias for `new_text` when `old_text` is also provided; body-only full replacement is rejected. Multiline plain-text replacements with `format: "html"` are rejected; use `"markdown"` for paragraphs or add tags like `<p>`/`<br>`. Body edits are re-read after saving; if the updated body is not observable after retries, the tool returns an error instead of reporting success. `new_attachments` adds files (`{filePath, name?}[]`); `remove_attachments` removes by attachment ID (`string[]`). Returns the updated draft ID, HTML body (`draftHtml`), and attachment metadata. |

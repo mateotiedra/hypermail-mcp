@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AccountRecord } from "../../store/account-store.js";
 import type { GmailClientFactory } from "./client.js";
-import { searchEmails } from "./read-ops.js";
+import { listEmails, readAttachment, readEmail, searchEmails } from "./read-ops.js";
 
 const account: AccountRecord = {
   email: "user@example.com",
@@ -108,7 +108,61 @@ describe("Gmail search", () => {
         from: { name: "Sender", address: "sender@example.com" },
         to: [{ address: "recipient@example.com" }],
         isRead: true,
+        webUrl: "https://mail.google.com/mail/u/?authuser=user%40example.com#all/message-1",
       }),
     ]);
+  });
+});
+
+describe("Gmail native web links", () => {
+  const encodedAccount: AccountRecord = { ...account, email: "user+tag@example.com" };
+
+  it("adds account-aware links to listed and full messages", async () => {
+    const list = vi.fn().mockResolvedValue({ data: { messages: [{ id: "message-1" }] } });
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        labelIds: ["INBOX"],
+        payload: { headers: [{ name: "Subject", value: "Subject" }] },
+      },
+    });
+    const clients = clientsFor({ users: { messages: { list, get } } });
+
+    const listed = await listEmails(clients, encodedAccount, { limit: 1 });
+    expect(listed.items[0]?.webUrl).toBe(
+      "https://mail.google.com/mail/u/?authuser=user%2Btag%40example.com#all/message-1",
+    );
+
+    const full = await readEmail(clients, encodedAccount, "message-2");
+    expect(full.webUrl).toBe(
+      "https://mail.google.com/mail/u/?authuser=user%2Btag%40example.com#all/message-2",
+    );
+  });
+
+  it("adds the parent message link to attachment results", async () => {
+    const get = vi.fn().mockResolvedValue({
+      data: {
+        payload: {
+          parts: [{
+            filename: "report.txt",
+            mimeType: "text/plain",
+            body: { attachmentId: "attachment-1" },
+          }],
+        },
+      },
+    });
+    const attachmentGet = vi.fn().mockResolvedValue({
+      data: { data: Buffer.from("contents").toString("base64url") },
+    });
+
+    const result = await readAttachment(
+      clientsFor({ users: { messages: { get, attachments: { get: attachmentGet } } } }),
+      encodedAccount,
+      "message-1",
+      "attachment-1",
+    );
+
+    expect(result.webUrl).toBe(
+      "https://mail.google.com/mail/u/?authuser=user%2Btag%40example.com#all/message-1",
+    );
   });
 });

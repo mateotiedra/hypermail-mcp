@@ -28,6 +28,7 @@ import {
   mapMailboxToListEntry,
   ImapMailboxEntry,
   resolveFolder,
+  IMAP_WEB_URL_UNAVAILABLE_REASON,
 } from "./helpers.js";
 
 /**
@@ -236,6 +237,7 @@ export async function readAttachment(
       name,
       contentType: contentType ?? (meta as { contentType?: string }).contentType,
       path: outPath,
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
     };
   });
 }

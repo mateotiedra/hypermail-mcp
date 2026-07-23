@@ -13,6 +13,10 @@ import type {
   ListEmailsResult,
   SearchEmailsOptions,
 } from "../types.js";
+import { OUTLOOK_IMMUTABLE_ID_PREFER, resolveOutlookWebLink } from "./web-links.js";
+
+export { OUTLOOK_IMMUTABLE_ID_PREFER } from "./web-links.js";
+
 import {
   clampLimit,
   type GraphAttachment,
@@ -21,8 +25,6 @@ import {
   mapRecipient,
   mapSummary,
 } from "./helpers.js";
-
-export const OUTLOOK_IMMUTABLE_ID_PREFER = 'IdType="ImmutableId"';
 
 const MESSAGE_SELECT = [
   "id",
@@ -33,6 +35,8 @@ const MESSAGE_SELECT = [
   "bodyPreview",
   "isRead",
   "hasAttachments",
+  "webLink",
+  "parentFolderId",
 ].join(",");
 
 const FULL_MESSAGE_SELECT = [
@@ -46,6 +50,8 @@ const FULL_MESSAGE_SELECT = [
   "bodyPreview",
   "isRead",
   "hasAttachments",
+  "webLink",
+  "parentFolderId",
   "body",
 ].join(",");
 
@@ -399,7 +405,10 @@ export async function readEmail(
     }
   }
 
-  const summary = mapSummary(m);
+  const summary = {
+    ...mapSummary(m),
+    ...(await resolveOutlookWebLink(client, m.id, m.webLink)),
+  };
   const body = m.body;
   return {
     ...summary,
@@ -440,9 +449,20 @@ export async function readAttachment(
   const outPath = pathJoin(tmpdir(), att.name);
   writeFileSync(outPath, Buffer.from(data));
 
+  let webLinkFields;
+  try {
+    const { message } = await getMessage(client, messageId);
+    webLinkFields = await resolveOutlookWebLink(client, message.id, message.webLink);
+  } catch {
+    webLinkFields = {
+      webUrlUnavailableReason: "Unable to resolve the parent message's Outlook web link.",
+    };
+  }
+
   return {
     name: att.name,
     contentType: att.contentType,
     path: outPath,
+    ...webLinkFields,
   };
 }

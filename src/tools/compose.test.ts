@@ -14,7 +14,7 @@ import { createLogger, type Logger } from "../logger.js";
 type Handler = (args: Record<string, unknown>) => Promise<unknown>;
 
 const tools: ResolvedTools = {
-  enabledTools: new Set(["draft_email", "edit_draft"]),
+  enabledTools: new Set(["send_email", "draft_email", "edit_draft", "send_draft"]),
   disabledTools: null,
 };
 
@@ -68,11 +68,12 @@ describe("draft_email", () => {
   it("returns draftHtml when readback succeeds", async () => {
     const provider = {
       id: "outlook",
-      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      saveDraft: vi.fn(async () => ({ id: "draft-1", webUrl: "https://mutation.example/draft-1" })),
       readEmail: vi.fn(async () => ({
-        id: "draft-1",
+        id: "draft-1-final",
         subject: "Subject",
         bodyHtml: "<p>Draft body</p>",
+        webUrl: "https://mail.example/draft-1-final",
       })),
     } as unknown as EmailProvider;
     const handler = registerHandler(provider, "draft_email");
@@ -99,7 +100,8 @@ describe("draft_email", () => {
     expect(provider.readEmail).toHaveBeenCalledWith(account, "draft-1");
     expect(structured(result)).toMatchObject({
       draft: true,
-      id: "draft-1",
+      id: "draft-1-final",
+      webUrl: "https://mail.example/draft-1-final",
       draftHtml: "<p>Draft body</p>",
     });
   });
@@ -137,10 +139,13 @@ describe("draft_email", () => {
     );
   });
 
-  it("returns the draft id with a warning when readback fails", async () => {
+  it("returns the mutation link with a warning when draft readback fails", async () => {
     const provider = {
       id: "outlook",
-      saveDraft: vi.fn(async () => ({ id: "draft-1" })),
+      saveDraft: vi.fn(async () => ({
+        id: "draft-1",
+        webUrlUnavailableReason: "Provider does not expose a sent-item link.",
+      })),
       readEmail: vi.fn(async () => {
         throw new Error("Id is malformed.");
       }),
@@ -164,6 +169,7 @@ describe("draft_email", () => {
       id: "draft-1",
       warning: expect.stringContaining("Draft was created"),
       draftReadbackError: "Id is malformed.",
+      webUrlUnavailableReason: "Provider does not expose a sent-item link.",
     });
   });
 
@@ -206,6 +212,99 @@ describe("draft_email", () => {
   });
 });
 
+describe("send_email and send_draft", () => {
+  it("uses only the provider result link for replies and forwards", async () => {
+    const provider = {
+      id: "outlook",
+      sendEmail: vi.fn(async (_account: AccountRecord, input) => ({
+        id: input.inReplyTo ? "reply-result" : "forward-result",
+        webUrl: input.inReplyTo
+          ? "https://mail.example/result/reply"
+          : "https://mail.example/result/forward",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "send_email");
+
+    const reply = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Reply",
+      body: "Reply body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: "source-message-with-https://mail.example/source",
+    });
+    const forward = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Forward",
+      body: "Forward body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: false,
+      forwardMessageId: "source-message-with-https://mail.example/source",
+    });
+
+    expect(structured(reply)).toMatchObject({
+      id: "reply-result",
+      webUrl: "https://mail.example/result/reply",
+    });
+    expect(structured(forward)).toMatchObject({
+      id: "forward-result",
+      webUrl: "https://mail.example/result/forward",
+    });
+    expect(JSON.stringify(structured(reply))).not.toContain("source");
+    expect(JSON.stringify(structured(forward))).not.toContain("source");
+  });
+
+  it("keeps an unresolvable Outlook-style send successful", async () => {
+    const provider = {
+      id: "outlook",
+      sendEmail: vi.fn(async () => ({
+        id: "",
+        webUrlUnavailableReason: "Outlook did not return a resolvable sent item.",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "send_email");
+
+    const result = await handler({
+      account: account.email,
+      to: [{ address: "recipient@example.com" }],
+      subject: "Subject",
+      body: "Body",
+      format: "markdown",
+      include_signature: false,
+      inReplyTo: false,
+    });
+
+    expect(result).not.toMatchObject({ isError: true });
+    expect(structured(result)).toEqual({
+      sent: true,
+      id: "",
+      webUrlUnavailableReason: "Outlook did not return a resolvable sent item.",
+    });
+  });
+
+  it("returns the provider result link when sending a draft", async () => {
+    const provider = {
+      id: "outlook",
+      sendDraft: vi.fn(async () => ({
+        id: "sent-1",
+        webUrl: "https://mail.example/sent-1",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerHandler(provider, "send_draft");
+
+    const result = await handler({ account: account.email, id: "draft-1" });
+
+    expect(structured(result)).toEqual({
+      sent: true,
+      id: "sent-1",
+      webUrl: "https://mail.example/sent-1",
+    });
+  });
+});
+
 describe("edit_draft", () => {
   it("replaces only old_text and preserves reply history", async () => {
     const originalHtml =
@@ -217,10 +316,11 @@ describe("edit_draft", () => {
         id: "draft-1",
         subject: "Subject",
         bodyHtml: currentHtml,
+        webUrl: "https://mail.example/draft-1-final",
       })),
       updateDraft: vi.fn(async (_account: AccountRecord, id: string, update) => {
         currentHtml = update.body ?? currentHtml;
-        return { id };
+        return { id, webUrl: "https://mutation.example/draft-1" };
       }),
     } as unknown as EmailProvider;
     const handler = registerHandler(provider);
@@ -245,6 +345,7 @@ describe("edit_draft", () => {
     expect(structured(result)).toMatchObject({
       edited: true,
       id: "draft-1",
+      webUrl: "https://mail.example/draft-1-final",
       draftHtml:
         "<p>New answer</p><div style=\"line-height:12px\"><br></div><blockquote>Older thread</blockquote>",
     });

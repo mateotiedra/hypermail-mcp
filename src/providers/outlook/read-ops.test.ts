@@ -172,8 +172,13 @@ describe("Outlook read operations", () => {
 
     const res = await listEmails(client, account(), { folder: "inbox", limit: 5 });
 
-    expect(res.items[0]?.id).toBe("immutable-1");
+    expect(res.items[0]).toEqual(expect.objectContaining({
+      id: "immutable-1",
+      webUrlUnavailableReason: expect.any(String),
+    }));
     expect(calls[0]?.headers).toEqual({ Prefer: OUTLOOK_IMMUTABLE_ID_PREFER });
+    expect(calls[0]?.select).toContain("webLink");
+    expect(calls[0]?.select).toContain("parentFolderId");
   });
 
   it("falls back from localized folder display names to folder IDs", async () => {
@@ -220,9 +225,42 @@ describe("Outlook read operations", () => {
     const res = await readEmail(client, account(), legacyId);
 
     expect(res.id).toBe(legacyId);
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(3);
     expect(calls[0]?.headers).toEqual({ Prefer: OUTLOOK_IMMUTABLE_ID_PREFER });
     expect(calls[1]?.headers).toEqual({});
+    expect(calls[2]?.endpoint).toBe("/me/translateExchangeIds");
+  });
+
+  it("returns Graph web links for full reads", async () => {
+    const { client } = fakeClient({
+      "/me/messages/message-1": [{ result: { ...message("message-1"), webLink: "https://outlook.example/message-1" } }],
+    });
+
+    await expect(readEmail(client, account(), "message-1")).resolves.toEqual(
+      expect.objectContaining({ webUrl: "https://outlook.example/message-1" }),
+    );
+  });
+
+  it("falls back to an OWA URL when a full read has no Graph web link", async () => {
+    const { client, calls } = fakeClient({
+      "/me/messages/message-1": [{ result: message("message-1") }],
+      "/me/translateExchangeIds": [{ result: { value: [{ targetId: "rest/id+1" }] } }],
+    });
+
+    const res = await readEmail(client, account(), "message-1");
+
+    expect(res.webUrl).toBe(
+      "https://outlook.office365.com/owa/?ItemID=rest%2Fid%2B1&exvsurl=1&viewmodel=ReadMessageItem",
+    );
+    expect(calls.at(-1)).toEqual(expect.objectContaining({
+      endpoint: "/me/translateExchangeIds",
+      method: "POST",
+      body: {
+        inputIds: ["message-1"],
+        sourceIdType: "restImmutableEntryId",
+        targetIdType: "restId",
+      },
+    }));
   });
 
   it("translates malformed message IDs before giving up on read", async () => {
@@ -256,8 +294,9 @@ describe("Outlook read operations", () => {
         },
       }),
     );
-    expect(calls.at(-1)?.endpoint).toBe(translatedEndpoint);
-    expect(calls.at(-1)?.headers).toEqual({ Prefer: OUTLOOK_IMMUTABLE_ID_PREFER });
+    expect(calls.find((call) => call.endpoint === translatedEndpoint)).toEqual(
+      expect.objectContaining({ headers: { Prefer: OUTLOOK_IMMUTABLE_ID_PREFER } }),
+    );
   });
 
   it("uses immutable IDs for attachment metadata and download requests", async () => {
@@ -270,12 +309,17 @@ describe("Outlook read operations", () => {
         { result: { name: "file.pdf", contentType: "application/pdf" } },
       ],
       [valueEndpoint]: [{ result: new Uint8Array([1, 2, 3]).buffer }],
+      [`/me/messages/${messageId}`]: [{ result: { id: messageId, webLink: "https://outlook.example/message" } }],
     });
 
     const res = await readAttachment(client, account(), messageId, attachmentId);
 
-    expect(res.name).toBe("file.pdf");
+    expect(res).toEqual(expect.objectContaining({
+      name: "file.pdf",
+      webUrl: "https://outlook.example/message",
+    }));
     expect(calls.map((call) => call.headers)).toEqual([
+      { Prefer: OUTLOOK_IMMUTABLE_ID_PREFER },
       { Prefer: OUTLOOK_IMMUTABLE_ID_PREFER },
       { Prefer: OUTLOOK_IMMUTABLE_ID_PREFER },
     ]);

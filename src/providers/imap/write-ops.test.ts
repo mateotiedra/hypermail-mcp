@@ -5,7 +5,16 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AccountRecord } from "../../store/account-store.js";
 import type { ImapClientFactory } from "./client.js";
-import { saveDraft, updateDraft } from "./write-ops.js";
+import {
+  markRead,
+  moveEmail,
+  saveDraft,
+  sendDraft,
+  sendEmail,
+  trashEmail,
+  updateDraft,
+} from "./write-ops.js";
+import { IMAP_WEB_URL_UNAVAILABLE_REASON } from "./helpers.js";
 
 const account: AccountRecord = {
   email: "user@example.com",
@@ -99,7 +108,10 @@ describe("IMAP draft write operations", () => {
       inReplyTo: false,
     });
 
-    expect(result).toEqual({ id: "Drafts/123" });
+    expect(result).toEqual({
+      id: "Drafts/123",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
     expect(client.withMailbox).not.toHaveBeenCalled();
     expect(append).toHaveBeenCalledWith(
       "Drafts",
@@ -131,7 +143,10 @@ describe("IMAP draft write operations", () => {
       inReplyTo: false,
     });
 
-    expect(result).toEqual({ id: "Drafts/124" });
+    expect(result).toEqual({
+      id: "Drafts/124",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
     expect(append).toHaveBeenNthCalledWith(
       1,
       "Drafts",
@@ -192,7 +207,10 @@ describe("IMAP draft write operations", () => {
     });
 
     const draft = await simpleParser(getAppendedRaw());
-    expect(result).toEqual({ id: "Drafts/125" });
+    expect(result).toEqual({
+      id: "Drafts/125",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
     expect(client.withMailbox).toHaveBeenCalledWith("INBOX", expect.any(Function));
     expect(draft.inReplyTo).toBe("<original@example.com>");
     expect(draft.references).toBe("<original@example.com>");
@@ -262,7 +280,10 @@ describe("IMAP draft write operations", () => {
       forwardMessageId: "Archive/9",
     });
 
-    expect(result).toEqual({ id: "Drafts/125" });
+    expect(result).toEqual({
+      id: "Drafts/125",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
     expect(client.withMailbox).toHaveBeenCalledWith("Archive", expect.any(Function));
     expect(appendedRaw).toContain("Forwarded message");
     expect(appendedRaw).toContain("ORIGINAL");
@@ -287,7 +308,10 @@ describe("IMAP draft write operations", () => {
       inReplyTo: false,
     });
 
-    expect(result).toEqual({ id: "INBOX/Drafts/126" });
+    expect(result).toEqual({
+      id: "INBOX/Drafts/126",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
     expect(append).toHaveBeenCalledWith(
       "INBOX/Drafts",
       expect.stringContaining("Draft subject"),
@@ -424,5 +448,79 @@ describe("IMAP draft write operations", () => {
 
     expect(fetchOne.mock.calls.map(([uid]) => uid)).toContain(104);
     expect(messageDelete).not.toHaveBeenCalled();
+  });
+
+  it("adds the unavailable-link reason to send and draft-send results", async () => {
+    const transporter = { sendMail: vi.fn(async () => ({ messageId: "<sent@example.com>" })) };
+    const sendClient = {
+      getTransporter: () => transporter,
+      run: vi.fn(async (fn) => fn({ append: vi.fn() })),
+    };
+    const sent = await sendEmail(clientsFor(sendClient), account, {
+      to: [{ address: "recipient@example.com" }],
+      subject: "Subject",
+      body: "Body",
+      inReplyTo: false,
+    });
+    expect(sent).toEqual({
+      id: "<sent@example.com>",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
+
+    const draftClient = {
+      getTransporter: () => transporter,
+      withMailbox: vi.fn(async (_folder, fn) => fn({
+        fetchOne: vi.fn(async () => ({ source: "raw draft" })),
+        messageMove: vi.fn(),
+      })),
+    };
+    const draftSent = await sendDraft(clientsFor(draftClient), account, "Drafts/5");
+    expect(draftSent).toEqual({
+      id: "<sent@example.com>",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
+  });
+
+  it("uses UIDPLUS destination IDs for moves and preserves the source ID without a map", async () => {
+    const mappedMove = vi.fn(async () => ({ uidMap: new Map([[5, 42]]) }));
+    const mappedClient = {
+      withMailbox: vi.fn(async (_folder, fn) => fn({ messageMove: mappedMove })),
+    };
+    await expect(moveEmail(clientsFor(mappedClient), account, "INBOX/5", "archive")).resolves.toEqual({
+      id: "Archive/42",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
+
+    const unmappedMove = vi.fn(async () => false);
+    const unmappedClient = {
+      withMailbox: vi.fn(async (_folder, fn) => fn({ messageMove: unmappedMove })),
+    };
+    const moved = await moveEmail(clientsFor(unmappedClient), account, "INBOX/5", "Archive");
+    expect(moved).toEqual({
+      id: "INBOX/5",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
+    expect(JSON.stringify(moved)).not.toContain("imap://");
+  });
+
+  it("returns unavailable-link references for trash and read-state mutations", async () => {
+    const messageMove = vi.fn(async () => ({ uidMap: new Map([[5, 12]]) }));
+    const trashClient = {
+      run: vi.fn(async (fn) => fn({ list: vi.fn(async () => [{ path: "Deleted", specialUse: "\\Trash" }]) })),
+      withMailbox: vi.fn(async (_folder, fn) => fn({ messageMove })),
+    };
+    await expect(trashEmail(clientsFor(trashClient), account, "INBOX/5")).resolves.toEqual({
+      id: "Deleted/12",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
+
+    const messageFlagsAdd = vi.fn();
+    const markClient = {
+      withMailbox: vi.fn(async (_folder, fn) => fn({ messageFlagsAdd })),
+    };
+    await expect(markRead(clientsFor(markClient), account, "INBOX/5", true)).resolves.toEqual({
+      id: "INBOX/5",
+      webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
+    });
   });
 });

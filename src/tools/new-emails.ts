@@ -11,6 +11,7 @@ import { selectBody } from "../html-to-markdown.js";
 import {
   attachmentMetaOutputSchema,
   emailAddrOutputSchema,
+  emailWebLinkOutputSchema,
   errMsg,
   fail,
   ok,
@@ -54,6 +55,8 @@ interface NewEmailOutput {
   hasAttachments?: boolean;
   folder?: string;
   attachments?: EmailFull["attachments"];
+  webUrl?: string;
+  webUrlUnavailableReason?: string;
   body: string;
   bodyFormat: "markdown";
   bodyTruncated: boolean;
@@ -67,7 +70,7 @@ export function registerNewEmailTool(
   const { store, registry, tools, logger = noopLogger } = ctx;
   if (!shouldRegister("get_new_emails", tools)) return;
 
-  const newEmailOutputSchema = z.object({
+  const newEmailOutputSchema = emailWebLinkOutputSchema.extend({
     account: z.string(),
     id: z.string(),
     subject: z.string(),
@@ -98,7 +101,9 @@ export function registerNewEmailTool(
     {
       description:
         "Fetch a bounded batch of inbox emails not previously returned by this tool. " +
-        "Agents should call this on their own schedule. Bodies are returned as markdown and may be truncated.",
+        "Agents should call this on their own schedule. Bodies are returned as markdown and may be truncated. " +
+        "Each email may include `webUrl`, a user-shareable native-client link that requires mailbox access, " +
+        "or `webUrlUnavailableReason` when no link is available.",
       inputSchema: z.object({
         account: z
           .string()
@@ -453,6 +458,8 @@ function formatNewEmail(
     hasAttachments: msg.hasAttachments,
     folder: msg.folder,
     attachments: msg.attachments,
+    webUrl: msg.webUrl,
+    webUrlUnavailableReason: msg.webUrlUnavailableReason,
     body: bodyTruncated ? body.slice(0, BODY_LIMIT) : body,
     bodyFormat: "markdown",
     bodyTruncated,

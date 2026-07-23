@@ -1,5 +1,6 @@
+import type { Client } from "@microsoft/microsoft-graph-client";
 import { describe, it, expect } from "vitest";
-import { convertInlineImages } from "./index.js";
+import { convertInlineImages, OutlookProvider } from "./index.js";
 
 describe("convertInlineImages", () => {
   it("transforms a single png data URI into cid: reference + attachment", () => {
@@ -87,6 +88,25 @@ describe("convertInlineImages", () => {
 
     expect(result.body).toBe("");
     expect(result.attachments).toHaveLength(0);
+  });
+
+  it("returns a resulting item reference through the provider mutation facade", async () => {
+    const client = {
+      api() {
+        return {
+          header() { return this; },
+          async patch() { return { id: "message-1", webLink: "https://outlook.example/message-1" }; },
+        };
+      },
+    } as unknown as Client;
+    const provider = new OutlookProvider({ store: {} as never });
+    (provider as unknown as { clients: { get: () => Client } }).clients = { get: () => client };
+
+    await expect(provider.markRead({
+      email: "user@example.com", provider: "outlook", tokens: {}, addedAt: "2026-01-01T00:00:00.000Z",
+    }, "message-1", true)).resolves.toEqual({
+      id: "message-1", webUrl: "https://outlook.example/message-1",
+    });
   });
 
   it("is case-insensitive for both tag attribute and MIME type", () => {

@@ -1,10 +1,66 @@
 import type { Client } from "@microsoft/microsoft-graph-client";
 import type { AccountRecord } from "../../store/account-store.js";
-import type { DraftUpdateInput, SendInput } from "../types.js";
-import { convertInlineImages, type InlineAttachment, toRecipient } from "./helpers.js";
+import type { DraftUpdateInput, EmailReference, SendInput } from "../types.js";
+import {
+  convertInlineImages,
+  type GraphMessage,
+  type InlineAttachment,
+  toRecipient,
+} from "./helpers.js";
+import { OUTLOOK_IMMUTABLE_ID_PREFER, resolveOutlookWebLink } from "./web-links.js";
 
 /** Hidden HTML comment placed at the thread boundary to survive Graph HTML normalization. */
 export const THREAD_MARKER = "<!-- hypermail-thread-boundary -->";
+
+const MESSAGE_REFERENCE_SELECT = "id,webLink,parentFolderId";
+const REPRESENTATION_PREFER = `return=representation, ${OUTLOOK_IMMUTABLE_ID_PREFER}`;
+
+async function fetchMessageRepresentation(client: Client, id: string): Promise<GraphMessage> {
+  const endpoint = `/me/messages/${encodeURIComponent(id)}`;
+  try {
+    return (await client
+      .api(endpoint)
+      .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
+      .select(MESSAGE_REFERENCE_SELECT)
+      .get()) as GraphMessage;
+  } catch (immutableError) {
+    try {
+      return (await client.api(endpoint).select(MESSAGE_REFERENCE_SELECT).get()) as GraphMessage;
+    } catch {
+      throw immutableError;
+    }
+  }
+}
+
+async function messageReference(
+  client: Client,
+  message: Partial<GraphMessage> | undefined,
+  fallbackId: string,
+): Promise<EmailReference> {
+  const id = message?.id ?? fallbackId;
+  if (!id) {
+    return { id, webUrlUnavailableReason: "Outlook did not return an ID for the resulting sent message." };
+  }
+
+  let resolved = message;
+  if (!resolved?.webLink) {
+    try {
+      resolved = await fetchMessageRepresentation(client, id);
+    } catch {
+      // Link resolution is best-effort.
+    }
+  }
+  return { id: resolved?.id ?? id, ...(await resolveOutlookWebLink(client, resolved?.id ?? id, resolved?.webLink)) };
+}
+
+async function resolveFolderId(client: Client, destinationId: string): Promise<string> {
+  const folder = (await client
+    .api(`/me/mailFolders/${encodeURIComponent(destinationId)}`)
+    .select("id")
+    .get()) as { id?: string };
+  if (!folder.id) throw new Error(`Outlook destination folder could not be resolved: ${destinationId}`);
+  return folder.id;
+}
 
 function isTextBody(contentType: string | undefined): boolean {
   return contentType?.toLowerCase() === "text";
@@ -62,6 +118,7 @@ export async function buildDraftFromReference(
 ): Promise<string> {
   const draft: { id: string } = await client
     .api(createEndpoint)
+    .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
     .post(createPayload);
 
   const draftMsg: { body?: { content?: string; contentType?: string } } =
@@ -99,7 +156,7 @@ export async function sendOrSave(
   account: AccountRecord,
   msg: SendInput,
   mode: "send" | "draft",
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const converted = convertInlineImages(msg.body);
 
   const toRecipients = msg.to.map(toRecipient);
@@ -117,7 +174,7 @@ export async function sendOrSave(
     if (mode === "send") {
       await client.api(`/me/messages/${draftId}/send`).post({});
     }
-    return { id: draftId };
+    return messageReference(client, undefined, draftId);
   }
 
   // Reply — build a reply draft, then send if mode is "send".
@@ -131,7 +188,7 @@ export async function sendOrSave(
     if (mode === "send") {
       await client.api(`/me/messages/${draftId}/send`).post({});
     }
-    return { id: draftId };
+    return messageReference(client, undefined, draftId);
   }
 
   // New email — sendMail (mode=send) or POST /me/messages (mode=draft).
@@ -167,14 +224,18 @@ export async function sendOrSave(
       message: messagePayload,
       saveToSentItems: true,
     });
-    // Graph's sendMail returns 202 with no body; we don't have an id back.
-    return { id: "" };
+    // Graph's sendMail returns 202 with no body; no sent item can be resolved.
+    return {
+      id: "",
+      webUrlUnavailableReason: "Outlook did not return an ID for the resulting sent message.",
+    };
   }
 
-  const draft: { id: string } = await client
+  const draft = (await client
     .api("/me/messages")
-    .post(messagePayload);
-  return { id: draft.id };
+    .header("Prefer", REPRESENTATION_PREFER)
+    .post(messagePayload)) as GraphMessage;
+  return messageReference(client, draft, draft.id);
 }
 
 export async function updateDraft(
@@ -182,7 +243,7 @@ export async function updateDraft(
   account: AccountRecord,
   id: string,
   update: DraftUpdateInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const payload: Record<string, unknown> = {};
 
   if (update.subject !== undefined) {
@@ -212,10 +273,10 @@ export async function updateDraft(
 
   const updated = (await client
     .api(`/me/messages/${encodeURIComponent(id)}`)
-    .header("Prefer", "return=representation")
-    .patch(payload)) as { id?: string } | undefined;
+    .header("Prefer", REPRESENTATION_PREFER)
+    .patch(payload)) as GraphMessage | undefined;
 
-  return { id: updated?.id ?? id };
+  return messageReference(client, updated, id);
 }
 
 export async function addAttachmentToDraft(
@@ -256,19 +317,33 @@ export async function moveEmail(
   account: AccountRecord,
   id: string,
   destinationId: string,
-): Promise<void> {
-  await client
+): Promise<EmailReference> {
+  const expectedFolderId = await resolveFolderId(client, destinationId);
+  const moved = (await client
     .api(`/me/messages/${encodeURIComponent(id)}/move`)
-    .post({ destinationId });
+    .header("Prefer", OUTLOOK_IMMUTABLE_ID_PREFER)
+    .post({ destinationId })) as GraphMessage;
+  if (!moved.id) throw new Error("Outlook move did not return the moved message ID.");
+
+  const verified = moved.parentFolderId && moved.webLink?.trim()
+    ? moved
+    : await fetchMessageRepresentation(client, moved.id);
+  if (verified.parentFolderId !== expectedFolderId) {
+    throw new Error(
+      `Outlook move verification failed: expected ${expectedFolderId}, got ${verified.parentFolderId ?? "none"}.`,
+    );
+  }
+
+  return messageReference(client, { ...verified, id: moved.id }, moved.id);
 }
 
 export async function sendDraft(
   client: Client,
   account: AccountRecord,
   id: string,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   await client.api(`/me/messages/${encodeURIComponent(id)}/send`).post({});
-  return { id };
+  return messageReference(client, undefined, id);
 }
 
 export async function markRead(
@@ -276,8 +351,10 @@ export async function markRead(
   account: AccountRecord,
   id: string,
   isRead: boolean,
-): Promise<void> {
-  await client
+): Promise<EmailReference> {
+  const updated = (await client
     .api(`/me/messages/${encodeURIComponent(id)}`)
-    .patch({ isRead });
+    .header("Prefer", REPRESENTATION_PREFER)
+    .patch({ isRead })) as GraphMessage | undefined;
+  return messageReference(client, updated, id);
 }

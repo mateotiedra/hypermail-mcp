@@ -13,6 +13,7 @@ import {
   mapSummary,
   ImapEnvelope,
   BodyNode,
+  IMAP_WEB_URL_UNAVAILABLE_REASON,
 } from "./helpers.js";
 import { isImapTokens, extractTokens, ImapTokens } from "./client.js";
 import type { AccountRecord } from "../../store/account-store.js";
@@ -238,6 +239,9 @@ describe("mapSummary", () => {
     expect(summary.to).toEqual([{ name: "Recipient", address: "rec@test.com" }]);
     expect(summary.isRead).toBe(true);
     expect(summary.folder).toBe("INBOX");
+    expect(summary.webUrlUnavailableReason).toBe(IMAP_WEB_URL_UNAVAILABLE_REASON);
+    expect(summary.webUrl).toBeUndefined();
+    expect(JSON.stringify(summary)).not.toContain("imap://");
   });
 
   it("defaults isRead to false when \\Seen flag is absent", () => {

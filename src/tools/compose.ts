@@ -5,7 +5,7 @@ import { basename, extname } from "node:path";
 
 import type { AccountRecord, AccountStore } from "../store/account-store.js";
 import type { Registry } from "../providers/registry.js";
-import type { EmailProvider, SendInput } from "../providers/types.js";
+import type { EmailProvider, EmailReference, SendInput } from "../providers/types.js";
 import type { ResolvedTools } from "../config.js";
 import type { Logger } from "../logger.js";
 import { MIME_TYPES } from "./mime-types.js";
@@ -16,6 +16,7 @@ import {
   composeBody,
   shouldRegister,
   applyExactTextEdit,
+  emailReferenceOutputSchema,
 } from "./shared.js";
 import {
   type BodyEditExpectation,
@@ -45,7 +46,7 @@ export function registerComposeTools(
       provider: EmailProvider,
       account: AccountRecord,
       msg: SendInput,
-    ) => Promise<{ id: string }>,
+    ) => Promise<EmailReference>,
     resultKey: string,
     toolName: string,
   ) {
@@ -131,6 +132,15 @@ export function registerComposeTools(
       if (toolName === "draft_email" && res.id) {
         try {
           const draft = await provider.readEmail(account, res.id);
+          // Readback is the authoritative representation of the saved draft.
+          // Its link may differ from the mutation response after provider-side moves.
+          result.id = draft.id;
+          delete result.webUrl;
+          delete result.webUrlUnavailableReason;
+          if (draft.webUrl !== undefined) result.webUrl = draft.webUrl;
+          if (draft.webUrlUnavailableReason !== undefined) {
+            result.webUrlUnavailableReason = draft.webUrlUnavailableReason;
+          }
           result.draftHtml = draft.bodyHtml;
           logger?.debug("compose", "draftReadbackSuccess", {
             tool: toolName,
@@ -167,7 +177,7 @@ export function registerComposeTools(
 
   const sendEmailOutputSchema = {
     sent: z.literal(true),
-    id: z.string(),
+    ...emailReferenceOutputSchema.shape,
   };
 
   if (shouldRegister("send_email", tools)) {
@@ -184,6 +194,8 @@ export function registerComposeTools(
           "When `forwardMessageId` is set, sends as a forward of the " +
           "specified message, preserving the original content. " +
           "`inReplyTo` and `forwardMessageId` are mutually exclusive. " +
+          "Returns the resulting message's shareable `webUrl` when available; " +
+          "recipients must have access to the mailbox to open it. " +
           "Disabled in --read-only mode.",
         inputSchema: sendEmailSchema,
         outputSchema: sendEmailOutputSchema,
@@ -202,7 +214,7 @@ export function registerComposeTools(
 
   const draftEmailOutputSchema = {
     draft: z.literal(true),
-    id: z.string(),
+    ...emailReferenceOutputSchema.shape,
     draftHtml: z.string().optional(),
     warning: z.string().optional(),
     draftReadbackError: z.string().optional(),
@@ -221,8 +233,9 @@ export function registerComposeTools(
           "HTML body content (`draftHtml`). Before sending the draft, " +
           "inspect `draftHtml` to verify the draft looks correct: no " +
           "duplicate signature blocks, no broken or missing inline images, " +
-          "no malformed HTML, and no other formatting issues. " +
-          "Disabled in --read-only mode.",
+          "no malformed HTML, and no other formatting issues. Returns the " +
+          "draft's shareable `webUrl` when available; recipients must have " +
+          "access to the mailbox to open it. Disabled in --read-only mode.",
         inputSchema: sendEmailSchema,
         outputSchema: draftEmailOutputSchema,
       },
@@ -240,7 +253,7 @@ export function registerComposeTools(
 
   const editDraftOutputSchema = {
     edited: z.literal(true),
-    id: z.string(),
+    ...emailReferenceOutputSchema.shape,
     draftHtml: z.string().optional(),
   };
 
@@ -259,8 +272,9 @@ export function registerComposeTools(
           "Returns the draft ID and the draft's updated HTML body content " +
           "(`draftHtml`). Before sending, inspect `draftHtml` to verify the draft looks correct. " +
           "Does not support changing `inReplyTo` or `forwardMessageId` — " +
-          "those are set at creation time via `draft_email`. " +
-          "Disabled in --read-only mode.",
+          "those are set at creation time via `draft_email`. Returns the " +
+          "draft's shareable `webUrl` when available; recipients must have " +
+          "access to the mailbox to open it. Disabled in --read-only mode.",
         inputSchema: editDraftSchema,
         outputSchema: editDraftOutputSchema,
       },
@@ -325,6 +339,7 @@ export function registerComposeTools(
             bodyPayload !== undefined;
 
           let currentId = a.id;
+          let mutationReference: EmailReference = { id: currentId };
           if (hasDraftUpdate) {
             const res = await provider.updateDraft(account, currentId, {
               to: a.to,
@@ -335,6 +350,7 @@ export function registerComposeTools(
               isHtml: isHtmlPayload,
             });
             currentId = res.id;
+            mutationReference = res;
           }
 
           // Handle new attachments
@@ -353,6 +369,7 @@ export function registerComposeTools(
                 contentType,
               );
               currentId = attRes.id;
+              mutationReference = { ...mutationReference, id: currentId };
               newAttachmentIds.push(attRes.attachment.id);
             }
           }
@@ -385,6 +402,7 @@ export function registerComposeTools(
                 isHtml: isHtmlPayload,
               });
               currentId = res.id;
+              mutationReference = res;
               draft = await readDraftWithVerifiedBody(
                 provider,
                 account,
@@ -400,13 +418,28 @@ export function registerComposeTools(
               );
             }
           } else {
-            draft = await provider.readEmail(account, currentId);
+            try {
+              draft = await provider.readEmail(account, currentId);
+            } catch {
+              // Attachment-only and recipient-only edits do not require body
+              // verification; return the mutation reference when readback fails.
+              draft = undefined;
+            }
           }
 
+          const reference = draft
+            ? {
+                id: draft.id,
+                ...(draft.webUrl !== undefined ? { webUrl: draft.webUrl } : {}),
+                ...(draft.webUrlUnavailableReason !== undefined
+                  ? { webUrlUnavailableReason: draft.webUrlUnavailableReason }
+                  : {}),
+              }
+            : mutationReference;
           const result = {
             edited: true as const,
-            id: currentId,
-            draftHtml: draft.bodyHtml ?? "",
+            ...reference,
+            ...(draft ? { draftHtml: draft.bodyHtml ?? "" } : {}),
           };
           return ok(result, result);
         } catch (err) {
@@ -420,7 +453,7 @@ export function registerComposeTools(
 
   const sendDraftOutputSchema = {
     sent: z.literal(true),
-    id: z.string(),
+    ...emailReferenceOutputSchema.shape,
   };
 
   if (shouldRegister("send_draft", tools)) {
@@ -430,6 +463,8 @@ export function registerComposeTools(
         description:
           "Send an existing draft email by ID. " +
           "Use this with draft IDs returned by `draft_email` or `edit_draft`. " +
+          "Returns the resulting message's shareable `webUrl` when available; " +
+          "recipients must have access to the mailbox to open it. " +
           "Disabled in --read-only mode.",
         inputSchema: {
           account: z.string().email(),
@@ -441,7 +476,7 @@ export function registerComposeTools(
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
           const res = await provider.sendDraft(account, args.id);
-          const data = { sent: true as const, id: res.id };
+          const data = { sent: true as const, ...res };
           return ok(data, data);
         } catch (err) {
           return fail(errMsg(err));

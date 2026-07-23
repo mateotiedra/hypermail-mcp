@@ -8,6 +8,7 @@ import type {
   CreateFolderInput,
   DraftUpdateInput,
   EmailAddress,
+  EmailReference,
   FolderInfo,
   SendInput,
 } from "../types.js";
@@ -20,6 +21,7 @@ import {
   mapFolder,
   mapHeaderAddr,
   findHeader,
+  gmailMessageWebLink,
   resolveLabel,
   resolveLabelsForMove,
 } from "./helpers.js";
@@ -32,7 +34,7 @@ export async function sendEmail(
   clients: GmailClientFactory,
   account: AccountRecord,
   msg: SendInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
 
   let threadId: string | undefined;
@@ -90,14 +92,15 @@ export async function sendEmail(
     },
   });
 
-  return { id: sendRes.data.id ?? "" };
+  const messageId = sendRes.data.id;
+  return { id: messageId ?? "", ...gmailMessageWebLink(account, messageId) };
 }
 
 export async function saveDraft(
   clients: GmailClientFactory,
   account: AccountRecord,
   msg: SendInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
   const { raw } = await buildRawMessage(account, msg);
 
@@ -122,7 +125,11 @@ export async function saveDraft(
     },
   });
 
-  return { id: draftRes.data.message?.id ?? draftRes.data.id ?? "" };
+  const messageId = draftRes.data.message?.id;
+  return {
+    id: messageId ?? draftRes.data.id ?? "",
+    ...gmailMessageWebLink(account, messageId),
+  };
 }
 
 export async function updateDraft(
@@ -130,7 +137,7 @@ export async function updateDraft(
   account: AccountRecord,
   id: string,
   update: DraftUpdateInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
 
   const draftRes = await gmail.users.drafts.get({
@@ -178,7 +185,11 @@ export async function updateDraft(
     },
   });
 
-  return { id: updated.data.message?.id ?? updated.data.id ?? id };
+  const messageId = updated.data.message?.id;
+  return {
+    id: messageId ?? updated.data.id ?? id,
+    ...gmailMessageWebLink(account, messageId),
+  };
 }
 
 export function isTrashDestination(destinationId: string): boolean {
@@ -191,7 +202,7 @@ export async function moveEmail(
   account: AccountRecord,
   id: string,
   destinationId: string,
-): Promise<void> {
+): Promise<EmailReference> {
   if (isTrashDestination(destinationId)) {
     return trashEmail(clients, account, id);
   }
@@ -205,31 +216,38 @@ export async function moveEmail(
     id,
     requestBody: { addLabelIds, removeLabelIds },
   });
+  return { id, ...gmailMessageWebLink(account, id) };
 }
 
 export async function trashEmail(
   clients: GmailClientFactory,
   account: AccountRecord,
   id: string,
-): Promise<void> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
-  await gmail.users.messages.trash({
+  const res = await gmail.users.messages.trash({
     userId: "me",
     id,
   });
+  const messageId = res.data.id ?? id;
+  return { id: messageId, ...gmailMessageWebLink(account, messageId) };
 }
 
 export async function sendDraft(
   clients: GmailClientFactory,
   account: AccountRecord,
   id: string,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
   const res = await gmail.users.drafts.send({
     userId: "me",
     requestBody: { id },
   });
-  return { id: res.data.id ?? id };
+  const messageId = res.data.id;
+  return {
+    id: messageId ?? id,
+    ...gmailMessageWebLink(account, messageId),
+  };
 }
 
 export async function addAttachmentToDraft(
@@ -433,7 +451,7 @@ export async function markRead(
   account: AccountRecord,
   id: string,
   isRead: boolean,
-): Promise<void> {
+): Promise<EmailReference> {
   const { gmail } = clients.get(account);
   await gmail.users.messages.modify({
     userId: "me",
@@ -443,6 +461,7 @@ export async function markRead(
       addLabelIds: isRead ? undefined : ["UNREAD"],
     },
   });
+  return { id, ...gmailMessageWebLink(account, id) };
 }
 
 export async function createFolder(

@@ -43,6 +43,29 @@ describe("GmailProvider", () => {
     });
   });
 
+  it("returns account-encoded native links through the provider read boundary", async () => {
+    const store = {} as AccountStore;
+    const provider = new GmailProvider({ store, clientId: "client-id" });
+    const get = vi.fn().mockResolvedValue({
+      data: { payload: { headers: [{ name: "Subject", value: "Subject" }] } },
+    });
+    (provider as unknown as { clients: GmailClientFactory }).clients = {
+      get: () => ({ gmail: { users: { messages: { get } } } }),
+    } as unknown as GmailClientFactory;
+    const account: AccountRecord = {
+      email: "user+tag@example.com",
+      provider: "gmail",
+      tokens: {},
+      addedAt: "2026-01-01T00:00:00.000Z",
+    };
+
+    const result = await provider.readEmail(account, "message-1");
+
+    expect(result.webUrl).toBe(
+      "https://mail.google.com/mail/u/?authuser=user%2Btag%40example.com#all/message-1",
+    );
+  });
+
   it("replaces a cached client after reauthorization persists fresh tokens", async () => {
     const store = {
       upsertAccount: vi.fn(async (account: AccountRecord) => ({

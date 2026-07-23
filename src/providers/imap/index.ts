@@ -9,6 +9,7 @@ import type {
   CreateFolderInput,
   DraftUpdateInput,
   EmailFull,
+  EmailReference,
   EmailProvider,
   EmailSummary,
   FolderInfo,
@@ -89,27 +90,27 @@ export class ImapProvider implements EmailProvider {
 
   // ---------- compose ----------
 
-  async sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+  async sendEmail(account: AccountRecord, msg: SendInput): Promise<EmailReference> {
     return sendEmail(this.clients, account, msg);
   }
 
-  async saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+  async saveDraft(account: AccountRecord, msg: SendInput): Promise<EmailReference> {
     return saveDraft(this.clients, account, msg);
   }
 
-  async updateDraft(account: AccountRecord, id: string, update: DraftUpdateInput): Promise<{ id: string }> {
+  async updateDraft(account: AccountRecord, id: string, update: DraftUpdateInput): Promise<EmailReference> {
     return updateDraft(this.clients, account, id, update);
   }
 
-  async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void> {
+  async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<EmailReference> {
     return moveEmail(this.clients, account, id, destinationId);
   }
 
-  async trashEmail(account: AccountRecord, id: string): Promise<void> {
+  async trashEmail(account: AccountRecord, id: string): Promise<EmailReference> {
     return trashEmail(this.clients, account, id);
   }
 
-  async sendDraft(account: AccountRecord, id: string): Promise<{ id: string }> {
+  async sendDraft(account: AccountRecord, id: string): Promise<EmailReference> {
     return sendDraft(this.clients, account, id);
   }
 
@@ -133,7 +134,7 @@ export class ImapProvider implements EmailProvider {
 
   // ---------- organize ----------
 
-  async markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void> {
+  async markRead(account: AccountRecord, id: string, isRead: boolean): Promise<EmailReference> {
     return markRead(this.clients, account, id, isRead);
   }
 

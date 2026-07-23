@@ -595,4 +595,33 @@ describe("get_new_emails", () => {
     expect(email.bodyOriginalLength).toBe(20_001);
     expect(email.attachments).toEqual([{ id: "att-1", name: "file.txt", size: 12 }]);
   });
+
+  it("copies each hydrated email's native link or unavailable reason into the batch", async () => {
+    const acct = account("a@example.com", {
+      receivedAt: "2026-01-01T00:00:00.000Z",
+      deliveredIdsAtReceivedAt: [],
+    });
+    const store = memoryStore([acct]);
+    const prov = provider([
+      {
+        ...summary("linked", "2026-01-03T00:00:00.000Z"),
+        webUrl: "https://outlook.office.com/mail/linked",
+      },
+      {
+        ...summary("imap", "2026-01-02T00:00:00.000Z"),
+        webUrlUnavailableReason: "IMAP does not expose native web links.",
+      },
+    ]);
+    const handler = registerHandler(store, registry([acct], { [acct.email]: prov }));
+
+    const data = structured(await handler({ account: acct.email }));
+
+    expect(data.emails).toMatchObject([
+      {
+        id: "imap",
+        webUrlUnavailableReason: "IMAP does not expose native web links.",
+      },
+      { id: "linked", webUrl: "https://outlook.office.com/mail/linked" },
+    ]);
+  });
 });

@@ -3,7 +3,13 @@ import { z } from "zod";
 
 import type { Registry } from "../providers/registry.js";
 import type { ResolvedTools } from "../config.js";
-import { ok, fail, errMsg, shouldRegister } from "./shared.js";
+import {
+  ok,
+  fail,
+  errMsg,
+  emailReferenceOutputSchema,
+  shouldRegister,
+} from "./shared.js";
 
 export function registerOrganizeTools(
   server: McpServer,
@@ -23,8 +29,8 @@ export function registerOrganizeTools(
     resultKey: string,
   ) {
     const { provider, account } = registry.resolveByEmail(args.account);
-    await provider.moveEmail(account, args.id, destination);
-    const data: Record<string, unknown> = { id: args.id };
+    const reference = await provider.moveEmail(account, args.id, destination);
+    const data: Record<string, unknown> = { ...reference };
     data[resultKey] = true;
     return ok(data, data);
   }
@@ -34,15 +40,15 @@ export function registerOrganizeTools(
     isRead: boolean,
   ) {
     const { provider, account } = registry.resolveByEmail(args.account);
-    await provider.markRead(account, args.id, isRead);
-    const data = { marked: true as const, id: args.id, isRead };
+    const reference = await provider.markRead(account, args.id, isRead);
+    const data = { marked: true as const, ...reference, isRead };
     return ok(data, data);
   }
 
   async function trashMessage(args: { account: string; id: string }) {
     const { provider, account } = registry.resolveByEmail(args.account);
-    await provider.trashEmail(account, args.id);
-    const data = { trashed: true as const, id: args.id };
+    const reference = await provider.trashEmail(account, args.id);
+    const data = { trashed: true as const, ...reference };
     return ok(data, data);
   }
 
@@ -53,9 +59,8 @@ export function registerOrganizeTools(
     id: z.string().min(1).describe("Message ID to move"),
   });
 
-  const archiveOutputSchema = z.object({
+  const archiveOutputSchema = emailReferenceOutputSchema.extend({
     archived: z.literal(true),
-    id: z.string(),
   });
 
   if (shouldRegister("archive_email", tools)) {
@@ -63,7 +68,9 @@ export function registerOrganizeTools(
       "archive_email",
       {
         description:
-          "Move a message to the Archive folder. Disabled in --read-only mode.",
+          "Move a message to the Archive folder. Returns `webUrl`, the shareable native web-client " +
+          "link for the post-operation message; it may be omitted with `webUrlUnavailableReason`. " +
+          "Disabled in --read-only mode.",
         inputSchema: archiveMoveSchema,
         outputSchema: archiveOutputSchema,
       },
@@ -79,9 +86,8 @@ export function registerOrganizeTools(
 
   // ---------- trash ----------
 
-  const trashOutputSchema = z.object({
+  const trashOutputSchema = emailReferenceOutputSchema.extend({
     trashed: z.literal(true),
-    id: z.string(),
   });
 
   if (shouldRegister("trash_email", tools)) {
@@ -89,7 +95,9 @@ export function registerOrganizeTools(
       "trash_email",
       {
         description:
-          "Move a message to the Deleted Items (trash) folder. Disabled in --read-only mode.",
+          "Move a message to the Deleted Items (trash) folder. Returns `webUrl`, the shareable native " +
+          "web-client link for the post-operation message; it may be omitted with " +
+          "`webUrlUnavailableReason`. Disabled in --read-only mode.",
         inputSchema: archiveMoveSchema,
         outputSchema: trashOutputSchema,
       },
@@ -105,9 +113,8 @@ export function registerOrganizeTools(
 
   // ---------- move ----------
 
-  const moveEmailOutputSchema = z.object({
+  const moveEmailOutputSchema = emailReferenceOutputSchema.extend({
     moved: z.literal(true),
-    id: z.string(),
     destination: z.string(),
   });
 
@@ -118,7 +125,8 @@ export function registerOrganizeTools(
         description:
           "Move a message to any folder by well-known name (e.g. 'inbox', 'drafts', " +
           "'junkemail', 'sentitems', 'outbox') or custom folder ID. " +
-          "Disabled in --read-only mode.",
+          "Returns `webUrl`, the shareable native web-client link for the post-operation message; " +
+          "it may be omitted with `webUrlUnavailableReason`. Disabled in --read-only mode.",
         inputSchema: z.object({
           account: z.string().email(),
           id: z.string().min(1).describe("Message ID to move"),
@@ -136,10 +144,10 @@ export function registerOrganizeTools(
       async (args) => {
         try {
           const { provider, account } = registry.resolveByEmail(args.account);
-          await provider.moveEmail(account, args.id, args.destination);
+          const reference = await provider.moveEmail(account, args.id, args.destination);
           const data = {
             moved: true as const,
-            id: args.id,
+            ...reference,
             destination: args.destination,
           };
           return ok(data, data);
@@ -157,9 +165,8 @@ export function registerOrganizeTools(
     id: z.string().min(1).describe("Message ID to mark as read"),
   });
 
-  const markReadOutputSchema = z.object({
+  const markReadOutputSchema = emailReferenceOutputSchema.extend({
     marked: z.literal(true),
-    id: z.string(),
     isRead: z.boolean(),
   });
 
@@ -168,7 +175,9 @@ export function registerOrganizeTools(
       "mark_read",
       {
         description:
-          "Mark a message as read. Disabled in --read-only mode.",
+          "Mark a message as read. Returns `webUrl`, the shareable native web-client link for the " +
+          "post-operation message; it may be omitted with `webUrlUnavailableReason`. " +
+          "Disabled in --read-only mode.",
         inputSchema: markReadInputSchema,
         outputSchema: markReadOutputSchema,
       },
@@ -187,7 +196,9 @@ export function registerOrganizeTools(
       "mark_unread",
       {
         description:
-          "Mark a message as unread. Disabled in --read-only mode.",
+          "Mark a message as unread. Returns `webUrl`, the shareable native web-client link for the " +
+          "post-operation message; it may be omitted with `webUrlUnavailableReason`. " +
+          "Disabled in --read-only mode.",
         inputSchema: markReadInputSchema,
         outputSchema: markReadOutputSchema,
       },

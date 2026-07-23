@@ -7,7 +7,7 @@ import type { Registry } from "../providers/registry.js";
 import type { AccountRecord, AccountStore } from "../store/account-store.js";
 
 const tools: ResolvedTools = {
-  enabledTools: new Set(["search_emails"]),
+  enabledTools: new Set(["list_emails", "search_emails", "read_email", "read_attachment"]),
   disabledTools: null,
 };
 
@@ -81,6 +81,31 @@ function registerHandler(store: AccountStore, reg: Registry): Handler {
 
 function structured(result: unknown): Record<string, unknown> {
   return (result as { structuredContent: Record<string, unknown> }).structuredContent;
+}
+
+function registerBrowseHandler(
+  name: string,
+  store: AccountStore,
+  reg: Registry,
+): (args: Record<string, unknown>) => Promise<unknown> {
+  let handler: ((args: Record<string, unknown>) => Promise<unknown>) | undefined;
+  let inputSchema: { parse(input: unknown): Record<string, unknown> } | undefined;
+  const server = {
+    registerTool: vi.fn((registeredName: string, config: {
+      inputSchema: { parse(input: unknown): Record<string, unknown> };
+    }, cb: (args: Record<string, unknown>) => Promise<unknown>) => {
+      if (registeredName === name) {
+        handler = cb;
+        inputSchema = config.inputSchema;
+      }
+    }),
+  };
+
+  registerBrowseTools(server as never, { store, registry: reg, tools });
+  if (!handler || !inputSchema) throw new Error(`${name} was not registered`);
+  const registeredHandler = handler;
+  const registeredSchema = inputSchema;
+  return (args) => registeredHandler(registeredSchema.parse(args));
 }
 
 describe("search_emails", () => {
@@ -234,6 +259,98 @@ describe("search_emails", () => {
       content: [
         { type: "text", text: "no accounts registered. Call add_account first." },
       ],
+    });
+  });
+
+  it("preserves a native web link on each multi-account search result", async () => {
+    const a = account("a@example.com");
+    const b = account("b@example.com");
+    const providerA = provider([{ ...summary("a1"), webUrl: "https://outlook.office.com/mail/a1" }]);
+    const providerB = provider([{ ...summary("b1"), webUrlUnavailableReason: "IMAP does not expose native web links." }]);
+    const handler = registerHandler(store([a, b]), registry([a, b], {
+      [a.email]: providerA,
+      [b.email]: providerB,
+    }));
+
+    const data = structured(await handler({ query: "invoice" }));
+
+    expect(data.items).toEqual([
+      { id: "a1", subject: "a1", webUrl: "https://outlook.office.com/mail/a1", account: a.email },
+      { id: "b1", subject: "b1", webUrlUnavailableReason: "IMAP does not expose native web links.", account: b.email },
+    ]);
+  });
+});
+
+describe("browse web links", () => {
+  it("preserves repeated unavailable reasons for every IMAP-style list item", async () => {
+    const acct = account("imap@example.com");
+    const reason = "IMAP does not expose native web links.";
+    const prov = {
+      id: "imap",
+      listEmails: vi.fn(async () => ({
+        items: [
+          { ...summary("1"), webUrlUnavailableReason: reason },
+          { ...summary("2"), webUrlUnavailableReason: reason },
+        ],
+        hasMore: false,
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerBrowseHandler("list_emails", store([acct]), registry([acct], { [acct.email]: prov }));
+
+    const data = structured(await handler({ account: acct.email }));
+
+    expect(data.items).toEqual([
+      { id: "1", subject: "1", webUrlUnavailableReason: reason },
+      { id: "2", subject: "2", webUrlUnavailableReason: reason },
+    ]);
+  });
+
+  it("includes the native link on a full email read", async () => {
+    const acct = account("a@example.com");
+    const prov = {
+      id: "outlook",
+      readEmail: vi.fn(async () => ({
+        id: "message-1",
+        subject: "Hello",
+        bodyText: "Body",
+        webUrl: "https://outlook.office.com/mail/message-1",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerBrowseHandler("read_email", store([acct]), registry([acct], { [acct.email]: prov }));
+
+    const data = structured(await handler({ account: acct.email, id: "message-1" }));
+
+    expect(data).toMatchObject({
+      id: "message-1",
+      webUrl: "https://outlook.office.com/mail/message-1",
+      body: "Body",
+    });
+  });
+
+  it("includes the parent message link on an attachment result", async () => {
+    const acct = account("a@example.com");
+    const prov = {
+      id: "outlook",
+      readAttachment: vi.fn(async () => ({
+        name: "report.pdf",
+        contentType: "application/pdf",
+        path: "/tmp/report.pdf",
+        webUrl: "https://outlook.office.com/mail/message-1",
+      })),
+    } as unknown as EmailProvider;
+    const handler = registerBrowseHandler("read_attachment", store([acct]), registry([acct], { [acct.email]: prov }));
+
+    const data = structured(await handler({
+      account: acct.email,
+      messageId: "message-1",
+      attachmentId: "attachment-1",
+    }));
+
+    expect(data).toEqual({
+      name: "report.pdf",
+      contentType: "application/pdf",
+      path: "/tmp/report.pdf",
+      webUrl: "https://outlook.office.com/mail/message-1",
     });
   });
 });

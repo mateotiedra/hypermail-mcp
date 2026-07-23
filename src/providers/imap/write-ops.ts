@@ -7,6 +7,7 @@ import MailComposer from "nodemailer/lib/mail-composer/index.js";
 
 import type {
   DraftUpdateInput,
+  EmailReference,
   SendInput,
 } from "../types.js";
 import { ImapClientFactory } from "./client.js";
@@ -21,6 +22,7 @@ import {
   decodeId,
   encodeId,
   isTrashFolderAlias,
+  webLinkUnavailableReference,
   resolveDraftMailbox,
   resolveFolder,
   resolveTrashMailbox,
@@ -37,7 +39,7 @@ export async function sendEmail(
   clients: ImapClientFactory,
   account: AccountRecord,
   msg: SendInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const transporter = client.getTransporter();
   const mailOptions = await buildMailOptions(client, account, msg);
@@ -53,14 +55,14 @@ export async function sendEmail(
     /* best-effort */
   }
 
-  return { id: info.messageId };
+  return webLinkUnavailableReference(info.messageId);
 }
 
 export async function saveDraft(
   clients: ImapClientFactory,
   account: AccountRecord,
   msg: SendInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const rawMsg = await buildRawMessage(client, account, msg, undefined, true);
   let folder = "Drafts";
@@ -69,7 +71,7 @@ export async function saveDraft(
       folder = resolveDraftMailbox((await imap.list()) as Iterable<ImapMailboxEntry>);
       return appendDraft(imap, folder, rawMsg);
     });
-    return { id: encodeId(folder, appendUid(result, folder)) };
+    return webLinkUnavailableReference(encodeId(folder, appendUid(result, folder)));
   } catch (err) {
     throw imapOperationError(`failed to save IMAP draft to ${folder}`, err);
   }
@@ -80,7 +82,7 @@ export async function updateDraft(
   account: AccountRecord,
   id: string,
   update: DraftUpdateInput,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
 
@@ -149,7 +151,7 @@ export async function updateDraft(
       }
 
       await imap.messageDelete(uid, { uid: true });
-      return { id: encodeId(folder, appendedUid) };
+      return webLinkUnavailableReference(encodeId(folder, appendedUid));
     });
   } catch (err) {
     throw imapOperationError(`failed to update IMAP draft ${id}`, err);
@@ -161,7 +163,7 @@ export async function moveEmail(
   account: AccountRecord,
   id: string,
   destinationId: string,
-): Promise<void> {
+): Promise<EmailReference> {
   if (isTrashFolderAlias(destinationId)) {
     return trashEmail(clients, account, id);
   }
@@ -171,7 +173,8 @@ export async function moveEmail(
   const dest = resolveFolder(destinationId);
 
   return client.withMailbox(folder, async (imap) => {
-    await imap.messageMove(uid, dest, { uid: true });
+    const result = await imap.messageMove(uid, dest, { uid: true });
+    return movedMessageReference(result, dest, id, uid);
   });
 }
 
@@ -179,7 +182,7 @@ export async function trashEmail(
   clients: ImapClientFactory,
   account: AccountRecord,
   id: string,
-): Promise<void> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
   const dest = await client.run(async (imap) =>
@@ -187,7 +190,8 @@ export async function trashEmail(
   );
 
   return client.withMailbox(folder, async (lockedImap) => {
-    await lockedImap.messageMove(uid, dest, { uid: true });
+    const result = await lockedImap.messageMove(uid, dest, { uid: true });
+    return movedMessageReference(result, dest, id, uid);
   });
 }
 
@@ -195,7 +199,7 @@ export async function sendDraft(
   clients: ImapClientFactory,
   account: AccountRecord,
   id: string,
-): Promise<{ id: string }> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
 
@@ -223,7 +227,7 @@ export async function sendDraft(
       /* best-effort */
     }
 
-    return { id: info.messageId };
+    return webLinkUnavailableReference(info.messageId);
   });
 }
 
@@ -335,7 +339,7 @@ export async function markRead(
   account: AccountRecord,
   id: string,
   isRead: boolean,
-): Promise<void> {
+): Promise<EmailReference> {
   const client = clients.get(account);
   const { folder, uid } = decodeId(id);
 
@@ -345,7 +349,24 @@ export async function markRead(
     } else {
       await imap.messageFlagsRemove(uid, ["\\Seen"], { uid: true });
     }
+    return webLinkUnavailableReference(id);
   });
+}
+
+function movedMessageReference(
+  result: unknown,
+  destination: string,
+  fallbackId: string,
+  sourceUid: number,
+): EmailReference {
+  const uidMap = result && typeof result === "object"
+    ? (result as { uidMap?: unknown }).uidMap
+    : undefined;
+  const destinationUid = uidMap instanceof Map ? uidMap.get(sourceUid) : undefined;
+  const id = typeof destinationUid === "number" && destinationUid > 0
+    ? encodeId(destination, destinationUid)
+    : fallbackId;
+  return webLinkUnavailableReference(id);
 }
 
 async function appendDraft(

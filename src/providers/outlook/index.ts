@@ -8,6 +8,7 @@ import type {
   CreateFolderInput,
   DraftUpdateInput,
   EmailFull,
+  EmailReference,
   EmailProvider,
   EmailSummary,
   FolderInfo,
@@ -176,11 +177,11 @@ export class OutlookProvider implements EmailProvider {
     return readAttachment(this.clients.get(account), account, messageId, attachmentId);
   }
 
-  async sendEmail(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+  async sendEmail(account: AccountRecord, msg: SendInput): Promise<EmailReference> {
     return sendOrSave(this.clients.get(account), account, msg, "send");
   }
 
-  async saveDraft(account: AccountRecord, msg: SendInput): Promise<{ id: string }> {
+  async saveDraft(account: AccountRecord, msg: SendInput): Promise<EmailReference> {
     return sendOrSave(this.clients.get(account), account, msg, "draft");
   }
 
@@ -188,19 +189,19 @@ export class OutlookProvider implements EmailProvider {
     account: AccountRecord,
     id: string,
     update: DraftUpdateInput,
-  ): Promise<{ id: string }> {
+  ): Promise<EmailReference> {
     return updateDraft(this.clients.get(account), account, id, update);
   }
 
-  async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<void> {
+  async moveEmail(account: AccountRecord, id: string, destinationId: string): Promise<EmailReference> {
     return moveEmail(this.clients.get(account), account, id, destinationId);
   }
 
-  async trashEmail(account: AccountRecord, id: string): Promise<void> {
+  async trashEmail(account: AccountRecord, id: string): Promise<EmailReference> {
     return moveEmail(this.clients.get(account), account, id, "deleteditems");
   }
 
-  async sendDraft(account: AccountRecord, id: string): Promise<{ id: string }> {
+  async sendDraft(account: AccountRecord, id: string): Promise<EmailReference> {
     return sendDraft(this.clients.get(account), account, id);
   }
 
@@ -229,7 +230,7 @@ export class OutlookProvider implements EmailProvider {
     return removeAttachmentFromDraft(this.clients.get(account), account, draftId, attachmentId);
   }
 
-  async markRead(account: AccountRecord, id: string, isRead: boolean): Promise<void> {
+  async markRead(account: AccountRecord, id: string, isRead: boolean): Promise<EmailReference> {
     return markRead(this.clients.get(account), account, id, isRead);
   }
 

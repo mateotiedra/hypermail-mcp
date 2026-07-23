@@ -12,6 +12,7 @@ import {
   errMsg,
   emailAddrOutputSchema,
   emailSummaryOutputSchema,
+  emailWebLinkOutputSchema,
   attachmentMetaOutputSchema,
   shouldRegister,
 } from "./shared.js";
@@ -56,7 +57,9 @@ export function registerBrowseTools(
       {
         description:
           "List recent emails in a folder of the given account. Pass the user's email " +
-          "address as `account`; the server routes to the correct backend automatically.",
+          "address as `account`; the server routes to the correct backend automatically. " +
+          "Each item may include `webUrl`, a user-shareable native-client link that requires mailbox access, " +
+          "or `webUrlUnavailableReason` when no link is available.",
         inputSchema: z.object({
           account: z.string().email(),
           folder: z.string().default("inbox").optional(),
@@ -114,7 +117,8 @@ export function registerBrowseTools(
         description:
           "Search emails using optional free text and address filters. `cc` searches both CC and BCC. " +
           "Supplied criteria are combined with AND. Pass `account` to search one account, or omit it " +
-          "to search all registered accounts in parallel.",
+          "to search all registered accounts in parallel. Each item may include `webUrl`, a user-shareable " +
+          "native-client link that requires mailbox access, or `webUrlUnavailableReason` when no link is available.",
         inputSchema: searchEmailsInputSchema,
         outputSchema: searchEmailsOutputSchema,
       },
@@ -197,6 +201,8 @@ export function registerBrowseTools(
     hasAttachments: z.boolean().optional(),
     folder: z.string().optional(),
     attachments: z.array(attachmentMetaOutputSchema).optional(),
+    webUrl: z.string().url().optional(),
+    webUrlUnavailableReason: z.string().optional(),
     body: z.string(),
     bodyFormat: z.enum(["markdown", "html", "text"]),
   });
@@ -208,7 +214,9 @@ export function registerBrowseTools(
         description:
           "Fetch a single email with full body and recipients by id. " +
           "Body is returned as `body` with `bodyFormat` indicating the format. " +
-          "Default format is 'markdown' — HTML is automatically converted to save context tokens.",
+          "Default format is 'markdown' — HTML is automatically converted to save context tokens. " +
+          "The response may include `webUrl`, a user-shareable native-client link that requires mailbox access, " +
+          "or `webUrlUnavailableReason` when no link is available.",
         inputSchema: z.object({
           account: z.string().email(),
           id: z.string().min(1),
@@ -242,6 +250,8 @@ export function registerBrowseTools(
             hasAttachments: msg.hasAttachments,
             folder: msg.folder,
             attachments: msg.attachments,
+            webUrl: msg.webUrl,
+            webUrlUnavailableReason: msg.webUrlUnavailableReason,
             body,
             bodyFormat: format,
           };
@@ -253,7 +263,7 @@ export function registerBrowseTools(
     );
   }
 
-  const readAttachmentOutputSchema = z.object({
+  const readAttachmentOutputSchema = emailWebLinkOutputSchema.extend({
     name: z.string(),
     contentType: z.string().optional(),
     path: z.string(),
@@ -265,7 +275,9 @@ export function registerBrowseTools(
       {
         description:
           "Download an email attachment to a temporary file and return its path. " +
-          "Use messageId and attachmentId from a prior read_email call.",
+          "Use messageId and attachmentId from a prior read_email call. The response may include the parent " +
+          "message's `webUrl`, a user-shareable native-client link that requires mailbox access, or " +
+          "`webUrlUnavailableReason` when no link is available.",
         inputSchema: z.object({
           account: z.string().email(),
           messageId: z.string().min(1),

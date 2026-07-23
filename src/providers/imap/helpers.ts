@@ -54,6 +54,14 @@ export function resolveDraftMailbox(
 
 // ---------- generic ----------
 
+/** Generic IMAP does not expose a provider-native web client URL. */
+export const IMAP_WEB_URL_UNAVAILABLE_REASON =
+  "Web links are unavailable for generic IMAP accounts.";
+
+export function webLinkUnavailableReference(id: string) {
+  return { id, webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON };
+}
+
 export function clampLimit(v: number | undefined, dflt: number, max: number): number {
   if (!v || v <= 0) return dflt;
   return Math.min(v, max);
@@ -189,6 +197,7 @@ export function mapSummary(
     receivedAt: envelope.date ? envelope.date.toISOString() : undefined,
     isRead: flags.has("\\Seen"),
     folder,
+    webUrlUnavailableReason: IMAP_WEB_URL_UNAVAILABLE_REASON,
   };
 }
 

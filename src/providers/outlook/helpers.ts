@@ -1,5 +1,6 @@
 import { parseInlineImages } from "../shared/inline-images.js";
 import type { EmailAddress, EmailSummary, FolderInfo } from "../types.js";
+import { graphWebLinkFields } from "./web-links.js";
 
 export interface InlineAttachment {
   "@odata.type": string;
@@ -53,6 +54,8 @@ export interface GraphMessage {
   bodyPreview?: string;
   isRead?: boolean;
   hasAttachments?: boolean;
+  webLink?: string;
+  parentFolderId?: string;
   body?: { contentType?: "text" | "html"; content?: string };
 }
 
@@ -100,6 +103,7 @@ export function mapSummary(m: GraphMessage, folder?: string): EmailSummary {
     preview: m.bodyPreview,
     isRead: m.isRead,
     hasAttachments: m.hasAttachments,
+    ...graphWebLinkFields(m.webLink),
     folder,
   };
 }
